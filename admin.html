@@ -12,9 +12,7 @@ body {
   text-align: center;
   padding: 20px;
 }
-h1 {
-  color: forestgreen;
-}
+h1 { color: forestgreen; }
 .table-container {
   width: 90%;
   margin: 20px auto;
@@ -28,25 +26,16 @@ table {
   border-collapse: collapse;
   margin-top: 10px;
 }
-th, td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-th {
-  background-color: forestgreen;
-  color: white;
-}
+th, td { border: 1px solid #ddd; padding: 8px; }
+th { background-color: forestgreen; color: white; }
 tr:nth-child(even) {background-color: #f2f2f2;}
 </style>
 </head>
 <body>
 
 <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
-<p>Votes update automatically every few seconds...</p>
-
 <div id="resultsContainer"></div>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
   import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
@@ -73,31 +62,27 @@ tr:nth-child(even) {background-color: #f2f2f2;}
       return;
     }
 
-    // Count votes
     const totals = {};
     Object.values(data).forEach(vote => {
-      Object.entries(vote.votes).forEach(([position, candidate]) => {
-        if (!totals[position]) totals[position] = {};
-        if (!totals[position][candidate]) totals[position][candidate] = 0;
-        totals[position][candidate]++;
+      Object.entries(vote.votes).forEach(([pos, cand]) => {
+        if (!totals[pos]) totals[pos] = {};
+        if (!totals[pos][cand]) totals[pos][cand] = 0;
+        totals[pos][cand]++;
       });
     });
 
-    // Display results
     let html = "";
     for (const [position, candidates] of Object.entries(totals)) {
-      html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Rank</th></tr>`;
-      const sorted = Object.entries(candidates).sort((a,b) => b[1] - a[1]);
-      sorted.forEach(([name, count], index) => {
-        const rank = index === 0 ? "👑 Leading" : `${index + 1}`;
-        html += `<tr><td>${name}</td><td>${count}</td><td>${rank}</td></tr>`;
+      html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th></tr>`;
+      const sorted = Object.entries(candidates).sort((a,b)=>b[1]-a[1]);
+      sorted.forEach(([name,count],i)=>{
+        const status = i===0 ? "👑 Leading" : "";
+        html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td></tr>`;
       });
       html += "</table></div>";
     }
-
     document.getElementById("resultsContainer").innerHTML = html;
   });
 </script>
-
 </body>
 </html>
