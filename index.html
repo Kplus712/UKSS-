@@ -1,58 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UMOJA KING'ORI VOTING SYSTEM</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <h1>🗳️ UMOJA KING'ORI SECONDARY SCHOOL VOTING SYSTEM</h1>
-    <p>Welcome! Please fill your details below to proceed to voting.</p>
-  </header>
-
-  <main>
-    <div class="login-box">
-      <h2>Voter Information</h2>
-      <form id="loginForm">
-        <input type="text" id="firstName" placeholder="First Name" required><br>
-        <input type="text" id="middleName" placeholder="Middle Name" required><br>
-        <input type="text" id="lastName" placeholder="Last Name" required><br>
-
-        <label for="gender">Gender:</label><br>
-        <select id="gender" required>
-          <option value="">-- Select Gender --</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-        </select><br><br>
-
-        <label for="classSelect">Select Class:</label><br>
-        <select id="classSelect" required>
-          <option value="">-- Select Class --</option>
-          <option value="Form 1">Form 1</option>
-          <option value="Form 2">Form 2</option>
-          <option value="Form 3">Form 3</option>
-          <option value="Form 4">Form 4</option>
-        </select><br><br>
-
-        <button type="submit">Proceed to Vote</button>
-      </form>
-    </div>
-
-    <!-- Admin Login -->
-    <div style="text-align:center; margin-top:30px;">
-      <button onclick="adminLogin()" style="padding:10px 20px; background:forestgreen; color:white; border:none; border-radius:8px; cursor:pointer;">
-        🔐 Admin Login
-      </button>
-    </div>
-  </main>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UMOJA KING'ORI VOTING SYSTEM</title>
+  <link rel="stylesheet" href="style.css">
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-analytics.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
@@ -66,21 +23,45 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
   </script>
+</head>
 
-  <!-- Main Script -->
+<body>
+  <div class="container">
+    <h1>UMOJA KING'ORI SECONDARY SCHOOL</h1>
+    <h2>ONLINE VOTING SYSTEM</h2>
+
+    <form id="loginForm">
+      <label>First Name:</label>
+      <input type="text" id="firstName" required>
+
+      <label>Middle Name:</label>
+      <input type="text" id="middleName">
+
+      <label>Last Name:</label>
+      <input type="text" id="lastName" required>
+
+      <label>Class:</label>
+      <select id="class" required>
+        <option value="">Select Class</option>
+        <option value="Form One">Form One</option>
+        <option value="Form Two">Form Two</option>
+        <option value="Form Three">Form Three</option>
+        <option value="Form Four">Form Four</option>
+      </select>
+
+      <label>Gender:</label>
+      <select id="gender" required>
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+
+      <button type="submit" id="proceedBtn">Proceed to Vote</button>
+    </form>
+  </div>
+
   <script src="script.js"></script>
-
-  <script>
-    function adminLogin() {
-      const password = prompt("Enter Admin Password:");
-      if (password === "ukss2025") {
-        window.location.href = "admin.html";
-      } else if (password) {
-        alert("❌ Incorrect password!");
-      }
-    }
-  </script>
 </body>
 </html>
