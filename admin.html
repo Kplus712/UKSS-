@@ -1,88 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard - UKSS Voting Results</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4fff4;
-  color: #222;
-  text-align: center;
-  padding: 20px;
-}
-h1 { color: forestgreen; }
-.table-container {
-  width: 90%;
-  margin: 20px auto;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 15px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td { border: 1px solid #ddd; padding: 8px; }
-th { background-color: forestgreen; color: white; }
-tr:nth-child(even) {background-color: #f2f2f2;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - UKSS Voting</title>
+  <link rel="stylesheet" href="style.css">
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+      authDomain: "ukss-voting-system.firebaseapp.com",
+      databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+      projectId: "ukss-voting-system",
+      storageBucket: "ukss-voting-system.firebasestorage.app",
+      messagingSenderId: "525528255065",
+      appId: "1:525528255065:web:97c4e55d2984acc718bf48",
+      measurementId: "G-14ZV9E3X7C"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    window.db = db;
+  </script>
 </head>
+
 <body>
+  <div class="container">
+    <h1>ADMIN DASHBOARD</h1>
+    <button id="downloadCSV">Download Results (CSV)</button>
+    <button id="deleteVotes">Delete All Votes</button>
 
-<h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
-<div id="resultsContainer"></div>
+    <div id="resultsContainer"></div>
+  </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
-    authDomain: "ukss-voting-system.firebaseapp.com",
-    databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
-    projectId: "ukss-voting-system",
-    storageBucket: "ukss-voting-system.firebasestorage.app",
-    messagingSenderId: "525528255065",
-    appId: "1:525528255065:web:97c4e55d2984acc718bf48",
-    measurementId: "G-14ZV9E3X7C"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const votesRef = ref(db, "votes");
-
-  onValue(votesRef, (snapshot) => {
-    const data = snapshot.val();
-    if (!data) {
-      document.getElementById("resultsContainer").innerHTML = "<p>No votes yet.</p>";
-      return;
-    }
-
-    const totals = {};
-    Object.values(data).forEach(vote => {
-      Object.entries(vote.votes).forEach(([pos, cand]) => {
-        if (!totals[pos]) totals[pos] = {};
-        if (!totals[pos][cand]) totals[pos][cand] = 0;
-        totals[pos][cand]++;
-      });
-    });
-
-    let html = "";
-    for (const [position, candidates] of Object.entries(totals)) {
-      html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th></tr>`;
-      const sorted = Object.entries(candidates).sort((a,b)=>b[1]-a[1]);
-      sorted.forEach(([name,count],i)=>{
-        const status = i===0 ? "👑 Leading" : "";
-        html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td></tr>`;
-      });
-      html += "</table></div>";
-    }
-    document.getElementById("resultsContainer").innerHTML = html;
-  });
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
