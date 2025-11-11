@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Umoja King'ori Voting System</title>
+<style>
+body { font-family: Arial, sans-serif; background-color: #f0f8f0; margin:0; padding:0; }
+h1, h2 { color: forestgreen; text-align:center; }
+.container { margin: 20px auto; width: 90%; max-width: 700px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+input, select, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+.candidate { border: 1px solid #ccc; padding: 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; border-radius:5px; background:#f9f9f9; }
+.candidate img { width: 60px; height: 60px; border-radius: 50%; margin-right: 10px; }
+.vote-btn { background: forestgreen; color:#fff; border:none; padding:10px 20px; cursor:pointer; border-radius:5px; font-size:16px; }
+.vote-btn:hover { background: darkgreen; }
+</style>
+</head>
+<body>
+
+<h1>UMOJA KING'ORI VOTING SYSTEM</h1>
+
+<div id="loginPage" class="container">
+  <h2>Enter Your Details</h2>
+  <input type="text" id="firstName" placeholder="First Name">
+  <input type="text" id="middleName" placeholder="Middle Name">
+  <input type="text" id="lastName" placeholder="Second Name">
+  <select id="classSelect">
+    <option value="">Select Class</option>
+    <option value="Form 1">Form 1</option>
+    <option value="Form 2">Form 2</option>
+    <option value="Form 3">Form 3</option>
+    <option value="Form 4">Form 4</option>
+  </select>
+  <button class="vote-btn" onclick="startVoting()">Start Voting</button>
+</div>
+
+<div id="votingPage" class="container" style="display:none;">
+  <h2>Vote for Head Boy</h2>
+  <div id="headBoyCandidates"></div>
+
+  <h2>Vote for General Secretary</h2>
+  <div id="generalSecretaryCandidates"></div>
+
+  <button class="vote-btn" onclick="submitVote()">Submit Vote</button>
+</div>
+
+<div id="resultsPage" class="container" style="display:none;">
+  <h2>Voting Results</h2>
+  <div id="results"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
