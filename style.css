@@ -1,0 +1,70 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5fff5;
+  color: #222;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background: forestgreen;
+  color: white;
+  padding: 20px 10px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+input, select, button {
+  margin: 8px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+button {
+  background: forestgreen;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+
+button:hover {
+  background: darkgreen;
+}
+
+.position {
+  background: white;
+  margin: 20px auto;
+  width: 90%;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.candidates {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.candidates div {
+  width: 150px;
+  text-align: center;
+}
+
+.candidates img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid forestgreen;
+}
+
+.admin-btn {
+  padding: 10px 25px;
+  background: forestgreen;
+  color: white;
+  border-radius: 8px;
+}
