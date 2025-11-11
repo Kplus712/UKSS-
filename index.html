@@ -1,54 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Umoja King'ori Voting System</title>
-<style>
-body { font-family: Arial, sans-serif; background-color: #f0f8f0; margin:0; padding:0; }
-h1, h2 { color: forestgreen; text-align:center; }
-.container { margin: 20px auto; width: 90%; max-width: 700px; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
-input, select, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-.candidate { border: 1px solid #ccc; padding: 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; border-radius:5px; background:#f9f9f9; }
-.candidate img { width: 60px; height: 60px; border-radius: 50%; margin-right: 10px; }
-.vote-btn { background: forestgreen; color:#fff; border:none; padding:10px 20px; cursor:pointer; border-radius:5px; font-size:16px; }
-.vote-btn:hover { background: darkgreen; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UMOJA KING'ORI VOTING SYSTEM</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>UMOJA KING'ORI VOTING SYSTEM</h1>
+  <header>
+    <h1>🗳️ UMOJA KING'ORI VOTING SYSTEM</h1>
+    <p>Cast your vote wisely – Your choice matters!</p>
+  </header>
 
-<div id="loginPage" class="container">
-  <h2>Enter Your Details</h2>
-  <input type="text" id="firstName" placeholder="First Name">
-  <input type="text" id="middleName" placeholder="Middle Name">
-  <input type="text" id="lastName" placeholder="Second Name">
-  <select id="classSelect">
-    <option value="">Select Class</option>
-    <option value="Form 1">Form 1</option>
-    <option value="Form 2">Form 2</option>
-    <option value="Form 3">Form 3</option>
-    <option value="Form 4">Form 4</option>
-  </select>
-  <button class="vote-btn" onclick="startVoting()">Start Voting</button>
-</div>
+  <!-- === Login Form === -->
+  <section id="loginSection">
+    <h2>Enter Your Details</h2>
+    <input type="text" id="firstName" placeholder="First Name">
+    <input type="text" id="middleName" placeholder="Middle Name">
+    <input type="text" id="lastName" placeholder="Last Name">
 
-<div id="votingPage" class="container" style="display:none;">
-  <h2>Vote for Head Boy</h2>
-  <div id="headBoyCandidates"></div>
+    <select id="classSelect">
+      <option value="">Select Class</option>
+      <option value="Form One">Form One</option>
+      <option value="Form Two">Form Two</option>
+      <option value="Form Three">Form Three</option>
+      <option value="Form Four">Form Four</option>
+    </select>
 
-  <h2>Vote for General Secretary</h2>
-  <div id="generalSecretaryCandidates"></div>
+    <button onclick="openVoting()">Proceed to Voting</button>
+  </section>
 
-  <button class="vote-btn" onclick="submitVote()">Submit Vote</button>
-</div>
+  <!-- === Voting Section === -->
+  <section id="votingSection" style="display:none;">
+    <h2>Vote for Your Leaders</h2>
 
-<div id="resultsPage" class="container" style="display:none;">
-  <h2>Voting Results</h2>
-  <div id="results"></div>
-</div>
+    <!-- Head Boy/Girl -->
+    <div class="position">
+      <h3>Head Boy & Head Girl</h3>
+      <div class="candidates">
+        <div>
+          <img src="images/headboy1.jpg" alt="Head Boy 1">
+          <label><input type="radio" name="headBoyCandidates" value="John Michael"> John Michael</label>
+        </div>
+        <div>
+          <img src="images/headboy2.jpg" alt="Head Boy 2">
+          <label><input type="radio" name="headBoyCandidates" value="Peter Gabriel"> Peter Gabriel</label>
+        </div>
+        <div>
+          <img src="images/headgirl1.jpg" alt="Head Girl 1">
+          <label><input type="radio" name="headBoyCandidates" value="Mary Joseph"> Mary Joseph</label>
+        </div>
+        <div>
+          <img src="images/headgirl2.jpg" alt="Head Girl 2">
+          <label><input type="radio" name="headBoyCandidates" value="Agnes Daniel"> Agnes Daniel</label>
+        </div>
+      </div>
+    </div>
 
-<script src="script.js"></script>
+    <!-- General Secretary -->
+    <div class="position">
+      <h3>General Secretary</h3>
+      <div class="candidates">
+        <div>
+          <img src="images/sec_boy.jpg" alt="Secretary Boy">
+          <label><input type="radio" name="generalSecretaryCandidates" value="Joseph Simon"> Joseph Simon</label>
+        </div>
+        <div>
+          <img src="images/sec_girl.jpg" alt="Secretary Girl">
+          <label><input type="radio" name="generalSecretaryCandidates" value="Rosemary Peter"> Rosemary Peter</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Other Positions -->
+    <div class="position">
+      <h3>Other Leadership Positions</h3>
+      <ul>
+        <li>Sports Captain</li>
+        <li>Academic Prefect</li>
+        <li>Discipline Prefect</li>
+        <li>Health & Sanitation Prefect</li>
+        <li>Entertainment Prefect</li>
+      </ul>
+    </div>
+
+    <button onclick="submitVote()">Submit Vote</button>
+    <div id="results"></div>
+  </section>
+
+  <!-- Admin Login -->
+  <div style="text-align:center; margin-top:40px;">
+    <button onclick="adminLogin()" class="admin-btn">🔐 Admin Login</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+      authDomain: "ukss-voting-system.firebaseapp.com",
+      databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+      projectId: "ukss-voting-system",
+      storageBucket: "ukss-voting-system.firebasestorage.app",
+      messagingSenderId: "525528255065",
+      appId: "1:525528255065:web:97c4e55d2984acc718bf48",
+      measurementId: "G-14ZV9E3X7C"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.db = db;
+    window.ref = ref;
+    window.push = push;
+    window.onValue = onValue;
+  </script>
+
+  <script src="script.js"></script>
 </body>
 </html>
