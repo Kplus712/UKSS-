@@ -1,80 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UKSS Voting System</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UMOJA KING'ORI VOTING SYSTEM</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f9f2;
+  text-align: center;
+}
+h1 {
+  color: forestgreen;
+  margin-top: 20px;
+}
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+input, select, button {
+  padding: 10px;
+  margin: 5px;
+  width: 90%;
+  border-radius: 5px;
+}
+.candidate-section {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+.candidate {
+  width: 45%;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  margin: 10px;
+  padding: 10px;
+  box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+.candidate img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+button {
+  background-color: forestgreen;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+button:hover {
+  background-color: green;
+}
+</style>
 </head>
-<body class="bg-green-900 flex items-center justify-center min-h-screen">
-  <div class="bg-white rounded-2xl shadow-xl p-10 w-full max-w-3xl text-center">
-    <h1 class="text-3xl font-bold text-green-700 mb-6">UMOJA KING'ORI SECONDARY SCHOOL</h1>
-    <h2 class="text-xl font-semibold text-gray-700 mb-8">Voting Portal</h2>
+<body>
 
-    <form id="loginForm" class="grid grid-cols-2 gap-6 text-left">
-      <div>
-        <label class="block text-gray-700 font-semibold mb-2">First Name</label>
-        <input type="text" id="firstName" required class="border border-gray-300 rounded-lg p-2 w-full">
-      </div>
+<h1>UMOJA KING'ORI VOTING SYSTEM</h1>
 
-      <div>
-        <label class="block text-gray-700 font-semibold mb-2">Middle Name</label>
-        <input type="text" id="middleName" class="border border-gray-300 rounded-lg p-2 w-full">
-      </div>
+<div id="loginPage" class="container">
+  <h3>Voter Information</h3>
+  <input type="text" id="firstName" placeholder="First Name">
+  <input type="text" id="middleName" placeholder="Middle Name">
+  <input type="text" id="lastName" placeholder="Second Name">
+  <select id="classSelect">
+    <option value="">Select Class</option>
+    <option value="Form 1">Form 1</option>
+    <option value="Form 2">Form 2</option>
+    <option value="Form 3">Form 3</option>
+    <option value="Form 4">Form 4</option>
+  </select>
+  <button onclick="startVoting()">Start Voting</button>
+</div>
 
-      <div>
-        <label class="block text-gray-700 font-semibold mb-2">Last Name</label>
-        <input type="text" id="lastName" required class="border border-gray-300 rounded-lg p-2 w-full">
-      </div>
+<div id="votingPage" class="container" style="display:none;">
+  <h2>Vote for Head Boy</h2>
+  <div id="headBoySection" class="candidate-section"></div>
 
-      <div>
-        <label class="block text-gray-700 font-semibold mb-2">Class</label>
-        <select id="class" required class="border border-gray-300 rounded-lg p-2 w-full">
-          <option value="">-- Select Class --</option>
-          <option value="Form One">Form One</option>
-          <option value="Form Two">Form Two</option>
-          <option value="Form Three">Form Three</option>
-          <option value="Form Four">Form Four</option>
-        </select>
-      </div>
+  <h2>Vote for General Secretary</h2>
+  <div id="generalSecretarySection" class="candidate-section"></div>
 
-      <div>
-        <label class="block text-gray-700 font-semibold mb-2">Gender</label>
-        <select id="gender" required class="border border-gray-300 rounded-lg p-2 w-full">
-          <option value="">-- Select Gender --</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-      </div>
-    </form>
+  <h2>Other Leadership Positions</h2>
+  <div id="otherPositionsSection"></div>
 
-    <button id="proceedBtn" class="mt-8 bg-green-700 text-white px-8 py-3 rounded-xl hover:bg-green-800 transition">
-      Proceed to Vote
-    </button>
-  </div>
+  <button onclick="submitVote()">Submit Vote</button>
+</div>
 
-  <script>
-    document.getElementById("proceedBtn").addEventListener("click", () => {
-      const firstName = document.getElementById("firstName").value.trim();
-      const middleName = document.getElementById("middleName").value.trim();
-      const lastName = document.getElementById("lastName").value.trim();
-      const studentClass = document.getElementById("class").value;
-      const gender = document.getElementById("gender").value;
+<div id="resultsPage" class="container" style="display:none;">
+  <h2>Live Voting Results</h2>
+  <div id="results"></div>
+</div>
 
-      if (!firstName || !lastName || !studentClass || !gender) {
-        alert("⚠️ Please fill in all required fields!");
-        return;
-      }
+<!-- Firebase SDKs -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-      localStorage.setItem("firstName", firstName);
-      localStorage.setItem("middleName", middleName);
-      localStorage.setItem("lastName", lastName);
-      localStorage.setItem("studentClass", studentClass);
-      localStorage.setItem("gender", gender);
+  const firebaseConfig = {
+    apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+    authDomain: "ukss-voting-system.firebaseapp.com",
+    databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+    projectId: "ukss-voting-system",
+    storageBucket: "ukss-voting-system.firebasestorage.app",
+    messagingSenderId: "525528255065",
+    appId: "1:525528255065:web:97c4e55d2984acc718bf48",
+    measurementId: "G-14ZV9E3X7C"
+  };
 
-      window.location.href = "voting.html";
-    });
-  </script>
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window.db = db;
+  window.ref = ref;
+  window.push = push;
+  window.onValue = onValue;
+</script>
+
+<script src="script.js"></script>
+
 </body>
 </html>
