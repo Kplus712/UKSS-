@@ -1,213 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Voting Page - UKSS</title>
-<link rel="stylesheet" href="style.css">
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4fff4;
-  padding: 20px;
-  text-align: center;
-}
-h1 {
-  color: forestgreen;
-}
-section {
-  background: white;
-  margin: 20px auto;
-  padding: 20px;
-  width: 95%;
-  max-width: 900px;
-  border-radius: 10px;
-  box-shadow: 0 3px 5px rgba(0,0,0,0.1);
-}
-.candidate-row {
-  display: flex;
-  justify-content: space-evenly;
-  flex-wrap: wrap;
-  margin-top: 15px;
-}
-.candidate {
-  width: 40%;
-  background: #f9f9f9;
-  border-radius: 10px;
-  padding: 10px;
-  text-align: center;
-}
-.candidate img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-button {
-  margin-top: 20px;
-  padding: 10px 25px;
-  background-color: forestgreen;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voting Page - UKSS</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+      authDomain: "ukss-voting-system.firebaseapp.com",
+      databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+      projectId: "ukss-voting-system",
+      storageBucket: "ukss-voting-system.firebasestorage.app",
+      messagingSenderId: "525528255065",
+      appId: "1:525528255065:web:97c4e55d2984acc718bf48",
+      measurementId: "G-14ZV9E3X7C"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    window.db = db;
+  </script>
 </head>
 <body>
+  <div class="container">
+    <h1>Vote for Your Leaders</h1>
 
-<h1>🗳️ Cast Your Vote</h1>
-<p id="voterInfo"></p>
+    <form id="voteForm">
 
-<!-- === HEAD BOY & HEAD GIRL === -->
-<section>
-  <h2>Head Boy & Head Girl</h2>
-  <div class="candidate-row">
-    <!-- Male candidates -->
-    <div class="candidate">
-      <img src="images/male1.jpg" alt="John">
-      <label><input type="radio" name="headBoyMale" value="John Michael"> John Michael</label>
-    </div>
-    <div class="candidate">
-      <img src="images/male2.jpg" alt="Peter">
-      <label><input type="radio" name="headBoyMale" value="Peter Samson"> Peter Samson</label>
-    </div>
+      <!-- HEAD BOY & HEAD GIRL -->
+      <h2>Head Boy & Head Girl</h2>
+      <div class="landscape">
+        <div class="candidate">
+          <img src="images/headboy1.jpg" alt="Head Boy 1">
+          <label><input type="radio" name="headBoy" value="John Mwasiti" required> John Mwasiti</label>
+        </div>
+        <div class="candidate">
+          <img src="images/headboy2.jpg" alt="Head Boy 2">
+          <label><input type="radio" name="headBoy" value="Peter Mwenda"> Peter Mwenda</label>
+        </div>
+
+        <div class="candidate">
+          <img src="images/headgirl1.jpg" alt="Head Girl 1">
+          <label><input type="radio" name="headGirl" value="Aisha Komba" required> Aisha Komba</label>
+        </div>
+        <div class="candidate">
+          <img src="images/headgirl2.jpg" alt="Head Girl 2">
+          <label><input type="radio" name="headGirl" value="Neema Lusekelo"> Neema Lusekelo</label>
+        </div>
+      </div>
+
+      <!-- GENERAL SECRETARY -->
+      <h2>General Secretary</h2>
+      <div class="landscape">
+        <div class="candidate">
+          <img src="images/sec_male.jpg" alt="Male Secretary">
+          <label><input type="radio" name="generalSec" value="David Mwakalinga" required> David Mwakalinga</label>
+        </div>
+        <div class="candidate">
+          <img src="images/sec_female.jpg" alt="Female Secretary">
+          <label><input type="radio" name="generalSec" value="Maria Andrew"> Maria Andrew</label>
+        </div>
+      </div>
+
+      <!-- Other 5 Positions -->
+      <h2>Other Leadership Positions</h2>
+
+      <div class="position">
+        <h3>Discipline Prefect</h3>
+        <label><input type="radio" name="discipline" value="Jonas Mollel" required> Jonas Mollel</label>
+        <label><input type="radio" name="discipline" value="Grace Mwita"> Grace Mwita</label>
+      </div>
+
+      <div class="position">
+        <h3>Sports Prefect</h3>
+        <label><input type="radio" name="sports" value="Kelvin Mushi" required> Kelvin Mushi</label>
+        <label><input type="radio" name="sports" value="Rose Kimaro"> Rose Kimaro</label>
+      </div>
+
+      <div class="position">
+        <h3>Academic Prefect</h3>
+        <label><input type="radio" name="academic" value="Daniel Mremi" required> Daniel Mremi</label>
+        <label><input type="radio" name="academic" value="Rehema Lymo"> Rehema Lymo</label>
+      </div>
+
+      <div class="position">
+        <h3>Environment Prefect</h3>
+        <label><input type="radio" name="environment" value="Elvis Mollel" required> Elvis Mollel</label>
+        <label><input type="radio" name="environment" value="Esther Moses"> Esther Moses</label>
+      </div>
+
+      <div class="position">
+        <h3>Food & Health Prefect</h3>
+        <label><input type="radio" name="food" value="George Mushi" required> George Mushi</label>
+        <label><input type="radio" name="food" value="Agnes Nyoni"> Agnes Nyoni</label>
+      </div>
+
+      <button type="submit" id="submitVote">Submit Vote</button>
+    </form>
   </div>
 
-  <div class="candidate-row">
-    <!-- Female candidates -->
-    <div class="candidate">
-      <img src="images/female1.jpg" alt="Neema">
-      <label><input type="radio" name="headGirlFemale" value="Neema Joshua"> Neema Joshua</label>
-    </div>
-    <div class="candidate">
-      <img src="images/female2.jpg" alt="Rehema">
-      <label><input type="radio" name="headGirlFemale" value="Rehema John"> Rehema John</label>
-    </div>
-  </div>
-</section>
-
-<!-- === GENERAL SECRETARY === -->
-<section>
-  <h2>General Secretary</h2>
-  <div class="candidate-row">
-    <div class="candidate">
-      <img src="images/male3.jpg" alt="David">
-      <label><input type="radio" name="genSec" value="David Joseph"> David Joseph</label>
-    </div>
-    <div class="candidate">
-      <img src="images/female3.jpg" alt="Rachel">
-      <label><input type="radio" name="genSec" value="Rachel Mushi"> Rachel Mushi</label>
-    </div>
-  </div>
-</section>
-
-<!-- === OTHER POSITIONS === -->
-<section>
-  <h2>Other Leadership Positions</h2>
-  <div class="candidate-row">
-    <div class="candidate">
-      <img src="images/pos1.jpg" alt="Treasurer">
-      <label><input type="radio" name="position1" value="Anna Moses"> Treasurer - Anna Moses</label>
-    </div>
-    <div class="candidate">
-      <img src="images/pos2.jpg" alt="Sports">
-      <label><input type="radio" name="position2" value="Joseph Ally"> Sports Captain - Joseph Ally</label>
-    </div>
-  </div>
-
-  <div class="candidate-row">
-    <div class="candidate">
-      <img src="images/pos3.jpg" alt="Discipline">
-      <label><input type="radio" name="position3" value="Grace John"> Discipline Master - Grace John</label>
-    </div>
-    <div class="candidate">
-      <img src="images/pos4.jpg" alt="Environment">
-      <label><input type="radio" name="position4" value="Peter Andrew"> Environment Leader - Peter Andrew</label>
-    </div>
-  </div>
-
-  <div class="candidate-row">
-    <div class="candidate">
-      <img src="images/pos5.jpg" alt="Entertainment">
-      <label><input type="radio" name="position5" value="Lucy Paul"> Entertainment Prefect - Lucy Paul</label>
-    </div>
-  </div>
-</section>
-
-<button id="submitVote">Submit Vote</button>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getDatabase, ref, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
-  authDomain: "ukss-voting-system.firebaseapp.com",
-  databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
-  projectId: "ukss-voting-system",
-  storageBucket: "ukss-voting-system.firebasestorage.app",
-  messagingSenderId: "525528255065",
-  appId: "1:525528255065:web:97c4e55d2984acc718bf48",
-  measurementId: "G-14ZV9E3X7C"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// Load voter info
-const voter = JSON.parse(localStorage.getItem("voter"));
-if (!voter) {
-  alert("Please fill your details first.");
-  window.location.href = "index.html";
-}
-document.getElementById("voterInfo").innerText = 
-  `Voter: ${voter.first} ${voter.middle} ${voter.last} (${voter.classSel})`;
-
-// Submit vote
-document.getElementById("submitVote").addEventListener("click", () => {
-  const male = document.querySelector('input[name="headBoyMale"]:checked');
-  const female = document.querySelector('input[name="headGirlFemale"]:checked');
-  const genSec = document.querySelector('input[name="genSec"]:checked');
-  const pos1 = document.querySelector('input[name="position1"]:checked');
-  const pos2 = document.querySelector('input[name="position2"]:checked');
-  const pos3 = document.querySelector('input[name="position3"]:checked');
-  const pos4 = document.querySelector('input[name="position4"]:checked');
-  const pos5 = document.querySelector('input[name="position5"]:checked');
-
-  if (!male || !female || !genSec || !pos1 || !pos2 || !pos3 || !pos4 || !pos5) {
-    alert("Please complete all voting sections!");
-    return;
-  }
-
-  const genderTitle = voter.gender === "male" ? "MR" : "MRS";
-  const name = `${genderTitle} ${voter.first.toUpperCase()}`;
-
-  const voteData = {
-    voterName: `${voter.first} ${voter.middle} ${voter.last}`,
-    class: voter.classSel,
-    gender: voter.gender,
-    votes: {
-      "Head Boy": male.value,
-      "Head Girl": female.value,
-      "General Secretary": genSec.value,
-      "Treasurer": pos1.value,
-      "Sports Captain": pos2.value,
-      "Discipline Master": pos3.value,
-      "Environment Leader": pos4.value,
-      "Entertainment Prefect": pos5.value
-    },
-    time: serverTimestamp()
-  };
-
-  push(ref(db, "votes"), voteData)
-    .then(() => {
-      alert(`✅ ${name} voted successfully!`);
-      window.location.href = "index.html";
-    })
-    .catch(err => alert("Error submitting vote: " + err.message));
-});
-</script>
-
+  <script src="script.js"></script>
 </body>
 </html>
