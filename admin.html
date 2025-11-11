@@ -1,45 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard - UKSS Voting Results</title>
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4fff4;
-  color: #222;
-  text-align: center;
-  padding: 20px;
-}
-h1 { color: forestgreen; }
-.table-container {
-  width: 90%;
-  margin: 20px auto;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 15px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td { border: 1px solid #ddd; padding: 8px; }
-th { background-color: forestgreen; color: white; }
-tr:nth-child(even) {background-color: #f2f2f2;}
-</style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>UMOJA KING'ORI VOTING SYSTEM</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
-<div id="resultsContainer"></div>
+<header class="site-header">
+  <h1>🗳️ UMOJA KING'ORI VOTING SYSTEM</h1>
+  <p class="lead">Vote fairly — Your voice counts.</p>
+</header>
 
+<main class="container">
+  <!-- LOGIN -->
+  <section id="loginSection" class="card">
+    <h2>Voter Details</h2>
+    <div class="row">
+      <input id="firstName" placeholder="First name" />
+      <input id="middleName" placeholder="Middle name (optional)" />
+      <input id="lastName" placeholder="Last name" />
+    </div>
+
+    <div class="row">
+      <select id="classSelect">
+        <option value="">Select class</option>
+        <option>Form 1</option>
+        <option>Form 2</option>
+        <option>Form 3</option>
+        <option>Form 4</option>
+      </select>
+
+      <select id="genderSelect">
+        <option value="">Select gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <button onclick="startVoting()">Proceed to Voting</button>
+    </div>
+    <p class="note">You will be prevented from voting twice (system tracks by your full name + class).</p>
+  </section>
+
+  <!-- VOTING -->
+  <section id="votingSection" class="card" style="display:none;">
+    <h2>Vote for Leaders</h2>
+
+    <!-- HEAD BOY (male) & HEAD GIRL (female) landscape -->
+    <div class="position-row">
+      <div class="position-card">
+        <h3>Head Boy (choose 1)</h3>
+        <div id="headBoyList" class="candidates-landscape left-column"></div>
+      </div>
+
+      <div class="position-card">
+        <h3>Head Girl (choose 1)</h3>
+        <div id="headGirlList" class="candidates-landscape right-column"></div>
+      </div>
+    </div>
+
+    <!-- General Secretary -->
+    <div class="position-card fullwidth">
+      <h3>General Secretary (choose 1)</h3>
+      <div id="generalSecretaryList" class="candidates-row"></div>
+    </div>
+
+    <!-- Other positions (5) -->
+    <div class="position-card fullwidth">
+      <h3>Other Leadership Positions (choose 1 per position)</h3>
+      <div id="otherPositionsArea"></div>
+    </div>
+
+    <div class="row">
+      <button onclick="submitVote()">Submit Vote</button>
+      <button onclick="cancelVoting()" class="muted">Cancel</button>
+    </div>
+
+    <div id="voteMessage" class="info"></div>
+  </section>
+
+  <!-- small admin login button -->
+  <div style="text-align:center; margin-top:18px;">
+    <button class="admin-btn" onclick="adminLogin()">🔐 Admin Login</button>
+  </div>
+
+</main>
+
+<!-- Firebase SDK (module) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
+  // TODO: If you want to change project, replace config below
   const firebaseConfig = {
     apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
     authDomain: "ukss-voting-system.firebaseapp.com",
@@ -53,36 +108,17 @@ tr:nth-child(even) {background-color: #f2f2f2;}
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
-  const votesRef = ref(db, "votes");
 
-  onValue(votesRef, (snapshot) => {
-    const data = snapshot.val();
-    if (!data) {
-      document.getElementById("resultsContainer").innerHTML = "<p>No votes yet.</p>";
-      return;
-    }
-
-    const totals = {};
-    Object.values(data).forEach(vote => {
-      Object.entries(vote.votes).forEach(([pos, cand]) => {
-        if (!totals[pos]) totals[pos] = {};
-        if (!totals[pos][cand]) totals[pos][cand] = 0;
-        totals[pos][cand]++;
-      });
-    });
-
-    let html = "";
-    for (const [position, candidates] of Object.entries(totals)) {
-      html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th></tr>`;
-      const sorted = Object.entries(candidates).sort((a,b)=>b[1]-a[1]);
-      sorted.forEach(([name,count],i)=>{
-        const status = i===0 ? "👑 Leading" : "";
-        html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td></tr>`;
-      });
-      html += "</table></div>";
-    }
-    document.getElementById("resultsContainer").innerHTML = html;
-  });
+  // export commonly used functions/refs to global so script.js can access
+  window.firebaseDB = db;
+  window.fbRef = ref;
+  window.fbPush = push;
+  window.fbSet = set;
+  window.fbOnValue = onValue;
+  window.fbGet = get;
+  window.fbChild = child;
 </script>
+
+<script src="script.js"></script>
 </body>
 </html>
