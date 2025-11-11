@@ -1,103 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UMOJA KING'ORI VOTING SYSTEM</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UMOJA KING'ORI VOTING SYSTEM</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <header>
-    <h1>🗳️ UMOJA KING'ORI VOTING SYSTEM</h1>
-    <p>Cast your vote wisely – Your choice matters!</p>
+    <h1>🗳️ UMOJA KING'ORI SECONDARY SCHOOL VOTING SYSTEM</h1>
+    <p>Welcome! Please fill your details below to proceed to voting.</p>
   </header>
 
-  <!-- === Login Form === -->
-  <section id="loginSection">
-    <h2>Enter Your Details</h2>
-    <input type="text" id="firstName" placeholder="First Name">
-    <input type="text" id="middleName" placeholder="Middle Name">
-    <input type="text" id="lastName" placeholder="Last Name">
+  <main>
+    <div class="login-box">
+      <h2>Voter Information</h2>
+      <form id="loginForm">
+        <input type="text" id="firstName" placeholder="First Name" required><br>
+        <input type="text" id="middleName" placeholder="Middle Name" required><br>
+        <input type="text" id="lastName" placeholder="Last Name" required><br>
 
-    <select id="classSelect">
-      <option value="">Select Class</option>
-      <option value="Form One">Form One</option>
-      <option value="Form Two">Form Two</option>
-      <option value="Form Three">Form Three</option>
-      <option value="Form Four">Form Four</option>
-    </select>
+        <label for="gender">Gender:</label><br>
+        <select id="gender" required>
+          <option value="">-- Select Gender --</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select><br><br>
 
-    <button onclick="openVoting()">Proceed to Voting</button>
-  </section>
+        <label for="classSelect">Select Class:</label><br>
+        <select id="classSelect" required>
+          <option value="">-- Select Class --</option>
+          <option value="Form 1">Form 1</option>
+          <option value="Form 2">Form 2</option>
+          <option value="Form 3">Form 3</option>
+          <option value="Form 4">Form 4</option>
+        </select><br><br>
 
-  <!-- === Voting Section === -->
-  <section id="votingSection" style="display:none;">
-    <h2>Vote for Your Leaders</h2>
-
-    <!-- Head Boy/Girl -->
-    <div class="position">
-      <h3>Head Boy & Head Girl</h3>
-      <div class="candidates">
-        <div>
-          <img src="images/headboy1.jpg" alt="Head Boy 1">
-          <label><input type="radio" name="headBoyCandidates" value="John Michael"> John Michael</label>
-        </div>
-        <div>
-          <img src="images/headboy2.jpg" alt="Head Boy 2">
-          <label><input type="radio" name="headBoyCandidates" value="Peter Gabriel"> Peter Gabriel</label>
-        </div>
-        <div>
-          <img src="images/headgirl1.jpg" alt="Head Girl 1">
-          <label><input type="radio" name="headBoyCandidates" value="Mary Joseph"> Mary Joseph</label>
-        </div>
-        <div>
-          <img src="images/headgirl2.jpg" alt="Head Girl 2">
-          <label><input type="radio" name="headBoyCandidates" value="Agnes Daniel"> Agnes Daniel</label>
-        </div>
-      </div>
+        <button type="submit">Proceed to Vote</button>
+      </form>
     </div>
 
-    <!-- General Secretary -->
-    <div class="position">
-      <h3>General Secretary</h3>
-      <div class="candidates">
-        <div>
-          <img src="images/sec_boy.jpg" alt="Secretary Boy">
-          <label><input type="radio" name="generalSecretaryCandidates" value="Joseph Simon"> Joseph Simon</label>
-        </div>
-        <div>
-          <img src="images/sec_girl.jpg" alt="Secretary Girl">
-          <label><input type="radio" name="generalSecretaryCandidates" value="Rosemary Peter"> Rosemary Peter</label>
-        </div>
-      </div>
+    <!-- Admin Login -->
+    <div style="text-align:center; margin-top:30px;">
+      <button onclick="adminLogin()" style="padding:10px 20px; background:forestgreen; color:white; border:none; border-radius:8px; cursor:pointer;">
+        🔐 Admin Login
+      </button>
     </div>
-
-    <!-- Other Positions -->
-    <div class="position">
-      <h3>Other Leadership Positions</h3>
-      <ul>
-        <li>Sports Captain</li>
-        <li>Academic Prefect</li>
-        <li>Discipline Prefect</li>
-        <li>Health & Sanitation Prefect</li>
-        <li>Entertainment Prefect</li>
-      </ul>
-    </div>
-
-    <button onclick="submitVote()">Submit Vote</button>
-    <div id="results"></div>
-  </section>
-
-  <!-- Admin Login -->
-  <div style="text-align:center; margin-top:40px;">
-    <button onclick="adminLogin()" class="admin-btn">🔐 Admin Login</button>
-  </div>
+  </main>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-analytics.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
@@ -111,14 +66,21 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    window.db = db;
-    window.ref = ref;
-    window.push = push;
-    window.onValue = onValue;
+    const analytics = getAnalytics(app);
   </script>
 
+  <!-- Main Script -->
   <script src="script.js"></script>
+
+  <script>
+    function adminLogin() {
+      const password = prompt("Enter Admin Password:");
+      if (password === "ukss2025") {
+        window.location.href = "admin.html";
+      } else if (password) {
+        alert("❌ Incorrect password!");
+      }
+    }
+  </script>
 </body>
 </html>
