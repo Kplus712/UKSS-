@@ -8,40 +8,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-  :root{
-    --green: #2e7d32;
-    --light-green: #e6f4e6;
-  }
-  body { font-family: Arial, sans-serif; background:#f4fff4; color:#222; margin:0; padding:20px; }
-  header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  h1 { color: var(--green); margin:0; font-size:20px; }
-  .hamburger { width:36px; height:28px; display:flex; flex-direction:column; justify-content:space-between; cursor:pointer; }
-  .hamburger span { display:block; height:4px; background:var(--green); border-radius:3px; }
-  .topbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:12px 0 18px 0; }
-  .panel { background:white; border-radius:10px; padding:14px; box-shadow:0 2px 6px rgba(0,0,0,.08); margin-bottom:14px; }
-  .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:999; animation:fadeIn .18s ease; }
-  .modal .content { background:#fff; width:92%; max-width:980px; border-radius:10px; padding:16px; max-height:86vh; overflow:auto; position:relative; animation:zoomIn .18s ease; }
-  .close-btn { position:absolute; top:12px; right:12px; background:crimson; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
-  .menu-list { display:flex; flex-direction:column; gap:8px; padding:10px; }
-  .menu-list button { text-align:left; padding:8px 10px; border-radius:8px; background:var(--light-green); border:1px solid #d8efd8; cursor:pointer; }
-  .menu-list button:hover { background:#dff3df; }
-  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-  @keyframes zoomIn { from {transform:scale(.96); opacity:0;} to {transform:scale(1); opacity:1;} }
+  :root{--green:#2e7d32;--light-green:#e6f4e6;}
+  body{font-family:Arial,sans-serif;background:#f4fff4;color:#222;margin:0;padding:20px}
+  .hamburger{width:36px;height:28px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer}
+  .hamburger span{display:block;height:4px;background:var(--green);border-radius:3px}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);justify-content:center;align-items:center;z-index:999}
+  .modal .content{background:#fff;width:92%;max-width:980px;border-radius:10px;padding:16px;max-height:86vh;overflow:auto;position:relative}
+  .close-btn{position:absolute;top:12px;right:12px;background:crimson;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer}
+  .menu-list{display:flex;flex-direction:column;gap:8px;padding:10px}
+  .menu-list button{text-align:left;padding:8px 10px;border-radius:8px;background:var(--light-green);border:1px solid #d8efd8;cursor:pointer}
+  .menu-list button:hover{background:#dff3df}
 </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
-    <div style="font-size:13px; color:#666;">Admin control panel</div>
-  </div>
-  <div style="display:flex; align-items:center;">
-    <div class="hamburger" onclick="openMenuPopup()"><span></span><span></span><span></span></div>
-  </div>
+<header style="display:flex;justify-content:space-between;align-items:center">
+  <h1 style="color:var(--green)">📊 UKSS LIVE RESULTS DASHBOARD</h1>
+  <div class="hamburger" onclick="openMenuPopup()"><span></span><span></span><span></span></div>
 </header>
 
-<!-- ===== MENU POPUP ===== -->
+<!-- === Menu Popup === -->
 <div id="menuPopup" class="modal">
   <div class="content">
     <button class="close-btn" onclick="closeMenuPopup()">✖</button>
@@ -54,58 +40,56 @@
       <button onclick="triggerDownloadResults()">⬇️ Download Results (CSV)</button>
       <button onclick="backupVotes()">💾 Backup Votes (JSON)</button>
       <button onclick="triggerRestore()">♻️ Restore Votes (JSON)</button>
-      <button onclick="closeMenuPopup()" style="background:#f5f5f5;">❌ Close</button>
+      <button onclick="closeMenuPopup()" style="background:#f5f5f5">❌ Close</button>
     </div>
   </div>
 </div>
 
-<!-- ===== AUDIT MODAL ===== -->
-<div id="auditModal" class="modal" role="dialog" aria-modal="true">
+<!-- === Audit Comparison Modal === -->
+<div id="auditModal" class="modal">
   <div class="content">
     <button class="close-btn" onclick="closeAuditModal()">✖</button>
     <h2 style="color:var(--green)">🧮 Annual Audit Comparison</h2>
 
-    <div style="display:flex; gap:8px; align-items:center; margin:8px 0;">
-      <label for="auditYearSelect" style="font-weight:600;">Year:</label>
-      <select id="auditYearSelect" style="padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></select>
+    <div style="display:flex;gap:8px;align-items:center;margin:8px 0;">
+      <label for="auditYearSelect" style="font-weight:600">Year:</label>
+      <select id="auditYearSelect" style="padding:6px 8px;border-radius:6px;border:1px solid #ccc;"></select>
       <button onclick="runAudit()">Run</button>
     </div>
 
-    <p id="auditYear" style="margin-bottom:10px; font-weight:600; color:#444;"></p>
+    <p id="auditYear" style="margin-bottom:10px;font-weight:600;color:#444"></p>
     <div id="auditStats" class="panel"></div>
-    <canvas id="auditChart" width="600" height="300" style="margin-top:20px;"></canvas>
+    <canvas id="auditChart" width="600" height="300" style="margin-top:20px"></canvas>
   </div>
 </div>
 
-<!-- existing modals -->
+<!-- === Voters & Registered Modals (simplified placeholders) === -->
 <div id="votersModal" class="modal"><div class="content"><button class="close-btn" onclick="closeVotersModal()">✖</button><h2>🧾 Voters List</h2></div></div>
 <div id="registeredModal" class="modal"><div class="content"><button class="close-btn" onclick="closeRegisteredModal()">✖</button><h2>📋 Registered List</h2></div></div>
-<div id="confirmModal" class="modal"><div class="content"><button class="close-btn" onclick="closeConfirm()">✖</button><h3>Confirm action</h3></div></div>
-<input id="restoreFile" type="file" accept=".json" style="display:none">
+<div id="confirmModal" class="modal"><div class="content"><button class="close-btn" onclick="closeConfirm()">✖</button><h3>Confirm</h3></div></div>
+<input id="restoreFile" type="file" accept=".json" style="display:none" />
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
-  authDomain: "ukss-voting-system.firebaseapp.com",
-  databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
-  projectId: "ukss-voting-system",
-  storageBucket: "ukss-voting-system.firebasestorage.app",
-  messagingSenderId: "525528255065",
-  appId: "1:525528255065:web:97c4e55d2984acc718bf48"
+  apiKey:"AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+  authDomain:"ukss-voting-system.firebaseapp.com",
+  databaseURL:"https://ukss-voting-system-default-rtdb.firebaseio.com",
+  projectId:"ukss-voting-system",
+  storageBucket:"ukss-voting-system.firebasestorage.app",
+  messagingSenderId:"525528255065",
+  appId:"1:525528255065:web:97c4e55d2984acc718bf48"
 };
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const votesRef = ref(db, "votes");
-const votersRef = ref(db, "voters");
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+const votesRef=ref(db,"votes");
+const votersRef=ref(db,"voters");
 
-let allVotes = [];
-let registeredList = [];
-
-onValue(votesRef, (snap) => { allVotes = Object.entries(snap.val()||{}).map(([id,v])=>({_id:id,...v})); });
-onValue(votersRef, (snap) => { registeredList = Object.entries(snap.val()||{}).map(([id,v])=>({id,...v})); });
+let allVotes=[],registeredList=[];
+onValue(votesRef,s=>{allVotes=Object.entries(s.val()||{}).map(([id,v])=>({_id:id,...v}));});
+onValue(votersRef,s=>{registeredList=Object.entries(s.val()||{}).map(([id,v])=>({id,...v}));});
 
 function openMenuPopup(){document.getElementById("menuPopup").style.display="flex";}
 function closeMenuPopup(){document.getElementById("menuPopup").style.display="none";}
@@ -114,71 +98,80 @@ window.openMenuPopup=openMenuPopup;window.closeMenuPopup=closeMenuPopup;
 function openVotersModal(){document.getElementById("votersModal").style.display="flex";}
 function closeVotersModal(){document.getElementById("votersModal").style.display="none";}
 window.openVotersModal=openVotersModal;window.closeVotersModal=closeVotersModal;
-
 function openRegisteredModal(){document.getElementById("registeredModal").style.display="flex";}
 function closeRegisteredModal(){document.getElementById("registeredModal").style.display="none";}
 window.openRegisteredModal=openRegisteredModal;window.closeRegisteredModal=closeRegisteredModal;
+function closeConfirm(){document.getElementById("confirmModal").style.display="none";}
+window.closeConfirm=closeConfirm;
 
-/* ===== AUDIT COMPARISON ===== */
+/* === AUDIT COMPARISON === */
 const auditModal=document.getElementById("auditModal");
-const auditStats=document.getElementById("auditStats");
-const auditYearLabel=document.getElementById("auditYear");
 const auditYearSelect=document.getElementById("auditYearSelect");
-const auditChartCanvas=document.getElementById("auditChart");
+const auditStats=document.getElementById("auditStats");
+const auditYear=document.getElementById("auditYear");
+const auditChart=document.getElementById("auditChart");
 let auditChartInstance=null;
 
-(function populateAuditYears(){
-  const current=new Date().getFullYear();
-  for(let y=current;y>=current-5;y--){
-    const o=document.createElement("option");o.value=y;o.textContent=y;auditYearSelect.appendChild(o);
+// populate year options (current & past 5)
+(function(){
+  const y=new Date().getFullYear();
+  for(let i=y;i>=y-5;i--){
+    const opt=document.createElement("option");
+    opt.value=i;opt.textContent=i;
+    auditYearSelect.appendChild(opt);
   }
-  auditYearSelect.value=current;
+  auditYearSelect.value=y;
 })();
 
 function openAuditModal(){
   auditModal.style.display="flex";
-  runAudit();
   if(typeof closeMenuPopup==="function") closeMenuPopup();
+  runAudit();
 }
-function closeAuditModal(){auditModal.style.display="none";}
 window.openAuditModal=openAuditModal;
+function closeAuditModal(){auditModal.style.display="none";}
 window.closeAuditModal=closeAuditModal;
 
 function runAudit(){
   const year=parseInt(auditYearSelect.value,10);
-  auditYearLabel.textContent=`📅 Audit Summary for Year ${year}`;
-  const votesThisYear=(allVotes||[]).filter(v=>{try{return new Date(v.timestamp).getFullYear()===year;}catch(e){return false;}});
-  const votersThisYear=(registeredList||[]).filter(v=>{try{const t=v.registeredAt||v.timestamp;return t&&new Date(t).getFullYear()===year;}catch(e){return false;}});
-  if(votersThisYear.length===0&&votesThisYear.length===0){
-    auditStats.innerHTML=`<p style="color:crimson;font-weight:bold;">⚠️ No election data available for ${year}.</p>`;
-    if(auditChartInstance)auditChartInstance.destroy();return;
+  auditYear.textContent=`📅 Audit Summary for ${year}`;
+
+  const votesThisYear=(allVotes||[]).filter(v=>{try{return new Date(v.timestamp).getFullYear()===year;}catch{return false;}});
+  const votersThisYear=(registeredList||[]).filter(v=>{try{return v.registeredAt&&new Date(v.registeredAt).getFullYear()===year;}catch{return false;}});
+
+  if(votesThisYear.length===0&&votersThisYear.length===0){
+    auditStats.innerHTML=`<p style="color:crimson;font-weight:bold">⚠️ No election data available for ${year}.</p>`;
+    if(auditChartInstance)auditChartInstance.destroy();
+    return;
   }
-  const totalReg=votersThisYear.length,totalVoted=votesThisYear.length;
+
+  const totalReg=votersThisYear.length;
+  const totalVoted=votesThisYear.length;
   const notVoted=Math.max(totalReg-totalVoted,0);
   const turnout=totalReg>0?((totalVoted/totalReg)*100).toFixed(1):"0.0";
   const ids=votesThisYear.map(v=>v.voterID||v._id||"").filter(Boolean);
-  const dup={};ids.forEach(id=>dup[id]=(dup[id]||0)+1);
-  const duplicates=Object.keys(dup).filter(k=>dup[k]>1);
+  const dupMap={};ids.forEach(id=>dupMap[id]=(dupMap[id]||0)+1);
+  const duplicates=Object.keys(dupMap).filter(k=>dupMap[k]>1);
+
   auditStats.innerHTML=`
   <table style="width:100%;border-collapse:collapse;">
-  <tr><th style="text-align:left;">Total Registered</th><td>${totalReg}</td></tr>
-  <tr><th style="text-align:left;">Total Voted</th><td>${totalVoted}</td></tr>
-  <tr><th style="text-align:left;">Not Voted</th><td>${notVoted}</td></tr>
-  <tr><th style="text-align:left;">Turnout Percentage</th><td>${turnout}%</td></tr>
-  <tr><th style="text-align:left;">Possible Duplicates</th><td style="color:${duplicates.length?'crimson':'green'}">${duplicates.length?duplicates.join(', '):'None'}</td></tr>
+  <tr><th>Total Registered</th><td>${totalReg}</td></tr>
+  <tr><th>Total Voted</th><td>${totalVoted}</td></tr>
+  <tr><th>Not Voted</th><td>${notVoted}</td></tr>
+  <tr><th>Turnout %</th><td>${turnout}%</td></tr>
+  <tr><th>Duplicates</th><td style="color:${duplicates.length?'crimson':'green'}">${duplicates.length?duplicates.join(', '):'None'}</td></tr>
   </table>`;
-  const labels=["Registered","Voted","Not Voted"];
+
   const data=[totalReg,totalVoted,notVoted];
   if(auditChartInstance)auditChartInstance.destroy();
-  auditChartInstance=new Chart(auditChartCanvas.getContext("2d"),{
-    type:"bar",data:{labels,datasets:[{data,backgroundColor:["#4caf50","#2196f3","#f44336"]}]},
-    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  auditChartInstance=new Chart(auditChart.getContext("2d"),{
+    type:"bar",
+    data:{labels:["Registered","Voted","Not Voted"],datasets:[{data,backgroundColor:["#4caf50","#2196f3","#f44336"]}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
   });
 }
 window.runAudit=runAudit;
-
 auditModal.addEventListener("click",e=>{if(e.target===auditModal)closeAuditModal();});
 </script>
-
 </body>
 </html>
