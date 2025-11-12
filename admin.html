@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Admin Dashboard - UKSS Voting Results</title>
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -13,33 +12,19 @@
     --green: #2e7d32;
     --light-green: #e6f4e6;
   }
-  html,body{height:100%}
-  body { font-family: Arial, sans-serif; background:#f4fff4; color:#222; margin:0; padding:20px; min-height:100%; box-sizing:border-box; }
+  body { font-family: Arial, sans-serif; background:#f4fff4; color:#222; margin:0; padding:20px; }
   header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
   h1 { color: var(--green); margin:0; font-size:20px; }
   .hamburger { width:36px; height:28px; display:flex; flex-direction:column; justify-content:space-between; cursor:pointer; }
   .hamburger span { display:block; height:4px; background:var(--green); border-radius:3px; }
   .topbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:12px 0 18px 0; }
   .panel { background:white; border-radius:10px; padding:14px; box-shadow:0 2px 6px rgba(0,0,0,.08); margin-bottom:14px; }
-  .table-container { width:100%; margin:12px 0; }
-  table { width:100%; border-collapse:collapse; }
-  th, td { padding:8px; border:1px solid #e6e6e6; text-align:left; font-size:14px; vertical-align:middle; }
-  th { background:var(--green); color:white; }
-  .charts { display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-bottom:14px; }
-  canvas { background: white; border-radius:8px; padding:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
   .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:999; animation:fadeIn .18s ease; }
   .modal .content { background:#fff; width:92%; max-width:980px; border-radius:10px; padding:16px; max-height:86vh; overflow:auto; position:relative; animation:zoomIn .18s ease; }
   .close-btn { position:absolute; top:12px; right:12px; background:crimson; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
-  .small { font-size:13px; color:#555; }
   .menu-list { display:flex; flex-direction:column; gap:8px; padding:10px; }
   .menu-list button { text-align:left; padding:8px 10px; border-radius:8px; background:var(--light-green); border:1px solid #d8efd8; cursor:pointer; }
   .menu-list button:hover { background:#dff3df; }
-  .controls-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
-  input, select, button { padding:8px 10px; border-radius:6px; border:1px solid #cfcfcf; }
-  button { background:var(--green); color:white; border:none; cursor:pointer; }
-  button[style*="background:gray"]{ background:gray }
-  button:hover { opacity:0.95; }
-  @keyframes spin { to{ transform: rotate(360deg); } }
   @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
   @keyframes zoomIn { from {transform:scale(.96); opacity:0;} to {transform:scale(1); opacity:1;} }
 </style>
@@ -51,14 +36,12 @@
     <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
     <div style="font-size:13px; color:#666;">Admin control panel</div>
   </div>
-  <div style="display:flex; align-items:center; gap:8px;">
-    <div title="Menu" class="hamburger" id="hamburgerBtn" onclick="openMenuPopup()">
-      <span></span><span></span><span></span>
-    </div>
+  <div style="display:flex; align-items:center;">
+    <div class="hamburger" onclick="openMenuPopup()"><span></span><span></span><span></span></div>
   </div>
 </header>
 
-<!-- Menu Popup -->
+<!-- ===== MENU POPUP ===== -->
 <div id="menuPopup" class="modal">
   <div class="content">
     <button class="close-btn" onclick="closeMenuPopup()">✖</button>
@@ -71,31 +54,39 @@
       <button onclick="triggerDownloadResults()">⬇️ Download Results (CSV)</button>
       <button onclick="backupVotes()">💾 Backup Votes (JSON)</button>
       <button onclick="triggerRestore()">♻️ Restore Votes (JSON)</button>
-      <button onclick="closeMenuPopup()" style="background:#f5f5f5; border:1px solid #ddd;">❌ Close</button>
+      <button onclick="closeMenuPopup()" style="background:#f5f5f5;">❌ Close</button>
     </div>
   </div>
 </div>
 
-<!-- Audit Comparison Modal -->
+<!-- ===== AUDIT MODAL ===== -->
 <div id="auditModal" class="modal" role="dialog" aria-modal="true">
   <div class="content">
     <button class="close-btn" onclick="closeAuditModal()">✖</button>
     <h2 style="color:var(--green)">🧮 Annual Audit Comparison</h2>
+
+    <div style="display:flex; gap:8px; align-items:center; margin:8px 0;">
+      <label for="auditYearSelect" style="font-weight:600;">Year:</label>
+      <select id="auditYearSelect" style="padding:6px 8px; border-radius:6px; border:1px solid #ccc;"></select>
+      <button onclick="runAudit()">Run</button>
+    </div>
+
     <p id="auditYear" style="margin-bottom:10px; font-weight:600; color:#444;"></p>
-    <div id="auditStats"></div>
+    <div id="auditStats" class="panel"></div>
     <canvas id="auditChart" width="600" height="300" style="margin-top:20px;"></canvas>
   </div>
 </div>
 
-<!-- Placeholder for other modals -->
-<div id="votersModal" class="modal"><div class="content"><button class="close-btn" onclick="closeVotersModal()">✖</button><h2>🧾 Voters List</h2><table id="votersTable"><tbody></tbody></table></div></div>
-<div id="registeredModal" class="modal"><div class="content"><button class="close-btn" onclick="closeRegisteredModal()">✖</button><h2>📋 Registered List</h2><table id="registeredTable"><tbody></tbody></table></div></div>
+<!-- existing modals -->
+<div id="votersModal" class="modal"><div class="content"><button class="close-btn" onclick="closeVotersModal()">✖</button><h2>🧾 Voters List</h2></div></div>
+<div id="registeredModal" class="modal"><div class="content"><button class="close-btn" onclick="closeRegisteredModal()">✖</button><h2>📋 Registered List</h2></div></div>
+<div id="confirmModal" class="modal"><div class="content"><button class="close-btn" onclick="closeConfirm()">✖</button><h3>Confirm action</h3></div></div>
+<input id="restoreFile" type="file" accept=".json" style="display:none">
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-/* Firebase setup */
 const firebaseConfig = {
   apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
   authDomain: "ukss-voting-system.firebaseapp.com",
@@ -113,88 +104,80 @@ const votersRef = ref(db, "voters");
 let allVotes = [];
 let registeredList = [];
 
-/* Fetch live data */
-onValue(votesRef, (snap) => { allVotes = Object.entries(snap.val() || {}).map(([id,v]) => ({_id:id,...v})); });
-onValue(votersRef, (snap) => { registeredList = Object.entries(snap.val() || {}).map(([id,v]) => ({id,...v})); });
+onValue(votesRef, (snap) => { allVotes = Object.entries(snap.val()||{}).map(([id,v])=>({_id:id,...v})); });
+onValue(votersRef, (snap) => { registeredList = Object.entries(snap.val()||{}).map(([id,v])=>({id,...v})); });
 
-/* Popup controls */
-function openMenuPopup(){ document.getElementById("menuPopup").style.display="flex"; }
-function closeMenuPopup(){ document.getElementById("menuPopup").style.display="none"; }
-window.openMenuPopup=openMenuPopup; window.closeMenuPopup=closeMenuPopup;
+function openMenuPopup(){document.getElementById("menuPopup").style.display="flex";}
+function closeMenuPopup(){document.getElementById("menuPopup").style.display="none";}
+window.openMenuPopup=openMenuPopup;window.closeMenuPopup=closeMenuPopup;
 
-function openVotersModal(){ document.getElementById("votersModal").style.display="flex"; }
-function closeVotersModal(){ document.getElementById("votersModal").style.display="none"; }
-window.openVotersModal=openVotersModal; window.closeVotersModal=closeVotersModal;
+function openVotersModal(){document.getElementById("votersModal").style.display="flex";}
+function closeVotersModal(){document.getElementById("votersModal").style.display="none";}
+window.openVotersModal=openVotersModal;window.closeVotersModal=closeVotersModal;
 
-function openRegisteredModal(){ document.getElementById("registeredModal").style.display="flex"; }
-function closeRegisteredModal(){ document.getElementById("registeredModal").style.display="none"; }
-window.openRegisteredModal=openRegisteredModal; window.closeRegisteredModal=closeRegisteredModal;
+function openRegisteredModal(){document.getElementById("registeredModal").style.display="flex";}
+function closeRegisteredModal(){document.getElementById("registeredModal").style.display="none";}
+window.openRegisteredModal=openRegisteredModal;window.closeRegisteredModal=closeRegisteredModal;
 
-/* === Audit Comparison Logic === */
-const auditModal = document.getElementById("auditModal");
-const auditStats = document.getElementById("auditStats");
-const auditYearLabel = document.getElementById("auditYear");
-const auditChartCtx = document.getElementById("auditChart").getContext("2d");
-let auditChart;
+/* ===== AUDIT COMPARISON ===== */
+const auditModal=document.getElementById("auditModal");
+const auditStats=document.getElementById("auditStats");
+const auditYearLabel=document.getElementById("auditYear");
+const auditYearSelect=document.getElementById("auditYearSelect");
+const auditChartCanvas=document.getElementById("auditChart");
+let auditChartInstance=null;
 
-function openAuditModal() {
-  const currentYear = new Date().getFullYear();
-  auditYearLabel.textContent = `📅 Audit Summary for Year ${currentYear}`;
-
-  const votesThisYear = allVotes.filter(v => new Date(v.timestamp).getFullYear() === currentYear);
-  const votersThisYear = registeredList.filter(v => {
-    const regTime = v.registeredAt ? new Date(v.registeredAt) : null;
-    return regTime && regTime.getFullYear() === currentYear;
-  });
-
-  if (votersThisYear.length === 0 && votesThisYear.length === 0) {
-    auditStats.innerHTML = `<p style="color:crimson; font-weight:bold;">⚠️ No election data available for ${currentYear}.</p>`;
-    if (auditChart) auditChart.destroy();
-    auditModal.style.display = "flex";
-    return;
+(function populateAuditYears(){
+  const current=new Date().getFullYear();
+  for(let y=current;y>=current-5;y--){
+    const o=document.createElement("option");o.value=y;o.textContent=y;auditYearSelect.appendChild(o);
   }
+  auditYearSelect.value=current;
+})();
 
-  const totalRegistered = votersThisYear.length;
-  const totalVoted = votesThisYear.length;
-  const notVoted = totalRegistered - totalVoted;
-  const turnout = totalRegistered > 0 ? ((totalVoted / totalRegistered) * 100).toFixed(1) : 0;
-  const ids = votesThisYear.map(v => v.voterID || v._id);
-  const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
-  const uniqueDuplicates = [...new Set(duplicates)];
-
-  auditStats.innerHTML = `
-    <table style="width:100%; border-collapse:collapse;">
-      <tr><th>Total Registered</th><td>${totalRegistered}</td></tr>
-      <tr><th>Total Voted</th><td>${totalVoted}</td></tr>
-      <tr><th>Not Voted</th><td>${notVoted < 0 ? 0 : notVoted}</td></tr>
-      <tr><th>Turnout Percentage</th><td>${turnout}%</td></tr>
-      <tr><th>Possible Duplicates</th><td style="color:${uniqueDuplicates.length ? 'crimson':'green'}">${uniqueDuplicates.length ? uniqueDuplicates.join(', ') : 'None'}</td></tr>
-    </table>
-  `;
-
-  const labels = ["Registered", "Voted", "Not Voted"];
-  const data = [totalRegistered, totalVoted, Math.max(notVoted, 0)];
-
-  if (auditChart) auditChart.destroy();
-  auditChart = new Chart(auditChartCtx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Audit Comparison",
-        data,
-        backgroundColor: ["#4caf50", "#2196f3", "#f44336"]
-      }]
-    },
-    options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-  });
-
-  auditModal.style.display = "flex";
+function openAuditModal(){
+  auditModal.style.display="flex";
+  runAudit();
+  if(typeof closeMenuPopup==="function") closeMenuPopup();
 }
+function closeAuditModal(){auditModal.style.display="none";}
+window.openAuditModal=openAuditModal;
+window.closeAuditModal=closeAuditModal;
 
-function closeAuditModal() { auditModal.style.display = "none"; }
-window.openAuditModal = openAuditModal;
-window.closeAuditModal = closeAuditModal;
+function runAudit(){
+  const year=parseInt(auditYearSelect.value,10);
+  auditYearLabel.textContent=`📅 Audit Summary for Year ${year}`;
+  const votesThisYear=(allVotes||[]).filter(v=>{try{return new Date(v.timestamp).getFullYear()===year;}catch(e){return false;}});
+  const votersThisYear=(registeredList||[]).filter(v=>{try{const t=v.registeredAt||v.timestamp;return t&&new Date(t).getFullYear()===year;}catch(e){return false;}});
+  if(votersThisYear.length===0&&votesThisYear.length===0){
+    auditStats.innerHTML=`<p style="color:crimson;font-weight:bold;">⚠️ No election data available for ${year}.</p>`;
+    if(auditChartInstance)auditChartInstance.destroy();return;
+  }
+  const totalReg=votersThisYear.length,totalVoted=votesThisYear.length;
+  const notVoted=Math.max(totalReg-totalVoted,0);
+  const turnout=totalReg>0?((totalVoted/totalReg)*100).toFixed(1):"0.0";
+  const ids=votesThisYear.map(v=>v.voterID||v._id||"").filter(Boolean);
+  const dup={};ids.forEach(id=>dup[id]=(dup[id]||0)+1);
+  const duplicates=Object.keys(dup).filter(k=>dup[k]>1);
+  auditStats.innerHTML=`
+  <table style="width:100%;border-collapse:collapse;">
+  <tr><th style="text-align:left;">Total Registered</th><td>${totalReg}</td></tr>
+  <tr><th style="text-align:left;">Total Voted</th><td>${totalVoted}</td></tr>
+  <tr><th style="text-align:left;">Not Voted</th><td>${notVoted}</td></tr>
+  <tr><th style="text-align:left;">Turnout Percentage</th><td>${turnout}%</td></tr>
+  <tr><th style="text-align:left;">Possible Duplicates</th><td style="color:${duplicates.length?'crimson':'green'}">${duplicates.length?duplicates.join(', '):'None'}</td></tr>
+  </table>`;
+  const labels=["Registered","Voted","Not Voted"];
+  const data=[totalReg,totalVoted,notVoted];
+  if(auditChartInstance)auditChartInstance.destroy();
+  auditChartInstance=new Chart(auditChartCanvas.getContext("2d"),{
+    type:"bar",data:{labels,datasets:[{data,backgroundColor:["#4caf50","#2196f3","#f44336"]}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}
+  });
+}
+window.runAudit=runAudit;
+
+auditModal.addEventListener("click",e=>{if(e.target===auditModal)closeAuditModal();});
 </script>
 
 </body>
