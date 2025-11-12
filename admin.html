@@ -29,4 +29,244 @@ table {
 }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: forestgreen; color: white; }
-tr:n
+tr:nth-child(even) {background-color: #f2f2f2;}
+button {
+  background-color: forestgreen;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin: 5px;
+  cursor: pointer;
+}
+button:hover { background-color: darkgreen; }
+canvas { margin-top: 25px; max-width: 700px; }
+
+/* Filter panel */
+#filterPanel {
+  background: #e8f5e9;
+  padding: 10px;
+  border-radius: 10px;
+  width: 90%;
+  margin: 10px auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+#filterPanel input, #filterPanel select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+</style>
+</head>
+<body>
+
+<h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
+
+<!-- 🔍 Search & Filter -->
+<div id="filterPanel">
+  <input type="text" id="searchName" placeholder="Search by Voter Name">
+  <select id="filterClass">
+    <option value="">All Classes</option>
+    <option>Form One</option><option>Form Two</option><option>Form Three</option><option>Form Four</option>
+  </select>
+  <select id="filterGender">
+    <option value="">All Genders</option>
+    <option>Male</option><option>Female</option>
+  </select>
+  <select id="filterPosition">
+    <option value="">All Positions</option>
+    <option>headBoy</option><option>headGirl</option><option>generalSec</option>
+    <option>discipline</option><option>sports</option><option>academic</option>
+    <option>environment</option><option>food</option>
+  </select>
+  <button id="clearFilters">Clear</button>
+</div>
+
+<div style="margin-bottom:20px;">
+  <button id="deleteAll">🗑️ Delete All Votes</button>
+  <button id="downloadCSV">⬇️ Download Results (CSV)</button>
+  <button id="backupData">💾 Backup</button>
+  <input type="file" id="restoreFile" style="display:none" accept=".json">
+  <button id="restoreData">♻️ Restore</button>
+  <p id="voterSummary"></p>
+</div>
+
+<div id="resultsContainer"></div>
+
+<canvas id="barGraph"></canvas>
+<canvas id="pieGraph"></canvas>
+<canvas id="lineGraph"></canvas>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getDatabase, ref, onValue, remove, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+  authDomain: "ukss-voting-system.firebaseapp.com",
+  databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+  projectId: "ukss-voting-system",
+  storageBucket: "ukss-voting-system.firebasestorage.app",
+  messagingSenderId: "525528255065",
+  appId: "1:525528255065:web:97c4e55d2984acc718bf48",
+  measurementId: "G-14ZV9E3X7C"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const votesRef = ref(db, "votes");
+const TOTAL_STUDENTS = 308;
+
+let allVotes = [];
+let barChart, pieChart, lineChart;
+
+onValue(votesRef, (snapshot) => {
+  const data = snapshot.val();
+  allVotes = data ? Object.values(data) : [];
+  applyFilters();
+});
+
+const filters = {
+  name: document.getElementById("searchName"),
+  class: document.getElementById("filterClass"),
+  gender: document.getElementById("filterGender"),
+  position: document.getElementById("filterPosition"),
+};
+
+Object.values(filters).forEach(el => el.addEventListener("input", applyFilters));
+document.getElementById("clearFilters").addEventListener("click", ()=>{
+  Object.values(filters).forEach(el => el.value = "");
+  applyFilters();
+});
+
+function applyFilters(){
+  const nameF = filters.name.value.toLowerCase();
+  const classF = filters.class.value;
+  const genderF = filters.gender.value;
+  const posF = filters.position.value;
+
+  const filtered = allVotes.filter(v => {
+    const voter = v.voter || {};
+    const matchName = !nameF || voter.firstName?.toLowerCase().includes(nameF) || voter.lastName?.toLowerCase().includes(nameF);
+    const matchClass = !classF || voter.class === classF;
+    const matchGender = !genderF || voter.gender === genderF;
+    const matchPos = !posF || v.votes[posF];
+    return matchName && matchClass && matchGender && matchPos;
+  });
+
+  displayResults(filtered);
+}
+
+function displayResults(votes){
+  const container = document.getElementById("resultsContainer");
+  const voterSummary = document.getElementById("voterSummary");
+
+  if(votes.length===0){
+    container.innerHTML="<p>No votes yet.</p>";
+    voterSummary.textContent="No data available.";
+    return;
+  }
+
+  const totals = {};
+  votes.forEach(v=>{
+    Object.entries(v.votes).forEach(([pos,cand])=>{
+      if(!totals[pos]) totals[pos] = {};
+      if(!totals[pos][cand]) totals[pos][cand] = 0;
+      totals[pos][cand]++;
+    });
+  });
+
+  const voted = votes.length;
+  const notVoted = TOTAL_STUDENTS - voted;
+  voterSummary.innerHTML = `🧍‍♂️ <b>${voted}</b> voted out of ${TOTAL_STUDENTS} | <b>${notVoted}</b> not yet voted.`;
+
+  // Build Results Table
+  let html = "";
+  for(const [position, candidates] of Object.entries(totals)){
+    html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th></tr>`;
+    const sorted = Object.entries(candidates).sort((a,b)=>b[1]-a[1]);
+    sorted.forEach(([name,count],i)=>{
+      const status = i===0 ? "👑 Leading" : "";
+      html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td></tr>`;
+    });
+    html += "</table></div>";
+  }
+  container.innerHTML = html;
+
+  drawCharts(totals, votes);
+}
+
+// Draw Charts
+function drawCharts(totals, votes){
+  const labels = Object.keys(totals).flatMap(p => Object.keys(totals[p]));
+  const counts = Object.keys(totals).flatMap(p => Object.values(totals[p]));
+
+  if(barChart) barChart.destroy();
+  if(pieChart) pieChart.destroy();
+  if(lineChart) lineChart.destroy();
+
+  const ctxBar = document.getElementById("barGraph");
+  barChart = new Chart(ctxBar, {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Votes", data: counts, backgroundColor: "rgba(34,139,34,0.6)" }] },
+    options: { scales: { y: { beginAtZero: true } } }
+  });
+
+  const ctxPie = document.getElementById("pieGraph");
+  pieChart = new Chart(ctxPie, {
+    type: "pie",
+    data: { labels, datasets: [{ data: counts, backgroundColor: ["#2e7d32","#66bb6a","#81c784","#a5d6a7","#c8e6c9"] }] }
+  });
+
+  const times = votes.map(v=>new Date(v.timestamp).toLocaleTimeString());
+  const lineData = votes.map(()=>1).reduce((acc,_,i)=>[...acc,(acc[i-1]||0)+1],[]);
+  const ctxLine = document.getElementById("lineGraph");
+  lineChart = new Chart(ctxLine,{
+    type:"line",
+    data:{ labels:times, datasets:[{ label:"Votes Over Time", data:lineData, borderColor:"forestgreen", fill:false }] }
+  });
+}
+
+// Backup & Restore
+document.getElementById("backupData").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(allVotes,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "UKSS_Backup.json";
+  a.click();
+});
+document.getElementById("restoreData").addEventListener("click", ()=>document.getElementById("restoreFile").click());
+document.getElementById("restoreFile").addEventListener("change", async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const text = await file.text();
+  const json = JSON.parse(text);
+  for(const item of json) await set(ref(db,"votes/"+item.voter?.firstName), item);
+  alert("✅ Backup restored successfully!");
+});
+
+// Delete All Votes
+document.getElementById("deleteAll").addEventListener("click",()=>{
+  if(confirm("Delete ALL votes?")) remove(votesRef);
+});
+
+// CSV Export
+document.getElementById("downloadCSV").addEventListener("click",()=>{
+  if(allVotes.length===0) return alert("No data to export!");
+  let csv = "First Name,Middle,Last,Class,Gender,Head Boy,Head Girl,General Sec,Discipline,Timestamp\n";
+  allVotes.forEach(v=>{
+    const voter=v.voter||{};
+    csv += `"${voter.firstName||""}","${voter.middleName||""}","${voter.lastName||""}","${voter.class||""}","${voter.gender||""}","${v.votes.headBoy||""}","${v.votes.headGirl||""}","${v.votes.generalSec||""}","${v.votes.discipline||""}","${new Date(v.timestamp).toLocaleString()}"\n`;
+  });
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="UKSS_Voting_Results.csv";
+  a.click();
+});
+</script>
+</body>
+</html>
