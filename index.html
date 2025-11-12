@@ -6,78 +6,14 @@
   <title>UMOJA KING'ORI VOTING SYSTEM</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4fff4;
-      color: #222;
-      text-align: center;
-      margin: 0;
-    }
-
-    header {
-      background: forestgreen;
-      color: white;
-      padding: 20px;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-    }
-
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      border: none;
-      background: forestgreen;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    button:hover {
-      background: darkgreen;
-    }
-
-    input, select {
-      margin: 8px;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-
-    #registerForm {
-      display: none;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      margin: 20px auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    /* Popup Styling */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-content {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
+    body { font-family: Arial, sans-serif; background: #f4fff4; color: #222; text-align: center; margin: 0; }
+    header { background: forestgreen; color: white; padding: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+    button { margin: 10px; padding: 10px 20px; border: none; background: forestgreen; color: white; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    button:hover { background: darkgreen; }
+    input, select { margin: 8px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
+    #registerForm { display: none; background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; margin: 20px auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+    .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     .modal-content h2 { color: forestgreen; }
   </style>
 </head>
@@ -88,10 +24,11 @@
     <p>Cast your vote wisely – Your choice matters!</p>
   </header>
 
-  <!-- === Buttons Section === -->
+  <!-- === Main Menu Buttons === -->
   <section id="mainMenu">
     <button onclick="openRegisterForm()">🧾 Register & Get Voter ID</button>
     <button onclick="openVoterLogin()">🔑 Login with Voter ID</button>
+    <button onclick="openRecovery()">🆔 Forgot Voter ID?</button>
     <button onclick="adminLogin()">🔐 Admin Login</button>
   </section>
 
@@ -120,27 +57,45 @@
     <button onclick="closeRegisterForm()" style="background:gray;">Cancel</button>
   </section>
 
-  <!-- === Popup for Voter ID === -->
+  <!-- === Voter Login Modal === -->
+  <div id="voterLogin" class="modal">
+    <div class="modal-content">
+      <h2>🔑 Voter Login</h2>
+      <input type="text" id="voterIDInput" placeholder="Enter Your Voter ID">
+      <button onclick="loginWithVoterID()">Login</button>
+      <button onclick="closeLogin()" style="background:gray;">Close</button>
+    </div>
+  </div>
+
+  <!-- === Recovery Modal === -->
+  <div id="recoveryModal" class="modal">
+    <div class="modal-content">
+      <h2>🆔 Recover Your Voter ID</h2>
+      <input type="text" id="recoverFirstName" placeholder="First Name">
+      <input type="text" id="recoverLastName" placeholder="Last Name">
+      <select id="recoverClass">
+        <option value="">Select Class</option>
+        <option value="Form One">Form One</option>
+        <option value="Form Two">Form Two</option>
+        <option value="Form Three">Form Three</option>
+        <option value="Form Four">Form Four</option>
+      </select>
+      <button onclick="recoverVoterID()">🔍 Find My Voter ID</button>
+      <p id="recoveryResult" style="margin-top:10px; color:forestgreen;"></p>
+      <button onclick="closeRecovery()" style="background:gray;">Close</button>
+    </div>
+  </div>
+
+  <!-- === Registration Success Popup === -->
   <div id="idPopup" class="modal">
     <div class="modal-content">
       <h2>✅ Registration Successful!</h2>
       <p>Your Voter ID is:</p>
       <h3 id="generatedID" style="color:forestgreen"></h3>
-      <p style="font-size:13px; color:#666;">Save this ID carefully. You’ll need it to access voting.</p>
+      <p style="font-size:13px; color:#666;">Save this ID carefully. You’ll need it to vote.</p>
       <button onclick="copyVoterID()">📋 Copy ID</button>
       <button onclick="proceedToVote()">➡️ Proceed to Voting</button>
       <button onclick="closePopup()" style="background:gray;">Close</button>
-    </div>
-  </div>
-
-  <!-- === Login Modal (Popup) === -->
-  <div id="voterLogin" class="modal">
-    <div class="modal-content">
-      <h2>🔑 Voter Login</h2>
-      <p>Enter your Voter ID below:</p>
-      <input type="text" id="voterIDInput" placeholder="Enter Your Voter ID">
-      <button onclick="loginWithVoterID()">Login</button>
-      <button onclick="closeLogin()" style="background:gray;">Close</button>
     </div>
   </div>
 
@@ -163,36 +118,24 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // === Popup Functions ===
-    window.openRegisterForm = function() {
-      document.getElementById("registerForm").style.display = "block";
-      document.getElementById("mainMenu").style.display = "none";
-    };
-    window.closeRegisterForm = function() {
-      document.getElementById("registerForm").style.display = "none";
-      document.getElementById("mainMenu").style.display = "block";
-    };
-    window.openVoterLogin = function() {
-      document.getElementById("voterLogin").style.display = "flex";
-    };
-    window.closeLogin = function() {
-      document.getElementById("voterLogin").style.display = "none";
-    };
-    window.closePopup = function() {
-      document.getElementById("idPopup").style.display = "none";
-    };
+    // === UI Controls ===
+    window.openRegisterForm = () => { document.getElementById("registerForm").style.display="block"; document.getElementById("mainMenu").style.display="none"; };
+    window.closeRegisterForm = () => { document.getElementById("registerForm").style.display="none"; document.getElementById("mainMenu").style.display="block"; };
+    window.openVoterLogin = () => document.getElementById("voterLogin").style.display="flex";
+    window.closeLogin = () => document.getElementById("voterLogin").style.display="none";
+    window.openRecovery = () => document.getElementById("recoveryModal").style.display="flex";
+    window.closeRecovery = () => document.getElementById("recoveryModal").style.display="none";
+    window.closePopup = () => document.getElementById("idPopup").style.display="none";
 
     // === Generate Unique ID ===
     async function generateUniqueVoterID(firstName) {
       const randomNum = Math.floor(100 + Math.random() * 900);
       const baseID = firstName.toLowerCase() + randomNum;
-      const dbRef = ref(db);
-      const snapshot = await get(child(dbRef, `voters/${baseID}`));
-      if (snapshot.exists()) return generateUniqueVoterID(firstName);
-      return baseID;
+      const snapshot = await get(child(ref(db), `voters/${baseID}`));
+      return snapshot.exists() ? generateUniqueVoterID(firstName) : baseID;
     }
 
-    // === Register Voter ===
+    // === Register New Voter ===
     window.registerVoter = async function() {
       const firstName = document.getElementById("firstName").value.trim();
       const middleName = document.getElementById("middleName").value.trim();
@@ -200,22 +143,18 @@
       const classSelect = document.getElementById("classSelect").value;
       const gender = document.getElementById("gender").value;
 
-      if (!firstName || !lastName || !classSelect || !gender) {
-        alert("⚠️ Please fill in all required fields!");
-        return;
-      }
+      if (!firstName || !lastName || !classSelect || !gender) return alert("⚠️ Please fill all fields!");
 
-      // check duplicates by name + class
-      const dbRef = ref(db);
-      const snapshot = await get(child(dbRef, "voters"));
-      if (snapshot.exists()) {
-        const voters = snapshot.val();
-        const duplicate = Object.values(voters).find(
-          v => v.firstName.toLowerCase() === firstName.toLowerCase() &&
-               v.lastName.toLowerCase() === lastName.toLowerCase() &&
-               v.classSelect === classSelect
+      const votersRef = child(ref(db), "voters");
+      const votersSnap = await get(votersRef);
+      if (votersSnap.exists()) {
+        const voters = votersSnap.val();
+        const exists = Object.values(voters).find(v =>
+          v.firstName.toLowerCase() === firstName.toLowerCase() &&
+          v.lastName.toLowerCase() === lastName.toLowerCase() &&
+          v.classSelect === classSelect
         );
-        if (duplicate) {
+        if (exists) {
           alert("⚠️ You are already registered! Use your Voter ID to login.");
           closeRegisterForm();
           return;
@@ -223,16 +162,10 @@
       }
 
       const voterID = await generateUniqueVoterID(firstName);
-      await set(ref(db, "voters/" + voterID), {
-        firstName, middleName, lastName, classSelect, gender,
-        hasVoted: false,
-        registeredAt: new Date().toISOString()
-      });
+      await set(ref(db, "voters/" + voterID), { firstName, middleName, lastName, classSelect, gender, hasVoted: false, registeredAt: new Date().toISOString() });
 
-      // Store locally
       localStorage.setItem("voterID", voterID);
       localStorage.setItem("firstName", firstName);
-      localStorage.setItem("middleName", middleName);
       localStorage.setItem("lastName", lastName);
       localStorage.setItem("classSelect", classSelect);
       localStorage.setItem("gender", gender);
@@ -242,53 +175,48 @@
       document.getElementById("registerForm").style.display = "none";
     };
 
-    // === Copy, Proceed, Login ===
-    window.copyVoterID = function() {
-      const voterID = document.getElementById("generatedID").textContent;
-      navigator.clipboard.writeText(voterID);
-      alert("✅ Voter ID copied!");
-    };
-    window.proceedToVote = function() {
-      window.location.href = "voting.html";
+    // === Voter ID Recovery ===
+    window.recoverVoterID = async function() {
+      const f = document.getElementById("recoverFirstName").value.trim().toLowerCase();
+      const l = document.getElementById("recoverLastName").value.trim().toLowerCase();
+      const c = document.getElementById("recoverClass").value;
+
+      if (!f || !l || !c) return alert("⚠️ Please fill all fields!");
+
+      const votersSnap = await get(child(ref(db), "voters"));
+      if (!votersSnap.exists()) return alert("❌ No registered voters yet.");
+
+      const voters = votersSnap.val();
+      const found = Object.entries(voters).find(([id, v]) =>
+        v.firstName.toLowerCase() === f && v.lastName.toLowerCase() === l && v.classSelect === c
+      );
+
+      const result = document.getElementById("recoveryResult");
+      if (found) result.innerHTML = `✅ Your Voter ID is: <b style="color:forestgreen">${found[0]}</b>`;
+      else result.innerHTML = "❌ Sorry, no record found!";
     };
 
-    // === Login using voterID ===
+    // === Other Buttons ===
+    window.copyVoterID = () => { navigator.clipboard.writeText(document.getElementById("generatedID").textContent); alert("✅ Voter ID copied!"); };
+    window.proceedToVote = () => window.location.href = "voting.html";
     window.loginWithVoterID = async function() {
-      const voterID = document.getElementById("voterIDInput").value.trim().toLowerCase();
-      if (!voterID) {
-        alert("Please enter your Voter ID!");
-        return;
-      }
-
-      const dbRef = ref(db);
-      const snapshot = await get(child(dbRef, `voters/${voterID}`));
-      if (!snapshot.exists()) {
-        alert("⚠️ Invalid Voter ID!");
-        return;
-      }
-
-      const data = snapshot.val();
-      if (data.hasVoted) {
-        alert("⚠️ You have already voted!");
-        return;
-      }
-
-      localStorage.setItem("voterID", voterID);
+      const id = document.getElementById("voterIDInput").value.trim().toLowerCase();
+      if (!id) return alert("Enter your ID!");
+      const snap = await get(child(ref(db), "voters/" + id));
+      if (!snap.exists()) return alert("❌ Invalid ID!");
+      const data = snap.val();
+      if (data.hasVoted) return alert("⚠️ You already voted!");
+      localStorage.setItem("voterID", id);
       localStorage.setItem("firstName", data.firstName);
-      localStorage.setItem("middleName", data.middleName);
-      localStorage.setItem("lastName", data.lastName);
       localStorage.setItem("classSelect", data.classSelect);
       localStorage.setItem("gender", data.gender);
-
-      alert(`✅ Welcome ${data.firstName}!`);
+      alert(`✅ Welcome ${data.firstName}! Redirecting...`);
       window.location.href = "voting.html";
     };
-
-    // === Admin Login ===
-    window.adminLogin = function() {
-      const password = prompt("Enter Admin Password:");
-      if (password === "ukss2025") window.location.href = "admin.html";
-      else if (password) alert("❌ Incorrect password!");
+    window.adminLogin = () => {
+      const pass = prompt("Enter Admin Password:");
+      if (pass === "ukss2025") window.location.href = "admin.html";
+      else if (pass) alert("❌ Wrong password!");
     };
   </script>
 </body>
