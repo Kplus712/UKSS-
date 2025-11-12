@@ -42,7 +42,7 @@ button {
 button:hover { background-color: darkgreen; }
 canvas { margin-top: 25px; max-width: 700px; }
 
-/* Filter panel */
+/* Filter Panel */
 #filterPanel {
   background: #e8f5e9;
   padding: 10px;
@@ -59,13 +59,45 @@ canvas { margin-top: 25px; max-width: 700px; }
   border: 1px solid #ccc;
   border-radius: 6px;
 }
+
+/* Popup Modal */
+.modal {
+  display: none;
+  position: fixed;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 900px;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: left;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+.modal-content h2 { text-align: center; color: forestgreen; }
+.close-btn {
+  float: right;
+  background: crimson;
+  border: none;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.close-btn:hover { background: darkred; }
 </style>
 </head>
 <body>
 
 <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
 
-<!-- 🔍 Search & Filter -->
 <div id="filterPanel">
   <input type="text" id="searchName" placeholder="Search by Voter Name">
   <select id="filterClass">
@@ -86,6 +118,7 @@ canvas { margin-top: 25px; max-width: 700px; }
 </div>
 
 <div style="margin-bottom:20px;">
+  <button id="viewVoters">🧾 View All Voters List</button>
   <button id="deleteAll">🗑️ Delete All Votes</button>
   <button id="downloadCSV">⬇️ Download Results (CSV)</button>
   <button id="backupData">💾 Backup</button>
@@ -94,11 +127,33 @@ canvas { margin-top: 25px; max-width: 700px; }
   <p id="voterSummary"></p>
 </div>
 
+<!-- Winner Summary Section -->
+<div id="winnerSummary" class="table-container"></div>
+
 <div id="resultsContainer"></div>
 
 <canvas id="barGraph"></canvas>
 <canvas id="pieGraph"></canvas>
 <canvas id="lineGraph"></canvas>
+
+<!-- 🧾 Popup Modal for All Voters -->
+<div id="votersModal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" onclick="closeVotersModal()">✖</button>
+    <h2>🧾 List of All Voters</h2>
+    <table id="votersTable">
+      <thead>
+        <tr>
+          <th>Name</th><th>Class</th><th>Gender</th><th>Votes</th><th>Date & Time</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div style="text-align:center; margin-top:10px;">
+      <button id="downloadVotersCSV">⬇️ Download Voters List (CSV)</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
@@ -121,49 +176,41 @@ const votesRef = ref(db, "votes");
 const TOTAL_STUDENTS = 308;
 
 let allVotes = [];
-let barChart, pieChart, lineChart;
 
 onValue(votesRef, (snapshot) => {
   const data = snapshot.val();
   allVotes = data ? Object.values(data) : [];
-  applyFilters();
+  displayResults(allVotes);
+  displayWinners(allVotes);
 });
 
-const filters = {
-  name: document.getElementById("searchName"),
-  class: document.getElementById("filterClass"),
-  gender: document.getElementById("filterGender"),
-  position: document.getElementById("filterPosition"),
-};
+// Winner Summary
+function displayWinners(votes){
+  if(votes.length===0){ document.getElementById("winnerSummary").innerHTML=""; return; }
 
-Object.values(filters).forEach(el => el.addEventListener("input", applyFilters));
-document.getElementById("clearFilters").addEventListener("click", ()=>{
-  Object.values(filters).forEach(el => el.value = "");
-  applyFilters();
-});
-
-function applyFilters(){
-  const nameF = filters.name.value.toLowerCase();
-  const classF = filters.class.value;
-  const genderF = filters.gender.value;
-  const posF = filters.position.value;
-
-  const filtered = allVotes.filter(v => {
-    const voter = v.voter || {};
-    const matchName = !nameF || voter.firstName?.toLowerCase().includes(nameF) || voter.lastName?.toLowerCase().includes(nameF);
-    const matchClass = !classF || voter.class === classF;
-    const matchGender = !genderF || voter.gender === genderF;
-    const matchPos = !posF || v.votes[posF];
-    return matchName && matchClass && matchGender && matchPos;
+  const totals = {};
+  votes.forEach(v=>{
+    Object.entries(v.votes).forEach(([pos,cand])=>{
+      if(!totals[pos]) totals[pos]={};
+      if(!totals[pos][cand]) totals[pos][cand]=0;
+      totals[pos][cand]++;
+    });
   });
 
-  displayResults(filtered);
+  let html = `<h2>🏆 Winners Summary</h2><table><tr><th>Position</th><th>Winner</th><th>Votes</th></tr>`;
+  for(const [pos, cands] of Object.entries(totals)){
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
+    const [winner, count] = sorted[0];
+    html += `<tr><td>${pos}</td><td>${winner}</td><td>${count}</td></tr>`;
+  }
+  html += "</table>";
+  document.getElementById("winnerSummary").innerHTML = html;
 }
 
+// Display Main Results + Graphs
 function displayResults(votes){
   const container = document.getElementById("resultsContainer");
   const voterSummary = document.getElementById("voterSummary");
-
   if(votes.length===0){
     container.innerHTML="<p>No votes yet.</p>";
     voterSummary.textContent="No data available.";
@@ -183,11 +230,10 @@ function displayResults(votes){
   const notVoted = TOTAL_STUDENTS - voted;
   voterSummary.innerHTML = `🧍‍♂️ <b>${voted}</b> voted out of ${TOTAL_STUDENTS} | <b>${notVoted}</b> not yet voted.`;
 
-  // Build Results Table
   let html = "";
-  for(const [position, candidates] of Object.entries(totals)){
-    html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th></tr>`;
-    const sorted = Object.entries(candidates).sort((a,b)=>b[1]-a[1]);
+  for(const [pos, cands] of Object.entries(totals)){
+    html += `<div class="table-container"><h2>${pos}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th></tr>`;
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
     sorted.forEach(([name,count],i)=>{
       const status = i===0 ? "👑 Leading" : "";
       html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td></tr>`;
@@ -195,76 +241,39 @@ function displayResults(votes){
     html += "</table></div>";
   }
   container.innerHTML = html;
-
-  drawCharts(totals, votes);
 }
 
-// Draw Charts
-function drawCharts(totals, votes){
-  const labels = Object.keys(totals).flatMap(p => Object.keys(totals[p]));
-  const counts = Object.keys(totals).flatMap(p => Object.values(totals[p]));
-
-  if(barChart) barChart.destroy();
-  if(pieChart) pieChart.destroy();
-  if(lineChart) lineChart.destroy();
-
-  const ctxBar = document.getElementById("barGraph");
-  barChart = new Chart(ctxBar, {
-    type: "bar",
-    data: { labels, datasets: [{ label: "Votes", data: counts, backgroundColor: "rgba(34,139,34,0.6)" }] },
-    options: { scales: { y: { beginAtZero: true } } }
+// 🧾 View All Voters List Popup
+document.getElementById("viewVoters").addEventListener("click", ()=>{
+  const modal = document.getElementById("votersModal");
+  const tbody = document.querySelector("#votersTable tbody");
+  tbody.innerHTML = "";
+  allVotes.forEach(v=>{
+    const voter = v.voter || {};
+    const name = `${voter.firstName || ""} ${voter.middleName || ""} ${voter.lastName || ""}`;
+    const votesList = Object.entries(v.votes).map(([p,c])=>`${p}: ${c}`).join(", ");
+    const time = new Date(v.timestamp).toLocaleString();
+    const tr = `<tr><td>${name}</td><td>${voter.class || "-"}</td><td>${voter.gender || "-"}</td><td>${votesList}</td><td>${time}</td></tr>`;
+    tbody.innerHTML += tr;
   });
-
-  const ctxPie = document.getElementById("pieGraph");
-  pieChart = new Chart(ctxPie, {
-    type: "pie",
-    data: { labels, datasets: [{ data: counts, backgroundColor: ["#2e7d32","#66bb6a","#81c784","#a5d6a7","#c8e6c9"] }] }
-  });
-
-  const times = votes.map(v=>new Date(v.timestamp).toLocaleTimeString());
-  const lineData = votes.map(()=>1).reduce((acc,_,i)=>[...acc,(acc[i-1]||0)+1],[]);
-  const ctxLine = document.getElementById("lineGraph");
-  lineChart = new Chart(ctxLine,{
-    type:"line",
-    data:{ labels:times, datasets:[{ label:"Votes Over Time", data:lineData, borderColor:"forestgreen", fill:false }] }
-  });
-}
-
-// Backup & Restore
-document.getElementById("backupData").addEventListener("click", ()=>{
-  const blob = new Blob([JSON.stringify(allVotes,null,2)],{type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "UKSS_Backup.json";
-  a.click();
-});
-document.getElementById("restoreData").addEventListener("click", ()=>document.getElementById("restoreFile").click());
-document.getElementById("restoreFile").addEventListener("change", async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const text = await file.text();
-  const json = JSON.parse(text);
-  for(const item of json) await set(ref(db,"votes/"+item.voter?.firstName), item);
-  alert("✅ Backup restored successfully!");
+  modal.style.display = "flex";
 });
 
-// Delete All Votes
-document.getElementById("deleteAll").addEventListener("click",()=>{
-  if(confirm("Delete ALL votes?")) remove(votesRef);
-});
+window.closeVotersModal = ()=> document.getElementById("votersModal").style.display = "none";
 
-// CSV Export
-document.getElementById("downloadCSV").addEventListener("click",()=>{
-  if(allVotes.length===0) return alert("No data to export!");
-  let csv = "First Name,Middle,Last,Class,Gender,Head Boy,Head Girl,General Sec,Discipline,Timestamp\n";
+// Download Voters CSV
+document.getElementById("downloadVotersCSV").addEventListener("click", ()=>{
+  if(allVotes.length===0) return alert("No voters yet!");
+  let csv = "First Name,Middle,Last,Class,Gender,Votes,Timestamp\n";
   allVotes.forEach(v=>{
     const voter=v.voter||{};
-    csv += `"${voter.firstName||""}","${voter.middleName||""}","${voter.lastName||""}","${voter.class||""}","${voter.gender||""}","${v.votes.headBoy||""}","${v.votes.headGirl||""}","${v.votes.generalSec||""}","${v.votes.discipline||""}","${new Date(v.timestamp).toLocaleString()}"\n`;
+    const votesList = Object.entries(v.votes).map(([p,c])=>`${p}:${c}`).join("; ");
+    csv += `"${voter.firstName||""}","${voter.middleName||""}","${voter.lastName||""}","${voter.class||""}","${voter.gender||""}","${votesList}","${new Date(v.timestamp).toLocaleString()}"\n`;
   });
   const blob=new Blob([csv],{type:"text/csv"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
-  a.download="UKSS_Voting_Results.csv";
+  a.download="UKSS_Voters_List.csv";
   a.click();
 });
 </script>
