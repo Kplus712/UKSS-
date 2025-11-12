@@ -29,16 +29,40 @@ table {
 th, td { border: 1px solid #ddd; padding: 8px; }
 th { background-color: forestgreen; color: white; }
 tr:nth-child(even) {background-color: #f2f2f2;}
+button {
+  background-color: forestgreen;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin: 5px;
+  cursor: pointer;
+}
+button:hover { background-color: darkgreen; }
+canvas {
+  margin-top: 30px;
+  max-width: 700px;
+}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
+
+<div style="margin-bottom:20px;">
+  <button id="deleteAll">🗑️ Delete All Votes</button>
+  <button id="downloadCSV">⬇️ Download Results (CSV)</button>
+  <p id="voterSummary"></p>
+</div>
+
 <div id="resultsContainer"></div>
+
+<canvas id="voteGraph"></canvas>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+  import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
@@ -54,34 +78,134 @@ tr:nth-child(even) {background-color: #f2f2f2;}
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
   const votesRef = ref(db, "votes");
+  const TOTAL_STUDENTS = 308;
+
+  let chart;
 
   onValue(votesRef, (snapshot) => {
     const data = snapshot.val();
+    const container = document.getElementById("resultsContainer");
+    const voterSummary = document.getElementById("voterSummary");
+
     if (!data) {
-      document.getElementById("resultsContainer").innerHTML = "<p>No votes yet.</p>";
+      container.innerHTML = "<p>No votes yet.</p>";
+      voterSummary.innerText = "No votes have been cast yet.";
+      if (chart) chart.destroy();
       return;
     }
 
+    const votes = Object.values(data);
     const totals = {};
-    Object.values(data).forEach(vote => {
-      Object.entries(vote.votes).forEach(([pos, cand]) => {
-        if (!totals[pos]) totals[pos] = {};
-        if (!totals[pos][cand]) totals[pos][cand] = 0;
-        totals[pos][cand]++;
+    const voteTimes = [];
+
+    // group votes by position and candidate
+    votes.forEach(vote => {
+      voteTimes.push(new Date(vote.timestamp).toLocaleString());
+      Object.entries(vote.votes).forEach(([position, candidate]) => {
+        if (!totals[position]) totals[position] = {};
+        if (!totals[position][candidate]) totals[position][candidate] = 0;
+        totals[position][candidate]++;
       });
     });
 
+    // Summary
+    const voted = votes.length;
+    const notVoted = TOTAL_STUDENTS - voted;
+    voterSummary.innerHTML = `🧍‍♂️ <b>${voted}</b> students have voted out of ${TOTAL_STUDENTS}. <b>${notVoted}</b> have not yet voted.`;
+
+    // Build HTML Table
     let html = "";
     for (const [position, candidates] of Object.entries(totals)) {
-      html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th></tr>`;
+      html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th><th>Actions</th></tr>`;
       const sorted = Object.entries(candidates).sort((a,b)=>b[1]-a[1]);
       sorted.forEach(([name,count],i)=>{
         const status = i===0 ? "👑 Leading" : "";
-        html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td></tr>`;
+        html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td><td><button onclick="deleteCandidateVotes('${name}')">🗑️ Delete</button></td></tr>`;
       });
       html += "</table></div>";
     }
-    document.getElementById("resultsContainer").innerHTML = html;
+    container.innerHTML = html;
+
+    // Prepare Graph Data
+    const labels = Object.keys(totals).flatMap(pos => Object.keys(totals[pos]));
+    const counts = Object.keys(totals).flatMap(pos => Object.values(totals[pos]));
+
+    if (chart) chart.destroy();
+    const ctx = document.getElementById("voteGraph");
+    chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Number of Votes",
+          data: counts,
+          backgroundColor: "rgba(34,139,34,0.6)",
+          borderColor: "forestgreen",
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+
+    // Sort votes by timestamp
+    votes.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+
+    // Add list of votes by time
+    let timelineHTML = `<div class="table-container"><h2>🕒 Votes by Time</h2><table><tr><th>Voter</th><th>Class</th><th>Gender</th><th>Time</th></tr>`;
+    votes.forEach(v=>{
+      timelineHTML += `<tr><td>${v.name}</td><td>${v.gender}</td><td>${v.votes.headBoy || ''}</td><td>${new Date(v.timestamp).toLocaleString()}</td></tr>`;
+    });
+    timelineHTML += "</table></div>";
+    container.innerHTML += timelineHTML;
+  });
+
+  // Delete candidate votes
+  window.deleteCandidateVotes = (candidateName) => {
+    if (confirm(`Delete all votes for ${candidateName}?`)) {
+      onValue(votesRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        Object.entries(data).forEach(([id, vote]) => {
+          const newVotes = {};
+          for (let [pos, cand] of Object.entries(vote.votes)) {
+            if (cand !== candidateName) newVotes[pos] = cand;
+          }
+          vote.votes = newVotes;
+          set(ref(db, "votes/" + id), vote);
+        });
+        alert(`All votes for ${candidateName} deleted.`);
+      }, { onlyOnce: true });
+    }
+  };
+
+  // Delete all votes
+  document.getElementById("deleteAll").addEventListener("click", () => {
+    if (confirm("Delete ALL votes? This action cannot be undone.")) {
+      remove(votesRef);
+      alert("All votes deleted successfully!");
+    }
+  });
+
+  // Download results CSV
+  document.getElementById("downloadCSV").addEventListener("click", () => {
+    onValue(votesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) { alert("No data to download!"); return; }
+
+      let csv = "Name,Gender,Head Boy,Head Girl,General Sec,Discipline,Sports,Academic,Environment,Food,Timestamp\n";
+      Object.values(data).forEach(v => {
+        csv += `"${v.name}","${v.gender}","${v.votes.headBoy || ""}","${v.votes.headGirl || ""}","${v.votes.generalSec || ""}","${v.votes.discipline || ""}","${v.votes.sports || ""}","${v.votes.academic || ""}","${v.votes.environment || ""}","${v.votes.food || ""}","${new Date(v.timestamp).toLocaleString()}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "UKSS_Voting_Results.csv";
+      a.click();
+    }, { onlyOnce: true });
   });
 </script>
 </body>
