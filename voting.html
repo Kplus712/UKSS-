@@ -7,6 +7,21 @@
   <link rel="stylesheet" href="style.css">
 
   <style>
+    /* Countdown */
+    #countdown {
+      background: #e8f5e9;
+      color: forestgreen;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 400px;
+      margin: 10px auto;
+      text-align: center;
+      font-size: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
     /* Receipt Style */
     #receipt {
       display: none;
@@ -21,22 +36,10 @@
       line-height: 1.6;
       color: #333;
     }
-    #receipt h2 {
-      color: forestgreen;
-      text-align: center;
-    }
-    #receipt ul {
-      list-style: none;
-      padding: 0;
-    }
-    #receipt li::before {
-      content: "✔️ ";
-      color: forestgreen;
-    }
-    .receipt-buttons {
-      text-align: center;
-      margin-top: 20px;
-    }
+    #receipt h2 { color: forestgreen; text-align: center; }
+    #receipt ul { list-style: none; padding: 0; }
+    #receipt li::before { content: "✔️ "; color: forestgreen; }
+    .receipt-buttons { text-align: center; margin-top: 20px; }
     .receipt-buttons button {
       background: forestgreen;
       color: white;
@@ -46,15 +49,13 @@
       margin: 5px;
       cursor: pointer;
     }
-    .receipt-buttons button:hover {
-      background: darkgreen;
-    }
+    .receipt-buttons button:hover { background: darkgreen; }
   </style>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
@@ -75,13 +76,15 @@
     window.get = get;
     window.set = set;
     window.update = update;
-    window.onValue = onValue;
   </script>
 </head>
 
 <body>
   <div class="container">
     <h1>🗳️ Vote for Your Leaders</h1>
+
+    <!-- Countdown Timer -->
+    <div id="countdown">Voting ends in: <span id="timer">Loading...</span></div>
 
     <!-- === Voting Form === -->
     <form id="voteForm">
@@ -91,31 +94,28 @@
           <img src="images/headboy1.jpg" alt="John Mwasiti">
           <div class="info">
             <h3>John Mwasiti</h3>
-            <label><input type="checkbox" name="headBoy" value="John Mwasiti"> Vote</label>
+            <label><input type="radio" name="headBoy" value="John Mwasiti"> Vote</label>
           </div>
         </div>
-
         <div class="candidate">
           <img src="images/headboy2.jpg" alt="Peter Mwenda">
           <div class="info">
             <h3>Peter Mwenda</h3>
-            <label><input type="checkbox" name="headBoy" value="Peter Mwenda"> Vote</label>
+            <label><input type="radio" name="headBoy" value="Peter Mwenda"> Vote</label>
           </div>
         </div>
-
         <div class="candidate">
           <img src="images/headgirl1.jpg" alt="Aisha Komba">
           <div class="info">
             <h3>Aisha Komba</h3>
-            <label><input type="checkbox" name="headGirl" value="Aisha Komba"> Vote</label>
+            <label><input type="radio" name="headGirl" value="Aisha Komba"> Vote</label>
           </div>
         </div>
-
         <div class="candidate">
           <img src="images/headgirl2.jpg" alt="Neema Lusekelo">
           <div class="info">
             <h3>Neema Lusekelo</h3>
-            <label><input type="checkbox" name="headGirl" value="Neema Lusekelo"> Vote</label>
+            <label><input type="radio" name="headGirl" value="Neema Lusekelo"> Vote</label>
           </div>
         </div>
       </div>
@@ -129,7 +129,6 @@
             <label><input type="radio" name="generalSec" value="David Mwakalinga"> Vote</label>
           </div>
         </div>
-
         <div class="candidate">
           <img src="images/sec_female.jpg" alt="Maria Andrew">
           <div class="info">
@@ -148,7 +147,6 @@
             <label><input type="radio" name="discipline" value="Jonas Mollel"> Vote</label>
           </div>
         </div>
-
         <div class="candidate">
           <img src="images/discipline_female.jpg" alt="Grace Mwita">
           <div class="info">
@@ -178,9 +176,34 @@
 
     const form = document.getElementById("voteForm");
     const receiptDiv = document.getElementById("receipt");
+    const timerDisplay = document.getElementById("timer");
 
+    // 🕒 Countdown Setup (set your voting end time here)
+    const endTime = new Date().getTime() + (10 * 60 * 1000); // example: 10 minutes from now
+    const countdown = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = endTime - now;
+
+      if (distance < 0) {
+        clearInterval(countdown);
+        timerDisplay.textContent = "Voting period has ended.";
+        form.style.display = "none";
+        return;
+      }
+
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      timerDisplay.textContent = `${minutes}m ${seconds}s`;
+    }, 1000);
+
+    // 🗳️ Submit Vote
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      if (new Date().getTime() > endTime) {
+        alert("Voting time has ended!");
+        return;
+      }
 
       const voterRef = ref(db, "voters/" + voterID);
       const snapshot = await get(voterRef);
