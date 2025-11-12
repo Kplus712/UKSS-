@@ -1,159 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>UKSS Appreciation Letter</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Appreciation Letter — UKSS</title>
 <style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: "Georgia", serif;
-        background: #e8f5e9 url('placeholder_background_flowers.png') center/cover no-repeat fixed;
-        color: #1b5e20;
-    }
+  :root{
+    --ukss-green: #265a2f; /* kijani iliyokoraa */
+    --soft-green: #e6f4e6;
+    --text: #0b2b18;
+    --accent: #6fbf73;
+  }
+  body{
+    margin:0;
+    font-family: "Georgia", serif;
+    background: linear-gradient(180deg, #f7fff7 0%, #f0fff0 100%);
+    color:var(--text);
+    padding:28px;
+  }
 
-    .container {
-        max-width: 900px;
-        margin: 40px auto;
-        background: rgba(255, 255, 255, 0.92);
-        padding: 40px 50px;
-        border-radius: 20px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.15);
-        border-top: 10px solid #2e7d32;
-        position: relative;
-    }
+  .container{
+    max-width:900px;
+    margin:18px auto;
+    background: white;
+    border-radius:12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: 6px solid rgba(38,90,47,0.08);
+  }
 
-    .logo {
-        width: 120px;
-        height: 120px;
-        background: url('placeholder_school_logo.png') center/contain no-repeat;
-        margin: 0 auto 20px auto;
-    }
+  /* Header with placeholder logo */
+  .letter-header{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    padding:22px;
+    background: linear-gradient(90deg, rgba(38,90,47,0.06), rgba(107,170,107,0.02));
+  }
+  .logo-placeholder{
+    width:96px;
+    height:96px;
+    background: url('PLACEHOLDER_LOGO.png') center/contain no-repeat;
+    border-radius:10px;
+    flex: 0 0 96px;
+    border: 2px dashed rgba(38,90,47,0.12);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ukss-green);
+    font-weight:bold;
+  }
+  .header-text{
+    flex:1;
+  }
+  .header-text h2{ margin:0; color:var(--ukss-green); font-size:20px; }
+  .header-text p{ margin:6px 0 0; color:#45694f; font-size:13px; }
 
-    h1 {
-        text-align: center;
-        font-size: 28px;
-        margin-bottom: 5px;
-        color: #2e7d32;
-        font-weight: bold;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
+  .letter-body{
+    padding:28px 34px;
+    line-height:1.6;
+  }
 
-    h3 {
-        text-align: center;
-        font-size: 20px;
-        margin-top: 0;
-        color: #1b5e20;
-        opacity: 0.8;
-    }
+  .title{
+    text-align:center;
+    color:var(--ukss-green);
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:8px;
+    letter-spacing:0.6px;
+  }
 
-    .letter {
-        font-size: 18px;
-        line-height: 1.7;
-        margin-top: 20px;
-    }
+  .sub{
+    text-align:center;
+    color:#3b6f50;
+    margin-bottom:20px;
+    font-style:italic;
+  }
 
-    .signature {
-        margin-top: 60px;
-        text-align: right;
-        font-size: 18px;
-        font-weight: bold;
-        color: #2e7d32;
-    }
+  .content{
+    font-size:16px;
+    color:#27442f;
+    margin-bottom:22px;
+  }
 
-    .sign-placeholder {
-        width: 200px;
-        height: 80px;
-        border-bottom: 3px solid #2e7d32;
-        margin-left: auto;
-        margin-bottom: 5px;
-    }
+  .info-table{
+    width:100%;
+    margin:10px 0 20px;
+    border-collapse:collapse;
+  }
+  .info-table td{ padding:8px 6px; vertical-align:top; font-size:15px; }
+  .info-table td.label{ color: #556f5b; font-weight:700; width:160px; }
 
-    .footer {
-        margin-top: 40px;
-        text-align: center;
-        font-size: 14px;
-        opacity: 0.7;
-    }
+  /* decorative flowers placeholder at the bottom */
+  .decoration{
+    background: url('PLACEHOLDER_FLOWERS.png') bottom right no-repeat;
+    min-height:80px;
+  }
 
-    .btn-print {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #2e7d32;
-        padding: 12px 18px;
-        color: white;
-        border-radius: 8px;
-        cursor: pointer;
-        border: none;
-        font-size: 16px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    }
+  .signature{
+    margin-top:24px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .signature .sign-block{
+    flex:1;
+  }
+  .signature .signed{
+    font-family: "Brush Script MT", "Segoe Script", cursive;
+    font-size:28px;
+    color:var(--ukss-green);
+    display:block;
+  }
+  .signature .role{
+    font-size:13px;
+    color:#4b6b52;
+    margin-top:4px;
+  }
 
-    @media print {
-        .btn-print { display: none; }
-        body { background: white; }
-    }
+  /* print button area */
+  .actions{
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+    padding:14px 24px 24px;
+  }
+  .btn{
+    padding:10px 14px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+    font-weight:700;
+  }
+  .btn-print{ background:var(--ukss-green); color:white; }
+  .btn-download{ background:var(--accent); color:white; }
+  .btn-back{ background:#eef7ee; color:var(--ukss-green); border:1px solid rgba(38,90,47,0.08); }
+
+  @media print{
+    body{ padding:0; background: white; }
+    .actions{ display:none; }
+    .container{ box-shadow:none; border:none; margin:0; border-radius:0; }
+  }
+
+  /* placeholders styling note */
+  .placeholder-note{ font-size:12px; color:#7a8a7a; margin-top:6px; }
+
+  /* small responsive */
+  @media (max-width:600px){
+    .letter-body{ padding:18px; }
+    .logo-placeholder{ width:70px; height:70px; flex:0 0 70px; }
+  }
+
 </style>
-
 </head>
 <body>
-
-<div class="container">
-    <div class="logo"></div>
-
-    <h1>UKSS CONGRATULATORY LETTER</h1>
-    <h3 id="positionTitle"></h3>
-
-    <div class="letter" id="letterBody"></div>
-
-    <div class="signature">
-        <div class="sign-placeholder"></div>
-        @ukssadministrator
+  <div class="container" id="letterContainer">
+    <div class="letter-header">
+      <div class="logo-placeholder" id="logoPlaceholder">LOGO</div>
+      <div class="header-text">
+        <h2>United Kingdom Secondary School (UKSS)</h2>
+        <p>Official Appreciation Letter — Student Leadership</p>
+        <div class="placeholder-note">Logo placeholder — replace <code>PLACEHOLDER_LOGO.png</code> with school emblem.</div>
+      </div>
     </div>
 
-    <div class="footer">
-        <i>This letter was automatically generated by the UKSS Voting System.</i>
-    </div>
-</div>
+    <div class="letter-body">
+      <div class="title" id="letterTitle">Certificate of Appreciation</div>
+      <div class="sub" id="letterSub">Presented to the outstanding student leader</div>
 
-<button class="btn-print" onclick="window.print()">🖨️ Print Letter</button>
+      <div class="content" id="contentParagraph">
+        <!-- Main paragraph filled by script -->
+      </div>
+
+      <table class="info-table">
+        <tr><td class="label">Student Name:</td><td id="studentName">[Candidate Full Name]</td></tr>
+        <tr><td class="label">Position:</td><td id="positionName">[headBoy/headGirl]</td></tr>
+        <tr><td class="label">Class:</td><td id="studentClass">[Form/Section]</td></tr>
+        <tr><td class="label">Gender:</td><td id="studentGender">[Gender]</td></tr>
+        <tr><td class="label">Votes Received:</td><td id="votesCount">[Votes]</td></tr>
+        <tr><td class="label">Year:</td><td id="yearLabel">[Year]</td></tr>
+      </table>
+
+      <div class="signature">
+        <div class="sign-block">
+          <span class="signed">@ukssadministrator</span>
+          <div class="role">Administrator — UKSS</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;color:#5a7a5b">Date:</div>
+          <div id="todayDate" style="font-weight:700;color:#3f6a4f"></div>
+        </div>
+      </div>
+
+      <div class="decoration"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-back" id="backToDashboard">← Back to Dashboard</button>
+      <button class="btn btn-download" id="downloadPdf">Download (Use Print to Save as PDF)</button>
+      <button class="btn btn-print" id="printBtn">Print</button>
+    </div>
+  </div>
 
 <script>
-    // Read URL parameters
-    const url = new URL(window.location.href);
-    const name = url.searchParams.get("name") || "Winner Name Placeholder";
-    const position = url.searchParams.get("position") || "Head Boy / Head Girl";
+  // read query params
+  function getParams(){
+    const params = new URLSearchParams(window.location.search);
+    return {
+      name: params.get('name') || '',
+      position: params.get('position') || '',
+      votes: params.get('votes') || '',
+      year: params.get('year') || (new Date().getFullYear()),
+      candidateId: params.get('candidateId') || '',
+      candidateClass: params.get('candidateClass') || '',
+      candidateGender: params.get('candidateGender') || '',
+      candidateFirst: params.get('candidateFirst') || '',
+      candidateLast: params.get('candidateLast') || ''
+    };
+  }
 
-    // Capitalize position properly
-    const headPos = position === "headBoy" ? "Head Boy" :
-                    position === "headGirl" ? "Head Girl" :
-                    position;
+  function fillLetter(){
+    const p = getParams();
+    const fullName = p.name || ( (p.candidateFirst || '') + ' ' + (p.candidateLast || '') ).trim() || '---';
+    document.getElementById('studentName').textContent = fullName;
+    const posNice = (p.position || '').replace(/([a-z])([A-Z])/g, '$1 $2'); // headBoy -> head Boy (not perfect)
+    document.getElementById('positionName').textContent = p.position || posNice || '---';
+    document.getElementById('studentClass').textContent = p.candidateClass || '[placeholder]';
+    document.getElementById('studentGender').textContent = p.candidateGender || '[placeholder]';
+    document.getElementById('votesCount').textContent = p.votes || '0';
+    document.getElementById('yearLabel').textContent = p.year || new Date().getFullYear();
+    document.getElementById('todayDate').textContent = new Date().toLocaleDateString();
 
-    // Set dynamic text
-    document.getElementById("positionTitle").innerText =
-        `${name} — ${headPos}`;
+    // Write main paragraph (nice design, flower & green color implied in CSS)
+    const paragraph = `This letter is presented to <strong>${fullName}</strong> in recognition of outstanding leadership and service to their fellow students. Having been elected as <strong>${p.position}</strong> with <strong>${p.votes}</strong> votes in the ${p.year} student elections, we congratulate you and entrust you with the honour and responsibility of representing and leading your fellow students. We wish you success and wisdom as you take on the duties of student leadership.`;
+    document.getElementById('contentParagraph').innerHTML = paragraph;
 
-    document.getElementById("letterBody").innerHTML = `
-        Dear <b>${name}</b>,<br><br>
+    // logo placeholder text (you will replace the placeholder image later)
+    const logo = document.getElementById('logoPlaceholder');
+    logo.title = 'Replace PLACEHOLDER_LOGO.png with actual emblem file';
+  }
 
-        On behalf of the entire UKSS community, we warmly congratulate you on being democratically elected as our new <b>${headPos}</b>. 
-        Your victory represents the trust, respect, and confidence that your fellow students have placed in your character and leadership qualities.<br><br>
+  // Buttons
+  document.getElementById('printBtn').addEventListener('click', ()=> {
+    window.print();
+  });
+  document.getElementById('backToDashboard').addEventListener('click', ()=> {
+    // if opened from dashboard, this will focus the opener if available
+    if(window.opener && !window.opener.closed){
+      window.opener.focus();
+      // optional: navigate opener to dashboard root if needed
+    }
+    // also navigate to assumed dashboard filename
+    window.location.href = 'dashboard.html';
+  });
+  document.getElementById('downloadPdf').addEventListener('click', () => {
+    // Hint to user: use browser Print -> Save as PDF
+    alert('To download as PDF: Use the Print dialog and choose "Save as PDF".\nClick OK to open the Print dialog now.');
+    window.print();
+  });
 
-        We believe that you will serve with integrity, courage, and a genuine commitment to uplifting the students you now represent. 
-        As you take on your new responsibilities, may you continue to inspire and lead by example — guiding your peers with honor, discipline, and compassion.<br><br>
-
-        This achievement marks the beginning of a greater journey. We wish you success, wisdom, and strength as you fulfill your duties 
-        in the coming academic year.<br><br>
-
-        Once again, congratulations on your well-deserved victory.<br><br>
-
-        With respect and appreciation,<br>
-    `;
+  fillLetter();
 </script>
-
 </body>
 </html>
+
