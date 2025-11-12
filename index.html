@@ -16,11 +16,11 @@
   <!-- === Login Form === -->
   <section id="loginSection">
     <h2>Enter Your Details</h2>
-    <input type="text" id="firstName" placeholder="First Name">
+    <input type="text" id="firstName" placeholder="First Name" required>
     <input type="text" id="middleName" placeholder="Middle Name">
-    <input type="text" id="lastName" placeholder="Last Name">
+    <input type="text" id="lastName" placeholder="Last Name" required>
 
-    <select id="classSelect">
+    <select id="classSelect" required>
       <option value="">Select Class</option>
       <option value="Form One">Form One</option>
       <option value="Form Two">Form Two</option>
@@ -28,14 +28,14 @@
       <option value="Form Four">Form Four</option>
     </select>
 
-     <div>
-        <button class="block text-gray-700 font-semibold mb-2">Gender</button>
-        <select id="gender" required class="border border-gray-300 rounded-lg p-2 w-full">
-          <option value="">-- Select Gender --</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-      </div>
+    <div>
+      <label class="block text-gray-700 font-semibold mb-2">Gender</label>
+      <select id="gender" required class="border border-gray-300 rounded-lg p-2 w-full">
+        <option value="">-- Select Gender --</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+    </div>
 
     <button onclick="openVoting()">Proceed to Voting</button>
   </section>
@@ -43,59 +43,6 @@
   <!-- === Voting Section === -->
   <section id="votingSection" style="display:none;">
     <h2>Vote for Your Leaders</h2>
-
-    <!-- Head Boy/Girl -->
-    <div class="position">
-      <h3>Head Boy & Head Girl</h3>
-      <div class="candidates">
-        <div>
-          <img src="images/headboy1.jpg" alt="Head Boy 1">
-          <label><input type="radio" name="headBoyCandidates" value="John Michael"> John Michael</label>
-        </div>
-        <div>
-          <img src="images/headboy2.jpg" alt="Head Boy 2">
-          <label><input type="radio" name="headBoyCandidates" value="Peter Gabriel"> Peter Gabriel</label>
-        </div>
-        <div>
-          <img src="images/headgirl1.jpg" alt="Head Girl 1">
-          <label><input type="radio" name="headBoyCandidates" value="Mary Joseph"> Mary Joseph</label>
-        </div>
-        <div>
-          <img src="images/headgirl2.jpg" alt="Head Girl 2">
-          <label><input type="radio" name="headBoyCandidates" value="Agnes Daniel"> Agnes Daniel</label>
-        </div>
-      </div>
-    </div>
-
-    <!-- General Secretary -->
-    <div class="position">
-      <h3>General Secretary</h3>
-      <div class="candidates">
-        <div>
-          <img src="images/sec_boy.jpg" alt="Secretary Boy">
-          <label><input type="radio" name="generalSecretaryCandidates" value="Joseph Simon"> Joseph Simon</label>
-        </div>
-        <div>
-          <img src="images/sec_girl.jpg" alt="Secretary Girl">
-          <label><input type="radio" name="generalSecretaryCandidates" value="Rosemary Peter"> Rosemary Peter</label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Other Positions -->
-    <div class="position">
-      <h3>Other Leadership Positions</h3>
-      <ul>
-        <li>Sports Captain</li>
-        <li>Academic Prefect</li>
-        <li>Discipline Prefect</li>
-        <li>Health & Sanitation Prefect</li>
-        <li>Entertainment Prefect</li>
-      </ul>
-    </div>
-
-    <button onclick="submitVote()">Submit Vote</button>
-    <div id="results"></div>
   </section>
 
   <!-- Admin Login -->
@@ -106,7 +53,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
@@ -122,12 +69,60 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    window.db = db;
-    window.ref = ref;
-    window.push = push;
-    window.onValue = onValue;
-  </script>
+    window.openVoting = async function() {
+      const firstName = document.getElementById("firstName").value.trim();
+      const middleName = document.getElementById("middleName").value.trim();
+      const lastName = document.getElementById("lastName").value.trim();
+      const classSelect = document.getElementById("classSelect").value;
+      const gender = document.getElementById("gender").value;
 
-  <script src="script.js"></script>
+      if (!firstName || !lastName || !classSelect || !gender) {
+        alert("⚠️ Please fill in all required fields!");
+        return;
+      }
+
+      // Create unique voter ID
+      const voterID = `${firstName}_${middleName}_${lastName}_${classSelect}`.replace(/\s+/g, "_").toLowerCase();
+
+      const dbRef = ref(db);
+      const snapshot = await get(child(dbRef, `voters/${voterID}`));
+
+      if (snapshot.exists()) {
+        alert("⚠️ You have already voted. Each student can only vote once!");
+        return;
+      }
+
+      // Save details locally for use in voting page
+      localStorage.setItem("voterID", voterID);
+      localStorage.setItem("firstName", firstName);
+      localStorage.setItem("middleName", middleName);
+      localStorage.setItem("lastName", lastName);
+      localStorage.setItem("classSelect", classSelect);
+      localStorage.setItem("gender", gender);
+
+      // Save to Firebase voters list (mark as logged in)
+      await set(ref(db, "voters/" + voterID), {
+        firstName,
+        middleName,
+        lastName,
+        classSelect,
+        gender,
+        hasVoted: false,
+        timestamp: new Date().toISOString()
+      });
+
+      // Redirect to voting page
+      window.location.href = "voting.html";
+    };
+
+    window.adminLogin = function() {
+      const password = prompt("Enter Admin Password:");
+      if (password === "ukss2025") {
+        window.location.href = "admin.html";
+      } else if (password) {
+        alert("❌ Incorrect password!");
+      }
+    };
+  </script>
 </body>
 </html>
