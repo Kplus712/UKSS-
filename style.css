@@ -43,28 +43,156 @@ button:hover {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.candidates {
+/* --- Candidate layout --- */
+.landscape {
   display: flex;
-  justify-content: space-around;
   flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 10px;
 }
 
-.candidates div {
-  width: 150px;
-  text-align: center;
+.candidate {
+  width: 45%;
+  background: #fff;
+  border: 2px solid #e0f0e0;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  transition: transform 0.3s;
 }
 
-.candidates img {
+.candidate:hover {
+  transform: scale(1.02);
+}
+
+.candidate img {
   width: 120px;
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid forestgreen;
+  margin-right: 10px;
 }
 
-.admin-btn {
-  padding: 10px 25px;
-  background: forestgreen;
+.candidate .info {
+  flex: 1;
+  text-align: left;
+}
+
+.candidate .info h3 {
+  margin: 5px 0;
+  color: forestgreen;
+}
+
+.candidate .info label {
+  display: block;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.candidate .info button {
+  margin-top: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 6px;
+  background-color: #2e8b57;
+}
+
+.candidate .info button:hover {
+  background-color: #246b45;
+}
+
+.progress {
+  width: 100%;
+  height: 8px;
+  background: #eee;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, forestgreen, limegreen);
+  transition: width 0.6s;
+}
+
+/* --- Modal Styles for Profile --- */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+.modal-content img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid forestgreen;
+  margin-bottom: 15px;
+}
+
+.modal-content h2 {
+  color: forestgreen;
+  margin-bottom: 10px;
+}
+
+.modal-content p {
+  color: #333;
+  line-height: 1.5;
+}
+
+.close-btn {
+  background: crimson;
+  border: none;
   color: white;
-  border-radius: 8px;
+  padding: 8px 15px;
+  border-radius: 6px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  background: darkred;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Admin Upload Area (future use) */
+.admin-upload {
+  display: none;
+  background: #e8f5e9;
+  border: 2px dashed forestgreen;
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 10px;
+  color: #2e7d32;
+  font-weight: bold;
 }
