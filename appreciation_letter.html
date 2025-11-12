@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UKSS Appreciation Letter</title>
+
+<style>
+    body {
+        font-family: "Georgia", serif;
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(rgba(0,90,40,0.7), rgba(0,90,40,0.7)),
+        url('flowers-placeholder.jpg'); /* <- placeholder ya maua */
+        background-size: cover;
+        background-position: center;
+        color: #083b12;
+    }
+
+    .letter-container {
+        width: 85%;
+        max-width: 850px;
+        margin: 40px auto;
+        background: #ffffffee;
+        padding: 40px;
+        border-radius: 14px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+        position: relative;
+    }
+
+    .logo {
+        width: 120px;
+        height: 120px;
+        background: #d0e8d0;
+        border-radius: 50%;
+        margin: 0 auto 10px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #2e7d32;
+        font-size: 18px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #1f5d27;
+        margin-bottom: 10px;
+        font-size: 28px;
+    }
+
+    h2 {
+        text-align: center;
+        margin-top: -5px;
+        font-weight: normal;
+        color: #2e7d32;
+    }
+
+    .content {
+        margin-top: 25px;
+        line-height: 1.7rem;
+        font-size: 18px;
+        color: #0c2a12;
+    }
+
+    .signature {
+        margin-top: 50px;
+        text-align: right;
+        font-size: 18px;
+        font-weight: bold;
+        color: #2e7d32;
+    }
+
+    .controls {
+        margin-top: 25px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    button {
+        padding: 10px 18px;
+        background: #2e7d32;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    button:hover {
+        opacity: 0.9;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="letter-container">
+
+    <div class="logo">
+        LOGO
+    </div>
+
+    <h1>UKSS CONGRATULATORY LETTER</h1>
+    <h2 id="roleTitle">[ROLE HERE]</h2>
+
+    <div class="content" id="letterContent">
+        <!-- auto-filled -->
+    </div>
+
+    <div class="signature">
+        @ukssadministrator
+    </div>
+
+    <div class="controls">
+        <button onclick="window.print()">🖨 Print Letter</button>
+        <button id="downloadPDF">⬇ Download PDF</button>
+        <button onclick="goBack()">⬅ Back to Dashboard</button>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+    function getQuery(key){
+        const params = new URLSearchParams(window.location.search);
+        return params.get(key);
+    }
+
+    const winnerName = getQuery("name") || "Winner Name";
+    const winnerClass = getQuery("class") || "Class Placeholder";
+    const role = getQuery("role") || "Head Boy";
+
+    // Title
+    document.getElementById("roleTitle").textContent =
+        role === "headBoy" ? "HEAD BOY WINNER" :
+        role === "headGirl" ? "HEAD GIRL WINNER" :
+        "STUDENT WINNER";
+
+    // Barua
+    document.getElementById("letterContent").innerHTML = `
+        <p>
+        Dear <b>${winnerName}</b>,<br><br>
+
+        On behalf of the entire administration and student community of UKSS, 
+        we extend our heartfelt congratulations upon your victory and official appointment as 
+        <b>${role === "headBoy" ? "Head Boy" : "Head Girl"}</b> for the academic year <b>${new Date().getFullYear()}</b>.
+        </p>
+
+        <p>
+        Your achievement is a testament to your exemplary discipline, leadership abilities, 
+        and the trust your fellow students have placed in you. We believe that you will uphold 
+        integrity, responsibility, and excellence as you carry out the duties entrusted to you.
+        </p>
+
+        <p>
+        May this role inspire you to lead with vision, courage, and compassion. 
+        We wish you great success as you serve and represent your school community.
+        </p>
+
+        <p>
+        Once again, congratulations on this remarkable milestone.
+        </p>
+    `;
+
+    // PDF Download
+    document.getElementById("downloadPDF").addEventListener("click", () => {
+        const element = document.querySelector(".letter-container");
+        html2pdf().from(element).save(`${winnerName}_Appreciation_Letter.pdf`);
+    });
+
+    function goBack(){
+        window.location.href = "dashboard.html"; // badilisha kama jina la dashboard file ni tofauti
+    }
+</script>
+
+</body>
+</html>
