@@ -617,15 +617,6 @@ clearFiltersBtn.addEventListener("click", ()=>{
   searchName.value=""; filterClass.value=""; filterGender.value=""; filterPosition.value="";
   applyFilters();
 });
-  /* Menu popup controls */
-const menuPopup = document.getElementById("menuPopup");
-function openMenuPopup(){ menuPopup.style.display = "flex"; }
-function closeMenuPopup(){ menuPopup.style.display = "none"; }
-
-// make popup functions accessible globally (for onclick)
-window.openMenuPopup = openMenuPopup;
-window.closeMenuPopup = closeMenuPopup;
-
 </script>
 </body>
 </html>
