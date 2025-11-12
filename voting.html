@@ -9,7 +9,7 @@
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
@@ -24,34 +24,71 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+
     window.db = db;
+    window.ref = ref;
+    window.get = get;
+    window.set = set;
+    window.update = update;
+    window.onValue = onValue;
   </script>
+
+  <style>
+    .candidate {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .candidate img {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      margin-right: 10px;
+    }
+    .progress {
+      width: 150px;
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-left: 10px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: green;
+      transition: width 0.5s;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>Vote for Your Leaders</h1>
+    <h1>🗳️ Vote for Your Leaders</h1>
 
     <form id="voteForm">
-
       <!-- HEAD BOY & HEAD GIRL -->
       <h2>Head Boy & Head Girl</h2>
       <div class="landscape">
         <div class="candidate">
-          <img src="images/headboy1.jpg" alt="Head Boy 1">
-          <label><input type="radio" name="headBoy" value="John Mwasiti" required> John Mwasiti</label>
+          <img src="images/headboy1.jpg" alt="John Mwasiti">
+          <label><input type="checkbox" name="headBoy" value="John Mwasiti"> John Mwasiti</label>
+          <div class="progress"><div id="bar_John_Mwasiti" class="progress-bar"></div></div>
         </div>
         <div class="candidate">
-          <img src="images/headboy2.jpg" alt="Head Boy 2">
-          <label><input type="radio" name="headBoy" value="Peter Mwenda"> Peter Mwenda</label>
+          <img src="images/headboy2.jpg" alt="Peter Mwenda">
+          <label><input type="checkbox" name="headBoy" value="Peter Mwenda"> Peter Mwenda</label>
+          <div class="progress"><div id="bar_Peter_Mwenda" class="progress-bar"></div></div>
         </div>
 
         <div class="candidate">
-          <img src="images/headgirl1.jpg" alt="Head Girl 1">
-          <label><input type="radio" name="headGirl" value="Aisha Komba" required> Aisha Komba</label>
+          <img src="images/headgirl1.jpg" alt="Aisha Komba">
+          <label><input type="checkbox" name="headGirl" value="Aisha Komba"> Aisha Komba</label>
+          <div class="progress"><div id="bar_Aisha_Komba" class="progress-bar"></div></div>
         </div>
         <div class="candidate">
-          <img src="images/headgirl2.jpg" alt="Head Girl 2">
-          <label><input type="radio" name="headGirl" value="Neema Lusekelo"> Neema Lusekelo</label>
+          <img src="images/headgirl2.jpg" alt="Neema Lusekelo">
+          <label><input type="checkbox" name="headGirl" value="Neema Lusekelo"> Neema Lusekelo</label>
+          <div class="progress"><div id="bar_Neema_Lusekelo" class="progress-bar"></div></div>
         </div>
       </div>
 
@@ -59,52 +96,95 @@
       <h2>General Secretary</h2>
       <div class="landscape">
         <div class="candidate">
-          <img src="images/sec_male.jpg" alt="Male Secretary">
+          <img src="images/sec_male.jpg" alt="David Mwakalinga">
           <label><input type="radio" name="generalSec" value="David Mwakalinga" required> David Mwakalinga</label>
+          <div class="progress"><div id="bar_David_Mwakalinga" class="progress-bar"></div></div>
         </div>
         <div class="candidate">
-          <img src="images/sec_female.jpg" alt="Female Secretary">
+          <img src="images/sec_female.jpg" alt="Maria Andrew">
           <label><input type="radio" name="generalSec" value="Maria Andrew"> Maria Andrew</label>
+          <div class="progress"><div id="bar_Maria_Andrew" class="progress-bar"></div></div>
         </div>
       </div>
 
-      <!-- Other 5 Positions -->
-      <h2>Other Leadership Positions</h2>
-
+      <!-- OTHER POSITIONS -->
+      <h2>Other Positions</h2>
       <div class="position">
-        <h3>Discipline Prefect</h3>
-        <label><input type="radio" name="discipline" value="Jonas Mollel" required> Jonas Mollel</label>
+        <label><input type="radio" name="discipline" value="Jonas Mollel"> Jonas Mollel</label>
+        <div class="progress"><div id="bar_Jonas_Mollel" class="progress-bar"></div></div>
         <label><input type="radio" name="discipline" value="Grace Mwita"> Grace Mwita</label>
-      </div>
-
-      <div class="position">
-        <h3>Sports Prefect</h3>
-        <label><input type="radio" name="sports" value="Kelvin Mushi" required> Kelvin Mushi</label>
-        <label><input type="radio" name="sports" value="Rose Kimaro"> Rose Kimaro</label>
-      </div>
-
-      <div class="position">
-        <h3>Academic Prefect</h3>
-        <label><input type="radio" name="academic" value="Daniel Mremi" required> Daniel Mremi</label>
-        <label><input type="radio" name="academic" value="Rehema Lymo"> Rehema Lymo</label>
-      </div>
-
-      <div class="position">
-        <h3>Environment Prefect</h3>
-        <label><input type="radio" name="environment" value="Elvis Mollel" required> Elvis Mollel</label>
-        <label><input type="radio" name="environment" value="Esther Moses"> Esther Moses</label>
-      </div>
-
-      <div class="position">
-        <h3>Food & Health Prefect</h3>
-        <label><input type="radio" name="food" value="George Mushi" required> George Mushi</label>
-        <label><input type="radio" name="food" value="Agnes Nyoni"> Agnes Nyoni</label>
+        <div class="progress"><div id="bar_Grace_Mwita" class="progress-bar"></div></div>
       </div>
 
       <button type="submit" id="submitVote">Submit Vote</button>
     </form>
   </div>
 
-  <script src="script.js"></script>
+  <script type="module">
+    import { ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { db } from "./firebase-config.js";
+
+    const voterID = localStorage.getItem("voterID");
+    const firstName = localStorage.getItem("firstName");
+    const gender = localStorage.getItem("gender");
+
+    const form = document.getElementById("voteForm");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // Check if already voted
+      const voterRef = ref(db, "voters/" + voterID);
+      const snapshot = await get(voterRef);
+      if (snapshot.exists() && snapshot.val().hasVoted) {
+        alert("⚠️ You have already voted!");
+        return;
+      }
+
+      // Get selected candidates
+      const votes = {};
+      ["headBoy", "headGirl", "generalSec", "discipline"].forEach((pos) => {
+        const selected = document.querySelector(`input[name="${pos}"]:checked`);
+        if (selected) votes[pos] = selected.value;
+      });
+
+      if (Object.keys(votes).length < 4) {
+        alert("⚠️ Please complete all sections!");
+        return;
+      }
+
+      // Save votes
+      await set(ref(db, "votes/" + voterID), {
+        voterID,
+        name: firstName,
+        gender,
+        votes,
+        timestamp: new Date().toISOString(),
+      });
+
+      await update(ref(db, "voters/" + voterID), { hasVoted: true });
+
+      const title = gender === "Male" ? "MR" : "MRS";
+      alert(`✅ ${title} ${firstName.toUpperCase()}, you have voted successfully!`);
+      window.location.href = "index.html";
+    });
+
+    // Update progress bars live
+    const votesRef = ref(db, "votes/");
+    onValue(votesRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const counts = {};
+      for (let id in data) {
+        const vote = data[id].votes;
+        Object.values(vote).forEach((name) => {
+          counts[name] = (counts[name] || 0) + 1;
+        });
+      }
+      const maxVotes = Math.max(...Object.values(counts), 1);
+      for (let name in counts) {
+        const bar = document.getElementById(`bar_${name.replace(/\s+/g, "_")}`);
+        if (bar) bar.style.width = `${(counts[name] / maxVotes) * 100}%`;
+      }
+    });
+  </script>
 </body>
 </html>
