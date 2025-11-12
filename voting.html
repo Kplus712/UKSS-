@@ -32,35 +32,8 @@
     window.update = update;
     window.onValue = onValue;
   </script>
-
-  <style>
-    .candidate {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .candidate img {
-      width: 80px;
-      height: 80px;
-      border-radius: 10px;
-      margin-right: 10px;
-    }
-    .progress {
-      width: 150px;
-      height: 10px;
-      background: #ddd;
-      border-radius: 5px;
-      overflow: hidden;
-      margin-left: 10px;
-    }
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: green;
-      transition: width 0.5s;
-    }
-  </style>
 </head>
+
 <body>
   <div class="container">
     <h1>🗳️ Vote for Your Leaders</h1>
@@ -69,26 +42,46 @@
       <!-- HEAD BOY & HEAD GIRL -->
       <h2>Head Boy & Head Girl</h2>
       <div class="landscape">
+        <!-- Head Boys (right) -->
         <div class="candidate">
           <img src="images/headboy1.jpg" alt="John Mwasiti">
-          <label><input type="checkbox" name="headBoy" value="John Mwasiti"> John Mwasiti</label>
-          <div class="progress"><div id="bar_John_Mwasiti" class="progress-bar"></div></div>
-        </div>
-        <div class="candidate">
-          <img src="images/headboy2.jpg" alt="Peter Mwenda">
-          <label><input type="checkbox" name="headBoy" value="Peter Mwenda"> Peter Mwenda</label>
-          <div class="progress"><div id="bar_Peter_Mwenda" class="progress-bar"></div></div>
+          <div class="info">
+            <h3>John Mwasiti</h3>
+            <label><input type="checkbox" name="headBoy" value="John Mwasiti"> Vote</label>
+            <button type="button" onclick="openProfile('headboy1')">View Profile</button>
+            <div class="progress"><div id="bar_John_Mwasiti" class="progress-bar"></div></div>
+          </div>
         </div>
 
         <div class="candidate">
-          <img src="images/headgirl1.jpg" alt="Aisha Komba">
-          <label><input type="checkbox" name="headGirl" value="Aisha Komba"> Aisha Komba</label>
-          <div class="progress"><div id="bar_Aisha_Komba" class="progress-bar"></div></div>
+          <img src="images/headboy2.jpg" alt="Peter Mwenda">
+          <div class="info">
+            <h3>Peter Mwenda</h3>
+            <label><input type="checkbox" name="headBoy" value="Peter Mwenda"> Vote</label>
+            <button type="button" onclick="openProfile('headboy2')">View Profile</button>
+            <div class="progress"><div id="bar_Peter_Mwenda" class="progress-bar"></div></div>
+          </div>
         </div>
+
+        <!-- Head Girls (left) -->
+        <div class="candidate">
+          <img src="images/headgirl1.jpg" alt="Aisha Komba">
+          <div class="info">
+            <h3>Aisha Komba</h3>
+            <label><input type="checkbox" name="headGirl" value="Aisha Komba"> Vote</label>
+            <button type="button" onclick="openProfile('headgirl1')">View Profile</button>
+            <div class="progress"><div id="bar_Aisha_Komba" class="progress-bar"></div></div>
+          </div>
+        </div>
+
         <div class="candidate">
           <img src="images/headgirl2.jpg" alt="Neema Lusekelo">
-          <label><input type="checkbox" name="headGirl" value="Neema Lusekelo"> Neema Lusekelo</label>
-          <div class="progress"><div id="bar_Neema_Lusekelo" class="progress-bar"></div></div>
+          <div class="info">
+            <h3>Neema Lusekelo</h3>
+            <label><input type="checkbox" name="headGirl" value="Neema Lusekelo"> Vote</label>
+            <button type="button" onclick="openProfile('headgirl2')">View Profile</button>
+            <div class="progress"><div id="bar_Neema_Lusekelo" class="progress-bar"></div></div>
+          </div>
         </div>
       </div>
 
@@ -97,29 +90,66 @@
       <div class="landscape">
         <div class="candidate">
           <img src="images/sec_male.jpg" alt="David Mwakalinga">
-          <label><input type="radio" name="generalSec" value="David Mwakalinga" required> David Mwakalinga</label>
-          <div class="progress"><div id="bar_David_Mwakalinga" class="progress-bar"></div></div>
+          <div class="info">
+            <h3>David Mwakalinga</h3>
+            <label><input type="radio" name="generalSec" value="David Mwakalinga" required> Vote</label>
+            <button type="button" onclick="openProfile('sec_male')">View Profile</button>
+            <div class="progress"><div id="bar_David_Mwakalinga" class="progress-bar"></div></div>
+          </div>
         </div>
+
         <div class="candidate">
           <img src="images/sec_female.jpg" alt="Maria Andrew">
-          <label><input type="radio" name="generalSec" value="Maria Andrew"> Maria Andrew</label>
-          <div class="progress"><div id="bar_Maria_Andrew" class="progress-bar"></div></div>
+          <div class="info">
+            <h3>Maria Andrew</h3>
+            <label><input type="radio" name="generalSec" value="Maria Andrew"> Vote</label>
+            <button type="button" onclick="openProfile('sec_female')">View Profile</button>
+            <div class="progress"><div id="bar_Maria_Andrew" class="progress-bar"></div></div>
+          </div>
         </div>
       </div>
 
-      <!-- OTHER POSITIONS -->
-      <h2>Other Positions</h2>
-      <div class="position">
-        <label><input type="radio" name="discipline" value="Jonas Mollel"> Jonas Mollel</label>
-        <div class="progress"><div id="bar_Jonas_Mollel" class="progress-bar"></div></div>
-        <label><input type="radio" name="discipline" value="Grace Mwita"> Grace Mwita</label>
-        <div class="progress"><div id="bar_Grace_Mwita" class="progress-bar"></div></div>
+      <!-- OTHER POSITIONS (Placeholder for future edits) -->
+      <h2>Other Leadership Positions</h2>
+      <div class="landscape">
+        <div class="candidate">
+          <img src="images/discipline_male.jpg" alt="Jonas Mollel">
+          <div class="info">
+            <h3>Jonas Mollel</h3>
+            <label><input type="radio" name="discipline" value="Jonas Mollel"> Vote</label>
+            <button type="button" onclick="openProfile('discipline_male')">View Profile</button>
+            <div class="progress"><div id="bar_Jonas_Mollel" class="progress-bar"></div></div>
+          </div>
+        </div>
+
+        <div class="candidate">
+          <img src="images/discipline_female.jpg" alt="Grace Mwita">
+          <div class="info">
+            <h3>Grace Mwita</h3>
+            <label><input type="radio" name="discipline" value="Grace Mwita"> Vote</label>
+            <button type="button" onclick="openProfile('discipline_female')">View Profile</button>
+            <div class="progress"><div id="bar_Grace_Mwita" class="progress-bar"></div></div>
+          </div>
+        </div>
       </div>
 
       <button type="submit" id="submitVote">Submit Vote</button>
     </form>
   </div>
 
+  <!-- PROFILE MODAL -->
+  <div id="profileModal" class="modal">
+    <div id="profileContent" class="modal-content"></div>
+  </div>
+
+  <!-- Import Candidates Data -->
+  <script type="module">
+    import { openProfile, closeModal } from "./candidates.js";
+    window.openProfile = openProfile;
+    window.closeModal = closeModal;
+  </script>
+
+  <!-- Voting Script -->
   <script type="module">
     import { ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
     import { db } from "./firebase-config.js";
@@ -132,7 +162,6 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      // Check if already voted
       const voterRef = ref(db, "voters/" + voterID);
       const snapshot = await get(voterRef);
       if (snapshot.exists() && snapshot.val().hasVoted) {
@@ -140,7 +169,6 @@
         return;
       }
 
-      // Get selected candidates
       const votes = {};
       ["headBoy", "headGirl", "generalSec", "discipline"].forEach((pos) => {
         const selected = document.querySelector(`input[name="${pos}"]:checked`);
@@ -152,7 +180,6 @@
         return;
       }
 
-      // Save votes
       await set(ref(db, "votes/" + voterID), {
         voterID,
         name: firstName,
@@ -168,7 +195,7 @@
       window.location.href = "index.html";
     });
 
-    // Update progress bars live
+    // Live vote progress
     const votesRef = ref(db, "votes/");
     onValue(votesRef, (snapshot) => {
       const data = snapshot.val() || {};
