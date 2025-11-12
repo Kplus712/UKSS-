@@ -5,6 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UMOJA KING'ORI VOTING SYSTEM</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    #voterIDSection {
+      margin-top: 25px;
+      text-align: center;
+      background: #e8f5e9;
+      padding: 15px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #voterIDSection input {
+      width: 80%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+    #voterIDSection button {
+      background: forestgreen;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #voterIDSection button:hover {
+      background: darkgreen;
+    }
+  </style>
 </head>
 <body>
 
@@ -40,10 +73,13 @@
     <button onclick="openVoting()">Proceed to Voting</button>
   </section>
 
-  <!-- === Voting Section === -->
-  <section id="votingSection" style="display:none;">
-    <h2>Vote for Your Leaders</h2>
-  </section>
+  <!-- === Login with Voter ID === -->
+  <div id="voterIDSection">
+    <h3>Already Registered?</h3>
+    <p>Enter your Voter ID to access voting directly:</p>
+    <input type="text" id="voterIDInput" placeholder="Enter Your Voter ID">
+    <button onclick="loginWithVoterID()">Login with Voter ID</button>
+  </div>
 
   <!-- Admin Login -->
   <div style="text-align:center; margin-top:40px;">
@@ -69,6 +105,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // === Normal Login (Details + Save voterID) ===
     window.openVoting = async function() {
       const firstName = document.getElementById("firstName").value.trim();
       const middleName = document.getElementById("middleName").value.trim();
@@ -81,18 +118,16 @@
         return;
       }
 
-      // Create unique voter ID
       const voterID = `${firstName}_${middleName}_${lastName}_${classSelect}`.replace(/\s+/g, "_").toLowerCase();
-
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, `voters/${voterID}`));
 
-      if (snapshot.exists()) {
+      if (snapshot.exists() && snapshot.val().hasVoted) {
         alert("⚠️ You have already voted. Each student can only vote once!");
         return;
       }
 
-      // Save details locally for use in voting page
+      // Save locally and Firebase
       localStorage.setItem("voterID", voterID);
       localStorage.setItem("firstName", firstName);
       localStorage.setItem("middleName", middleName);
@@ -100,21 +135,55 @@
       localStorage.setItem("classSelect", classSelect);
       localStorage.setItem("gender", gender);
 
-      // Save to Firebase voters list (mark as logged in)
       await set(ref(db, "voters/" + voterID), {
         firstName,
         middleName,
         lastName,
         classSelect,
         gender,
-        hasVoted: false,
+        hasVoted: snapshot.exists() ? snapshot.val().hasVoted : false,
         timestamp: new Date().toISOString()
       });
 
-      // Redirect to voting page
       window.location.href = "voting.html";
     };
 
+    // === Login using voterID ===
+    window.loginWithVoterID = async function() {
+      const voterID = document.getElementById("voterIDInput").value.trim().toLowerCase();
+      if (!voterID) {
+        alert("Please enter your Voter ID!");
+        return;
+      }
+
+      const dbRef = ref(db);
+      const snapshot = await get(child(dbRef, `voters/${voterID}`));
+
+      if (!snapshot.exists()) {
+        alert("⚠️ Invalid Voter ID! Please register or check your details.");
+        return;
+      }
+
+      const data = snapshot.val();
+
+      if (data.hasVoted) {
+        alert("⚠️ You have already voted. You cannot vote twice!");
+        return;
+      }
+
+      // Store details locally
+      localStorage.setItem("voterID", voterID);
+      localStorage.setItem("firstName", data.firstName || "");
+      localStorage.setItem("middleName", data.middleName || "");
+      localStorage.setItem("lastName", data.lastName || "");
+      localStorage.setItem("classSelect", data.classSelect || "");
+      localStorage.setItem("gender", data.gender || "");
+
+      alert(`✅ Welcome back ${data.firstName}! You can now proceed to vote.`);
+      window.location.href = "voting.html";
+    };
+
+    // === Admin Login ===
     window.adminLogin = function() {
       const password = prompt("Enter Admin Password:");
       if (password === "ukss2025") {
