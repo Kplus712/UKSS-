@@ -1,164 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Admin Dashboard - UKSS Voting Results</title>
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4fff4;
-  color: #222;
-  text-align: center;
-  padding: 20px;
-}
-h1 { color: forestgreen; }
-.table-container {
-  width: 90%;
-  margin: 20px auto;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  padding: 15px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-th { background-color: forestgreen; color: white; }
-tr:nth-child(even) {background-color: #f2f2f2;}
-button {
-  background-color: forestgreen;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  margin: 5px;
-  cursor: pointer;
-}
-button:hover { background-color: darkgreen; }
-canvas { margin-top: 25px; max-width: 700px; }
-
-/* Filter Panel */
-#filterPanel {
-  background: #e8f5e9;
-  padding: 10px;
-  border-radius: 10px;
-  width: 90%;
-  margin: 10px auto;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-#filterPanel input, #filterPanel select {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-/* Popup Modal */
-.modal {
-  display: none;
-  position: fixed;
-  left: 0; top: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-.modal-content {
-  background: white;
-  width: 90%;
-  max-width: 900px;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: left;
-  overflow-y: auto;
-  max-height: 90vh;
-}
-.modal-content h2 { text-align: center; color: forestgreen; }
-.close-btn {
-  float: right;
-  background: crimson;
-  border: none;
-  color: white;
-  padding: 5px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.close-btn:hover { background: darkred; }
+  body { font-family: Arial, sans-serif; background:#f4fff4; color:#222; margin:0; padding:20px; }
+  h1 { color: forestgreen; margin:0 0 10px 0; }
+  .topbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .topbar button, .topbar input, .topbar select { padding:8px 12px; border-radius:6px; border:1px solid #cfcfcf; }
+  .topbar button { background:forestgreen; color:white; border:none; cursor:pointer; }
+  .panel { background:white; border-radius:10px; padding:14px; box-shadow:0 2px 6px rgba(0,0,0,.08); margin-bottom:14px; }
+  .table-container { width:100%; margin:12px 0; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { padding:8px; border:1px solid #e6e6e6; text-align:left; font-size:14px; }
+  th { background:forestgreen; color:white; }
+  .charts { display:flex; flex-wrap:wrap; gap:16px; justify-content:center; }
+  canvas { background: white; border-radius:8px; padding:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+  .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:999; }
+  .modal .content { background:#fff; width:90%; max-width:980px; border-radius:10px; padding:16px; max-height:86vh; overflow:auto; }
+  .close-btn { float:right; background:crimson; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
+  .small { font-size:13px; color:#555; }
+  .winner-table th, .winner-table td { text-align:left; }
+  .controls-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
 </style>
 </head>
 <body>
 
 <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
 
-<div id="filterPanel">
-  <input type="text" id="searchName" placeholder="Search by Voter Name">
-  <select id="filterClass">
-    <option value="">All Classes</option>
-    <option>Form One</option><option>Form Two</option><option>Form Three</option><option>Form Four</option>
-  </select>
-  <select id="filterGender">
-    <option value="">All Genders</option>
-    <option>Male</option><option>Female</option>
-  </select>
-  <select id="filterPosition">
-    <option value="">All Positions</option>
-    <option>headBoy</option><option>headGirl</option><option>generalSec</option>
-    <option>discipline</option><option>sports</option><option>academic</option>
-    <option>environment</option><option>food</option>
-  </select>
-  <button id="clearFilters">Clear</button>
-</div>
+<!-- top controls -->
+<div class="topbar panel">
+  <div class="controls-row">
+    <button id="viewVoters">🧾 View All Voters List</button>
+    <button id="deleteAll">🗑️ Delete All Votes</button>
+    <button id="downloadCSV">⬇️ Download Results (CSV)</button>
+    <button id="backupData">💾 Backup JSON</button>
+    <input id="restoreFile" type="file" accept=".json" style="display:none">
+    <button id="restoreData">♻️ Restore</button>
+  </div>
 
-<div style="margin-bottom:20px;">
-  <button id="viewVoters">🧾 View All Voters List</button>
-  <button id="deleteAll">🗑️ Delete All Votes</button>
-  <button id="downloadCSV">⬇️ Download Results (CSV)</button>
-  <button id="backupData">💾 Backup</button>
-  <input type="file" id="restoreFile" style="display:none" accept=".json">
-  <button id="restoreData">♻️ Restore</button>
-  <p id="voterSummary"></p>
-</div>
-
-<!-- Winner Summary Section -->
-<div id="winnerSummary" class="table-container"></div>
-
-<div id="resultsContainer"></div>
-
-<canvas id="barGraph"></canvas>
-<canvas id="pieGraph"></canvas>
-<canvas id="lineGraph"></canvas>
-
-<!-- 🧾 Popup Modal for All Voters -->
-<div id="votersModal" class="modal">
-  <div class="modal-content">
-    <button class="close-btn" onclick="closeVotersModal()">✖</button>
-    <h2>🧾 List of All Voters</h2>
-    <table id="votersTable">
-      <thead>
-        <tr>
-          <th>Name</th><th>Class</th><th>Gender</th><th>Votes</th><th>Date & Time</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <div style="text-align:center; margin-top:10px;">
-      <button id="downloadVotersCSV">⬇️ Download Voters List (CSV)</button>
-    </div>
+  <!-- filters -->
+  <div style="margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <input id="searchName" placeholder="Search voter name" />
+    <select id="filterClass">
+      <option value="">All Classes</option>
+      <option>Form One</option><option>Form Two</option><option>Form Three</option><option>Form Four</option>
+    </select>
+    <select id="filterGender">
+      <option value="">All Genders</option><option>Male</option><option>Female</option>
+    </select>
+    <select id="filterPosition">
+      <option value="">All Positions</option>
+      <option value="headBoy">headBoy</option><option value="headGirl">headGirl</option>
+      <option value="generalSec">generalSec</option><option value="discipline">discipline</option>
+    </select>
+    <button id="clearFilters">Clear</button>
   </div>
 </div>
 
+<!-- winner summary -->
+<div id="winnerSummary" class="panel table-container"></div>
+
+<!-- results (per-position tables) -->
+<div id="resultsContainer" class="panel"></div>
+
+<!-- charts -->
+<div class="charts">
+  <canvas id="barChart" width="600" height="260"></canvas>
+  <canvas id="pieChart" width="360" height="260"></canvas>
+  <canvas id="lineChart" width="600" height="260"></canvas>
+</div>
+
+<!-- timeline -->
+<div id="timelineContainer" class="panel table-container"></div>
+
+<!-- voters modal (popup) -->
+<div id="votersModal" class="modal" role="dialog" aria-modal="true">
+  <div class="content">
+    <button class="close-btn" onclick="closeVotersModal()">✖</button>
+    <h2 style="color:forestgreen; margin-top:4px">🧾 All Voters (Full List)</h2>
+
+    <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px;">
+      <input id="votersSearch" placeholder="Search name or class inside voters list" style="flex:1" />
+      <button id="downloadVotersCSV">⬇️ Download Voters CSV</button>
+    </div>
+
+    <table id="votersTable" style="width:100%">
+      <thead>
+        <tr><th>Name</th><th>Class</th><th>Gender</th><th>Votes (position: candidate)</th><th>Timestamp</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- confirm modal (delete candidate) -->
+<div id="confirmModal" class="modal"><div class="content" style="max-width:420px;text-align:center">
+  <h3 id="confirmText">Confirm action</h3>
+  <div style="margin-top:12px"><button id="confirmYes">Yes</button> <button id="confirmNo" style="background:crimson">Cancel</button></div>
+</div></div>
+
+<p id="voterSummary" class="small panel"></p>
+
 <script type="module">
+/* ============================
+   Admin Dashboard (fixed)
+   Compatible with your data:
+   { voter: {firstName,middleName,lastName,class,gender}, votes: {...}, timestamp, voterID? }
+   ============================ */
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getDatabase, ref, onValue, remove, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
+/* --------- Firebase config (your project) --------- */
 const firebaseConfig = {
   apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
   authDomain: "ukss-voting-system.firebaseapp.com",
@@ -169,113 +128,355 @@ const firebaseConfig = {
   appId: "1:525528255065:web:97c4e55d2984acc718bf48",
   measurementId: "G-14ZV9E3X7C"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const votesRef = ref(db, "votes");
 const TOTAL_STUDENTS = 308;
 
-let allVotes = [];
+/* ---------- State ---------- */
+let rawDataObj = {};   // original snapshot (key => record)
+let allVotes = [];     // array of records with _id
+let filteredVotes = []; // currently filtered set
 
-onValue(votesRef, (snapshot) => {
-  const data = snapshot.val();
-  allVotes = data ? Object.values(data) : [];
-  displayResults(allVotes);
-  displayWinners(allVotes);
+let barChart, pieChart, lineChart;
+
+/* ---------- Elements ---------- */
+const resultsContainer = document.getElementById("resultsContainer");
+const winnerSummary = document.getElementById("winnerSummary");
+const votersModal = document.getElementById("votersModal");
+const votersTableBody = document.querySelector("#votersTable tbody");
+const votersSearch = document.getElementById("votersSearch");
+const voterSummaryP = document.getElementById("voterSummary");
+
+/* filter inputs */
+const searchName = document.getElementById("searchName");
+const filterClass = document.getElementById("filterClass");
+const filterGender = document.getElementById("filterGender");
+const filterPosition = document.getElementById("filterPosition");
+const clearFiltersBtn = document.getElementById("clearFilters");
+
+/* confirm modal */
+const confirmModal = document.getElementById("confirmModal");
+const confirmText = document.getElementById("confirmText");
+const confirmYes = document.getElementById("confirmYes");
+const confirmNo = document.getElementById("confirmNo");
+
+/* charts contexts */
+const barCtx = document.getElementById("barChart").getContext("2d");
+const pieCtx = document.getElementById("pieChart").getContext("2d");
+const lineCtx = document.getElementById("lineChart").getContext("2d");
+
+/* ---------- Live listener --------- */
+onValue(votesRef, (snap) => {
+  const data = snap.val() || {};
+  rawDataObj = data;
+  // transform into array with _id keys preserved (key is typically voterID)
+  allVotes = Object.entries(data).map(([k, v]) => ({ _id: k, ...v }));
+  // ensure timestamp is a Date string (handle older format)
+  allVotes.forEach(r => { if (!r.timestamp) r.timestamp = new Date().toISOString(); });
+  applyFilters();
 });
 
-// Winner Summary
-function displayWinners(votes){
-  if(votes.length===0){ document.getElementById("winnerSummary").innerHTML=""; return; }
+/* ---------- Apply filters & display ---------- */
+function applyFilters(){
+  const nameQ = (searchName.value || "").toLowerCase();
+  const cQ = filterClass.value || "";
+  const gQ = filterGender.value || "";
+  const pQ = filterPosition.value || "";
 
-  const totals = {};
-  votes.forEach(v=>{
-    Object.entries(v.votes).forEach(([pos,cand])=>{
-      if(!totals[pos]) totals[pos]={};
-      if(!totals[pos][cand]) totals[pos][cand]=0;
-      totals[pos][cand]++;
-    });
+  filteredVotes = allVotes.filter(rec => {
+    const voter = rec.voter || {};
+    const fullName = `${voter.firstName || ""} ${voter.middleName || ""} ${voter.lastName || ""}`.toLowerCase();
+    const matchesName = !nameQ || fullName.includes(nameQ);
+    const matchesClass = !cQ || (voter.class === cQ);
+    const matchesGender = !gQ || (voter.gender === gQ);
+    const matchesPos = !pQ || (rec.votes && rec.votes[pQ]);
+    return matchesName && matchesClass && matchesGender && matchesPos;
   });
 
-  let html = `<h2>🏆 Winners Summary</h2><table><tr><th>Position</th><th>Winner</th><th>Votes</th></tr>`;
-  for(const [pos, cands] of Object.entries(totals)){
-    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
-    const [winner, count] = sorted[0];
-    html += `<tr><td>${pos}</td><td>${winner}</td><td>${count}</td></tr>`;
-  }
-  html += "</table>";
-  document.getElementById("winnerSummary").innerHTML = html;
+  displayResults(filteredVotes);
 }
 
-// Display Main Results + Graphs
+/* ---------- Display winners, tables and charts ---------- */
 function displayResults(votes){
-  const container = document.getElementById("resultsContainer");
-  const voterSummary = document.getElementById("voterSummary");
-  if(votes.length===0){
-    container.innerHTML="<p>No votes yet.</p>";
-    voterSummary.textContent="No data available.";
+  // winners summary
+  displayWinners(votes);
+
+  // per-position tables
+  if (!votes || votes.length === 0) {
+    resultsContainer.innerHTML = "<p>No votes yet.</p>";
+    voterSummaryP.textContent = "No votes cast yet.";
+    clearCharts();
+    document.getElementById("timelineContainer").innerHTML = "";
     return;
   }
 
+  // totals per position
   const totals = {};
-  votes.forEach(v=>{
-    Object.entries(v.votes).forEach(([pos,cand])=>{
-      if(!totals[pos]) totals[pos] = {};
-      if(!totals[pos][cand]) totals[pos][cand] = 0;
-      totals[pos][cand]++;
+  votes.forEach(rec => {
+    const v = rec.votes || {};
+    Object.entries(v).forEach(([pos, cand]) => {
+      if (!totals[pos]) totals[pos] = {};
+      totals[pos][cand] = (totals[pos][cand] || 0) + 1;
     });
   });
 
+  // render tables
+  let html = "";
+  for (const [pos, cands] of Object.entries(totals)) {
+    html += `<div class="table-container"><h3 style="text-transform:capitalize">${pos}</h3><table><thead><tr><th>Candidate</th><th>Votes</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
+    sorted.forEach(([name,count], idx) => {
+      const status = idx === 0 ? "👑 Leading" : "";
+      html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td><td><button data-candidate="${escapeHtml(name)}" class="deleteCandidateBtn">🗑️ Delete</button></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+  resultsContainer.innerHTML = html;
+
+  // attach delete buttons
+  document.querySelectorAll(".deleteCandidateBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=> showConfirmDelete(btn.dataset.candidate));
+  });
+
+  // update summary
   const voted = votes.length;
   const notVoted = TOTAL_STUDENTS - voted;
-  voterSummary.innerHTML = `🧍‍♂️ <b>${voted}</b> voted out of ${TOTAL_STUDENTS} | <b>${notVoted}</b> not yet voted.`;
+  voterSummaryP.innerHTML = `🧍‍♂️ <b>${voted}</b> voted out of ${TOTAL_STUDENTS} | <b>${notVoted}</b> not yet voted.`;
 
-  let html = "";
-  for(const [pos, cands] of Object.entries(totals)){
-    html += `<div class="table-container"><h2>${pos}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th></tr>`;
-    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
-    sorted.forEach(([name,count],i)=>{
-      const status = i===0 ? "👑 Leading" : "";
-      html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td></tr>`;
+  // charts
+  drawCharts(totals, votes);
+
+  // timeline
+  drawTimeline(votes);
+}
+
+/* ---------- Winners summary ---------- */
+function displayWinners(votes){
+  if(!votes || votes.length===0){ winnerSummary.innerHTML = ""; return; }
+  const totals = {};
+  votes.forEach(rec => {
+    Object.entries(rec.votes || {}).forEach(([pos,cand])=>{
+      if(!totals[pos]) totals[pos] = {};
+      totals[pos][cand] = (totals[pos][cand]||0)+1;
     });
-    html += "</table></div>";
-  }
+  });
+  let html = `<h3>🏆 Winners Summary</h3><table class="winner-table"><thead><tr><th>Position</th><th>Winner</th><th>Votes</th></tr></thead><tbody>`;
+  Object.entries(totals).forEach(([pos,cands])=>{
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
+    const [winner, count] = sorted[0] || ["-",0];
+    html += `<tr><td style="text-transform:capitalize">${pos}</td><td>${winner}</td><td>${count}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  winnerSummary.innerHTML = html;
+}
+
+/* ---------- Charts ---------- */
+function clearCharts(){
+  if(barChart) { barChart.destroy(); barChart = null; }
+  if(pieChart) { pieChart.destroy(); pieChart = null; }
+  if(lineChart) { lineChart.destroy(); lineChart = null; }
+}
+
+function drawCharts(totals, votes){
+  // flatten labels & counts
+  const labels = [];
+  const counts = [];
+  Object.entries(totals).forEach(([pos,cands])=>{
+    Object.entries(cands).forEach(([cand,count])=>{
+      labels.push(`${pos}: ${cand}`);
+      counts.push(count);
+    });
+  });
+
+  clearCharts();
+
+  // bar
+  barChart = new Chart(barCtx, {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Votes", data: counts, backgroundColor: "rgba(34,139,34,0.6)" }] },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  // pie (top 8)
+  pieChart = new Chart(pieCtx, {
+    type: "pie",
+    data: { labels, datasets: [{ data: counts, backgroundColor: generatePalette(counts.length) }] },
+    options: { responsive:true }
+  });
+
+  // line: votes over time (cumulative)
+  // sort votes by timestamp asc
+  const sorted = votes.slice().sort((a,b)=> new Date(a.timestamp) - new Date(b.timestamp));
+  const times = sorted.map(s => new Date(s.timestamp).toLocaleTimeString());
+  // cumulative count
+  const cum = [];
+  let acc = 0;
+  sorted.forEach(s => { acc += 1; cum.push(acc); });
+
+  lineChart = new Chart(lineCtx, {
+    type: "line",
+    data: { labels: times, datasets: [{ label: "Votes over time", data: cum, borderColor:"forestgreen", tension:0.25, fill:false }] },
+    options: { responsive:true, scales:{ y:{ beginAtZero:true } } }
+  });
+}
+
+/* helper: simple color palette */
+function generatePalette(n){
+  const base = ["#2e7d32","#388e3c","#66bb6a","#81c784","#a5d6a7","#c8e6c9","#4caf50","#99d68a"];
+  const out = [];
+  for(let i=0;i<n;i++) out.push(base[i % base.length]);
+  return out;
+}
+
+/* ---------- Timeline ---------- */
+function drawTimeline(votes){
+  const container = document.getElementById("timelineContainer");
+  const sorted = votes.slice().sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+  let html = `<h3>🕒 Vote Timeline (latest first)</h3><table><thead><tr><th>Voter</th><th>Class</th><th>Gender</th><th>Voted For</th><th>Time</th></tr></thead><tbody>`;
+  sorted.forEach(rec=>{
+    const voter = rec.voter || {};
+    const name = `${voter.firstName||''} ${voter.middleName||''} ${voter.lastName||''}`.trim();
+    const votesList = Object.entries(rec.votes || {}).map(([p,c])=>`${p}: ${c}`).join("; ");
+    html += `<tr><td>${escapeHtml(name)}</td><td>${voter.class||'-'}</td><td>${voter.gender||'-'}</td><td>${escapeHtml(votesList)}</td><td>${new Date(rec.timestamp).toLocaleString()}</td></tr>`;
+  });
+  html += `</tbody></table>`;
   container.innerHTML = html;
 }
 
-// 🧾 View All Voters List Popup
-document.getElementById("viewVoters").addEventListener("click", ()=>{
-  const modal = document.getElementById("votersModal");
-  const tbody = document.querySelector("#votersTable tbody");
-  tbody.innerHTML = "";
-  allVotes.forEach(v=>{
-    const voter = v.voter || {};
-    const name = `${voter.firstName || ""} ${voter.middleName || ""} ${voter.lastName || ""}`;
-    const votesList = Object.entries(v.votes).map(([p,c])=>`${p}: ${c}`).join(", ");
-    const time = new Date(v.timestamp).toLocaleString();
-    const tr = `<tr><td>${name}</td><td>${voter.class || "-"}</td><td>${voter.gender || "-"}</td><td>${votesList}</td><td>${time}</td></tr>`;
-    tbody.innerHTML += tr;
+/* ---------- Voters modal ---------- */
+document.getElementById("viewVoters").addEventListener("click", openVotersModal);
+function openVotersModal(){
+  // populate table
+  populateVotersTable(allVotes);
+  votersModal.style.display = "flex";
+  votersSearch.value = "";
+}
+function closeVotersModal(){ votersModal.style.display = "none"; }
+
+/* internal search inside modal */
+votersSearch.addEventListener("input", ()=> {
+  const q = (votersSearch.value||"").toLowerCase();
+  const filtered = allVotes.filter(rec => {
+    const voter = rec.voter || {};
+    const full = `${voter.firstName||''} ${voter.middleName||''} ${voter.lastName||''} ${voter.class||''}`.toLowerCase();
+    return full.includes(q);
   });
-  modal.style.display = "flex";
+  populateVotersTable(filtered);
 });
 
-window.closeVotersModal = ()=> document.getElementById("votersModal").style.display = "none";
+function populateVotersTable(data){
+  votersTableBody.innerHTML = "";
+  data.forEach(rec=>{
+    const voter = rec.voter || {};
+    const name = `${voter.firstName||''} ${voter.middleName||''} ${voter.lastName||''}`.trim();
+    const votesList = Object.entries(rec.votes||{}).map(([p,c])=>`${p}:${c}`).join("; ");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${voter.class||'-'}</td><td>${voter.gender||'-'}</td><td>${escapeHtml(votesList)}</td><td>${new Date(rec.timestamp).toLocaleString()}</td>`;
+    votersTableBody.appendChild(tr);
+  });
+}
 
-// Download Voters CSV
+/* download voters CSV */
 document.getElementById("downloadVotersCSV").addEventListener("click", ()=>{
-  if(allVotes.length===0) return alert("No voters yet!");
-  let csv = "First Name,Middle,Last,Class,Gender,Votes,Timestamp\n";
-  allVotes.forEach(v=>{
-    const voter=v.voter||{};
-    const votesList = Object.entries(v.votes).map(([p,c])=>`${p}:${c}`).join("; ");
-    csv += `"${voter.firstName||""}","${voter.middleName||""}","${voter.lastName||""}","${voter.class||""}","${voter.gender||""}","${votesList}","${new Date(v.timestamp).toLocaleString()}"\n`;
+  if(allVotes.length===0) return alert("No voters yet");
+  let csv = "First,Middle,Last,Class,Gender,Votes,Timestamp\n";
+  allVotes.forEach(rec=>{
+    const v = rec.voter || {};
+    const votesList = Object.entries(rec.votes||{}).map(([p,c])=>`${p}:${c}`).join("; ");
+    csv += `"${v.firstName||''}","${v.middleName||''}","${v.lastName||''}","${v.class||''}","${v.gender||''}","${votesList}","${new Date(rec.timestamp).toLocaleString()}"\n`;
   });
-  const blob=new Blob([csv],{type:"text/csv"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download="UKSS_Voters_List.csv";
-  a.click();
+  downloadBlob(csv, "UKSS_Voters_List.csv", "text/csv");
 });
+
+/* ---------- Delete candidate votes (with confirm) ---------- */
+function showConfirmDelete(candidateName){
+  confirmText.textContent = `Delete all votes for "${candidateName}"? This will remove that candidate entry from every vote record but keep the rest.`;
+  confirmModal.style.display = "flex";
+  confirmYes.onclick = async () => {
+    // for each record, remove candidate occurrences
+    for(const rec of allVotes){
+      const newVotes = {};
+      for(const [pos,cand] of Object.entries(rec.votes || {})){
+        if(cand !== candidateName) newVotes[pos] = cand;
+      }
+      await set(ref(db, "votes/" + rec._id), { ...rec, votes: newVotes });
+    }
+    confirmModal.style.display = "none";
+  };
+  confirmNo.onclick = ()=> confirmModal.style.display = "none";
+}
+
+/* ---------- Delete All votes ---------- */
+document.getElementById("deleteAll").addEventListener("click", ()=>{
+  confirmText.textContent = "Delete ALL votes permanently? This action cannot be undone.";
+  confirmModal.style.display = "flex";
+  confirmYes.onclick = async () => { await remove(votesRef); confirmModal.style.display = "none"; };
+  confirmNo.onclick = ()=> confirmModal.style.display = "none";
+});
+
+/* ---------- CSV export (results) ---------- */
+document.getElementById("downloadCSV").addEventListener("click", ()=>{
+  if(allVotes.length === 0) return alert("No data to export");
+  let csv = "First,Middle,Last,Class,Gender,HeadBoy,HeadGirl,GeneralSec,Discipline,Timestamp\n";
+  allVotes.forEach(rec=>{
+    const v = rec.voter || {};
+    csv += `"${v.firstName||''}","${v.middleName||''}","${v.lastName||''}","${v.class||''}","${v.gender||''}","${rec.votes.headBoy||''}","${rec.votes.headGirl||''}","${rec.votes.generalSec||''}","${rec.votes.discipline||''}","${new Date(rec.timestamp).toLocaleString()}"\n`;
+  });
+  downloadBlob(csv, "UKSS_Voting_Results.csv", "text/csv");
+});
+
+/* ---------- Backup & Restore ---------- */
+document.getElementById("backupData").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(allVotes, null, 2)], { type: "application/json" });
+  downloadBlob(blob, "UKSS_Backup.json");
+});
+
+/* restore: pick file */
+document.getElementById("restoreData").addEventListener("click", ()=> document.getElementById("restoreFile").click());
+document.getElementById("restoreFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  try {
+    const text = await file.text();
+    const json = JSON.parse(text);
+    // json expected to be array of records (with _id optional)
+    for(const item of json){
+      const key = item._id || (item.voter && ( (item.voter.firstName||"") + "_" + (item.voter.lastName||"") + "_" + Date.now() ));
+      await set(ref(db, "votes/" + key), item);
+    }
+    alert("✅ Backup restored successfully!");
+  } catch(err){
+    alert("Restore failed: " + (err.message || err));
+  }
+});
+
+/* ---------- Utility helpers ---------- */
+function downloadBlob(content, filename, type){
+  const blob = (content instanceof Blob) ? content : new Blob([content], { type: type || "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* escape helper to avoid html injection in tables */
+function escapeHtml(str){
+  if(!str) return "";
+  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[s]);
+}
+
+/* ---------- filters binding ---------- */
+searchName.addEventListener("input", applyFilters);
+filterClass.addEventListener("change", applyFilters);
+filterGender.addEventListener("change", applyFilters);
+filterPosition.addEventListener("change", applyFilters);
+clearFiltersBtn.addEventListener("click", ()=>{
+  searchName.value=""; filterClass.value=""; filterGender.value=""; filterPosition.value="";
+  applyFilters();
+});
+
 </script>
 </body>
 </html>
