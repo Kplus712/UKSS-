@@ -4,21 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard - UKSS Voting Results</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f4fff4;
+  font-family: "Segoe UI", sans-serif;
+  background-color: #f0fff0;
   color: #222;
   text-align: center;
+  margin: 0;
   padding: 20px;
 }
-h1 { color: forestgreen; }
+h1 {
+  color: forestgreen;
+  margin-bottom: 10px;
+}
 .table-container {
-  width: 90%;
+  width: 95%;
   margin: 20px auto;
   background: white;
   border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   padding: 15px;
 }
 table {
@@ -26,187 +32,105 @@ table {
   border-collapse: collapse;
   margin-top: 10px;
 }
-th, td { border: 1px solid #ddd; padding: 8px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: forestgreen; color: white; }
 tr:nth-child(even) {background-color: #f2f2f2;}
 button {
   background-color: forestgreen;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 8px 15px;
+  border-radius: 6px;
   margin: 5px;
   cursor: pointer;
 }
 button:hover { background-color: darkgreen; }
-canvas {
-  margin-top: 30px;
-  max-width: 700px;
+
+/* Filter panel */
+#filterPanel {
+  background: #e8f5e9;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 10px auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 90%;
+}
+#filterPanel input, #filterPanel select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+canvas { margin-top: 25px; max-width: 800px; }
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
 <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
 
-<div style="margin-bottom:20px;">
+<div id="filterPanel">
+  <input type="text" id="searchName" placeholder="Search voter name">
+  <select id="filterClass">
+    <option value="">All Classes</option>
+    <option>Form One</option><option>Form Two</option>
+    <option>Form Three</option><option>Form Four</option>
+  </select>
+  <select id="filterGender">
+    <option value="">All Genders</option>
+    <option>Male</option><option>Female</option>
+  </select>
+  <select id="filterPosition">
+    <option value="">All Positions</option>
+    <option>headBoy</option><option>headGirl</option>
+    <option>generalSec</option><option>discipline</option>
+  </select>
+  <button id="clearFilters">Clear</button>
+</div>
+
+<div>
   <button id="deleteAll">🗑️ Delete All Votes</button>
   <button id="downloadCSV">⬇️ Download Results (CSV)</button>
+  <button id="backupData">💾 Backup</button>
+  <input type="file" id="restoreFile" style="display:none" accept=".json">
+  <button id="restoreData">♻️ Restore</button>
   <p id="voterSummary"></p>
 </div>
 
 <div id="resultsContainer"></div>
 
-<canvas id="voteGraph"></canvas>
+<canvas id="barChart"></canvas>
+<canvas id="pieChart"></canvas>
+<canvas id="lineChart"></canvas>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+<!-- Delete confirmation modal -->
+<div id="confirmModal" class="modal">
+  <div class="modal-content">
+    <p id="confirmText">Are you sure?</p>
+    <button id="confirmYes">Yes</button>
+    <button id="confirmNo" style="background:crimson;">Cancel</button>
+  </div>
+</div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
-    authDomain: "ukss-voting-system.firebaseapp.com",
-    databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
-    projectId: "ukss-voting-system",
-    storageBucket: "ukss-voting-system.firebasestorage.app",
-    messagingSenderId: "525528255065",
-    appId: "1:525528255065:web:97c4e55d2984acc718bf48",
-    measurementId: "G-14ZV9E3X7C"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const votesRef = ref(db, "votes");
-  const TOTAL_STUDENTS = 308;
-
-  let chart;
-
-  onValue(votesRef, (snapshot) => {
-    const data = snapshot.val();
-    const container = document.getElementById("resultsContainer");
-    const voterSummary = document.getElementById("voterSummary");
-
-    if (!data) {
-      container.innerHTML = "<p>No votes yet.</p>";
-      voterSummary.innerText = "No votes have been cast yet.";
-      if (chart) chart.destroy();
-      return;
-    }
-
-    const votes = Object.values(data);
-    const totals = {};
-    const voteTimes = [];
-
-    // group votes by position and candidate
-    votes.forEach(vote => {
-      voteTimes.push(new Date(vote.timestamp).toLocaleString());
-      Object.entries(vote.votes).forEach(([position, candidate]) => {
-        if (!totals[position]) totals[position] = {};
-        if (!totals[position][candidate]) totals[position][candidate] = 0;
-        totals[position][candidate]++;
-      });
-    });
-
-    // Summary
-    const voted = votes.length;
-    const notVoted = TOTAL_STUDENTS - voted;
-    voterSummary.innerHTML = `🧍‍♂️ <b>${voted}</b> students have voted out of ${TOTAL_STUDENTS}. <b>${notVoted}</b> have not yet voted.`;
-
-    // Build HTML Table
-    let html = "";
-    for (const [position, candidates] of Object.entries(totals)) {
-      html += `<div class="table-container"><h2>${position}</h2><table><tr><th>Candidate</th><th>Votes</th><th>Status</th><th>Actions</th></tr>`;
-      const sorted = Object.entries(candidates).sort((a,b)=>b[1]-a[1]);
-      sorted.forEach(([name,count],i)=>{
-        const status = i===0 ? "👑 Leading" : "";
-        html += `<tr><td>${name}</td><td>${count}</td><td>${status}</td><td><button onclick="deleteCandidateVotes('${name}')">🗑️ Delete</button></td></tr>`;
-      });
-      html += "</table></div>";
-    }
-    container.innerHTML = html;
-
-    // Prepare Graph Data
-    const labels = Object.keys(totals).flatMap(pos => Object.keys(totals[pos]));
-    const counts = Object.keys(totals).flatMap(pos => Object.values(totals[pos]));
-
-    if (chart) chart.destroy();
-    const ctx = document.getElementById("voteGraph");
-    chart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{
-          label: "Number of Votes",
-          data: counts,
-          backgroundColor: "rgba(34,139,34,0.6)",
-          borderColor: "forestgreen",
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: { y: { beginAtZero: true } }
-      }
-    });
-
-    // Sort votes by timestamp
-    votes.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-
-    // Add list of votes by time
-    let timelineHTML = `<div class="table-container"><h2>🕒 Votes by Time</h2><table><tr><th>Voter</th><th>Class</th><th>Gender</th><th>Time</th></tr>`;
-    votes.forEach(v=>{
-      timelineHTML += `<tr><td>${v.name}</td><td>${v.gender}</td><td>${v.votes.headBoy || ''}</td><td>${new Date(v.timestamp).toLocaleString()}</td></tr>`;
-    });
-    timelineHTML += "</table></div>";
-    container.innerHTML += timelineHTML;
-  });
-
-  // Delete candidate votes
-  window.deleteCandidateVotes = (candidateName) => {
-    if (confirm(`Delete all votes for ${candidateName}?`)) {
-      onValue(votesRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-        Object.entries(data).forEach(([id, vote]) => {
-          const newVotes = {};
-          for (let [pos, cand] of Object.entries(vote.votes)) {
-            if (cand !== candidateName) newVotes[pos] = cand;
-          }
-          vote.votes = newVotes;
-          set(ref(db, "votes/" + id), vote);
-        });
-        alert(`All votes for ${candidateName} deleted.`);
-      }, { onlyOnce: true });
-    }
-  };
-
-  // Delete all votes
-  document.getElementById("deleteAll").addEventListener("click", () => {
-    if (confirm("Delete ALL votes? This action cannot be undone.")) {
-      remove(votesRef);
-      alert("All votes deleted successfully!");
-    }
-  });
-
-  // Download results CSV
-  document.getElementById("downloadCSV").addEventListener("click", () => {
-    onValue(votesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) { alert("No data to download!"); return; }
-
-      let csv = "Name,Gender,Head Boy,Head Girl,General Sec,Discipline,Sports,Academic,Environment,Food,Timestamp\n";
-      Object.values(data).forEach(v => {
-        csv += `"${v.name}","${v.gender}","${v.votes.headBoy || ""}","${v.votes.headGirl || ""}","${v.votes.generalSec || ""}","${v.votes.discipline || ""}","${v.votes.sports || ""}","${v.votes.academic || ""}","${v.votes.environment || ""}","${v.votes.food || ""}","${new Date(v.timestamp).toLocaleString()}"\n`;
-      });
-
-      const blob = new Blob([csv], { type: "text/csv" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "UKSS_Voting_Results.csv";
-      a.click();
-    }, { onlyOnce: true });
-  });
-</script>
-</body>
-</html>
+<script type="m
