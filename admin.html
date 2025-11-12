@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -32,7 +32,7 @@
   .close-btn { position:absolute; top:12px; right:12px; background:crimson; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
   .small { font-size:13px; color:#555; }
   .menu-list { display:flex; flex-direction:column; gap:8px; padding:10px; }
-  .menu-list button { text-align:left; padding:8px 10px; border-radius:8px; background:var(--light-green); border:1px solid #d8efd8; cursor:pointer; }
+  .menu-list button { text-align:left; padding:8px 10px; border-radius:8px; background:var(--light-green); border:1px solid #d8efd8; cursor:pointer; color:var(--green); font-weight:600; }
   .menu-list button:hover { background:#dff3df; }
 
   .controls-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
@@ -74,6 +74,9 @@
   .audit-card { background:var(--light-green); padding:12px; border-radius:8px; min-width:160px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
   .audit-card h4 { margin:0 0 6px 0; color:var(--green); }
   .audit-actions { display:flex; gap:8px; margin-top:10px; align-items:center; }
+
+  /* small style for generate button in winners */
+  .gen-letter { background:linear-gradient(90deg,#2e7d32,#4caf50); border:none; color:white; padding:6px 10px; border-radius:6px; cursor:pointer; margin-left:8px; font-weight:700; }
 
   /* responsive tweaks */
   @media (max-width:700px){
@@ -487,14 +490,55 @@ function displayWinners(votes){
       totals[pos][cand] = (totals[pos][cand]||0)+1;
     });
   });
-  let html = `<h3>🏆 Winners Summary</h3><table class="winner-table"><thead><tr><th>Position</th><th>Winner</th><th>Votes</th></tr></thead><tbody>`;
+  // Build winners table and add "Generate Letter" button for each winner
+  let html = `<h3>🏆 Winners Summary</h3><table class="winner-table"><thead><tr><th>Position</th><th>Winner</th><th>Votes</th><th>Action</th></tr></thead><tbody>`;
   Object.entries(totals).forEach(([pos,cands])=>{
     const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
     const [winner, count] = sorted[0] || ["-",0];
-    html += `<tr><td style="text-transform:capitalize">${pos}</td><td>${escapeHtml(winner)}</td><td>${count}</td></tr>`;
+    // Adding button that opens appreciation page — passes params: name, pos, votes, year, winnerId (if retrievable)
+    html += `<tr><td style="text-transform:capitalize">${pos}</td><td>${escapeHtml(winner)}</td><td>${count}</td><td><button class="gen-letter" data-pos="${encodeURIComponent(pos)}" data-name="${encodeURIComponent(winner)}" data-votes="${count}">Generate Letter</button></td></tr>`;
   });
   html += `</tbody></table>`;
   winnerSummary.innerHTML = html;
+
+  // wire up the generated buttons (open appreciation.html in new tab with params)
+  document.querySelectorAll(".gen-letter").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      const name = decodeURIComponent(btn.dataset.name || "");
+      const pos = decodeURIComponent(btn.dataset.pos || "");
+      const votes = btn.dataset.votes || 0;
+      // Try to include candidate details if available: find voter registration or vote record for that candidate (best-effort)
+      // We'll pick first matching vote record that selected this candidate for that position to extract class/gender/id
+      let candidateInfo = { id: '', classSelect: '', gender: '', firstName: '', lastName: '' };
+      for(const rec of allVotes){
+        try {
+          if(rec.votes && rec.votes[pos] && String(rec.votes[pos]).toLowerCase() === String(name).toLowerCase()){
+            // candidate info might be embedded in rec.voter or rec.candidate fields — try to find
+            if(rec.candidate) { candidateInfo = { ...candidateInfo, ...rec.candidate }; }
+            if(rec.voter) { candidateInfo = { ...candidateInfo, ...rec.voter }; }
+            // some datasets store candidate under rec.candidateName etc — we don't modify original data
+            break;
+          }
+        } catch(err){ /* ignore */ }
+      }
+
+      // Build query string
+      const params = new URLSearchParams();
+      params.set('name', name || '');
+      params.set('position', pos || '');
+      params.set('votes', votes || '0');
+      params.set('year', new Date().getFullYear());
+      // candidate info placeholders
+      params.set('candidateId', candidateInfo.id || '');
+      params.set('candidateClass', candidateInfo.classSelect || '');
+      params.set('candidateGender', candidateInfo.gender || '');
+      params.set('candidateFirst', candidateInfo.firstName || '');
+      params.set('candidateLast', candidateInfo.lastName || '');
+      // Link to appreciation page (assumes appreciation.html is in same folder)
+      const url = `appreciation.html?${params.toString()}`;
+      window.open(url, '_blank');
+    });
+  });
 }
 
 /* charts */
@@ -878,7 +922,6 @@ function downloadBlob(content, filename, type){
   a.click();
   URL.revokeObjectURL(a.href);
 }
-
 function escapeHtml(str){
   if(!str) return "";
   return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[s]);
