@@ -6,6 +6,51 @@
   <title>Voting Page - UKSS</title>
   <link rel="stylesheet" href="style.css">
 
+  <style>
+    /* Receipt Style */
+    #receipt {
+      display: none;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      width: 80%;
+      max-width: 600px;
+      margin: 40px auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      text-align: left;
+      line-height: 1.6;
+      color: #333;
+    }
+    #receipt h2 {
+      color: forestgreen;
+      text-align: center;
+    }
+    #receipt ul {
+      list-style: none;
+      padding: 0;
+    }
+    #receipt li::before {
+      content: "✔️ ";
+      color: forestgreen;
+    }
+    .receipt-buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .receipt-buttons button {
+      background: forestgreen;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .receipt-buttons button:hover {
+      background: darkgreen;
+    }
+  </style>
+
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
@@ -38,18 +83,15 @@
   <div class="container">
     <h1>🗳️ Vote for Your Leaders</h1>
 
+    <!-- === Voting Form === -->
     <form id="voteForm">
-      <!-- HEAD BOY & HEAD GIRL -->
       <h2>Head Boy & Head Girl</h2>
       <div class="landscape">
-        <!-- Head Boys (right) -->
         <div class="candidate">
           <img src="images/headboy1.jpg" alt="John Mwasiti">
           <div class="info">
             <h3>John Mwasiti</h3>
             <label><input type="checkbox" name="headBoy" value="John Mwasiti"> Vote</label>
-            <button type="button" onclick="openProfile('headboy1')">View Profile</button>
-            <div class="progress"><div id="bar_John_Mwasiti" class="progress-bar"></div></div>
           </div>
         </div>
 
@@ -58,19 +100,14 @@
           <div class="info">
             <h3>Peter Mwenda</h3>
             <label><input type="checkbox" name="headBoy" value="Peter Mwenda"> Vote</label>
-            <button type="button" onclick="openProfile('headboy2')">View Profile</button>
-            <div class="progress"><div id="bar_Peter_Mwenda" class="progress-bar"></div></div>
           </div>
         </div>
 
-        <!-- Head Girls (left) -->
         <div class="candidate">
           <img src="images/headgirl1.jpg" alt="Aisha Komba">
           <div class="info">
             <h3>Aisha Komba</h3>
             <label><input type="checkbox" name="headGirl" value="Aisha Komba"> Vote</label>
-            <button type="button" onclick="openProfile('headgirl1')">View Profile</button>
-            <div class="progress"><div id="bar_Aisha_Komba" class="progress-bar"></div></div>
           </div>
         </div>
 
@@ -79,22 +116,17 @@
           <div class="info">
             <h3>Neema Lusekelo</h3>
             <label><input type="checkbox" name="headGirl" value="Neema Lusekelo"> Vote</label>
-            <button type="button" onclick="openProfile('headgirl2')">View Profile</button>
-            <div class="progress"><div id="bar_Neema_Lusekelo" class="progress-bar"></div></div>
           </div>
         </div>
       </div>
 
-      <!-- GENERAL SECRETARY -->
       <h2>General Secretary</h2>
       <div class="landscape">
         <div class="candidate">
           <img src="images/sec_male.jpg" alt="David Mwakalinga">
           <div class="info">
             <h3>David Mwakalinga</h3>
-            <label><input type="radio" name="generalSec" value="David Mwakalinga" required> Vote</label>
-            <button type="button" onclick="openProfile('sec_male')">View Profile</button>
-            <div class="progress"><div id="bar_David_Mwakalinga" class="progress-bar"></div></div>
+            <label><input type="radio" name="generalSec" value="David Mwakalinga"> Vote</label>
           </div>
         </div>
 
@@ -103,22 +135,17 @@
           <div class="info">
             <h3>Maria Andrew</h3>
             <label><input type="radio" name="generalSec" value="Maria Andrew"> Vote</label>
-            <button type="button" onclick="openProfile('sec_female')">View Profile</button>
-            <div class="progress"><div id="bar_Maria_Andrew" class="progress-bar"></div></div>
           </div>
         </div>
       </div>
 
-      <!-- OTHER POSITIONS (Placeholder for future edits) -->
-      <h2>Other Leadership Positions</h2>
+      <h2>Discipline Prefect</h2>
       <div class="landscape">
         <div class="candidate">
           <img src="images/discipline_male.jpg" alt="Jonas Mollel">
           <div class="info">
             <h3>Jonas Mollel</h3>
             <label><input type="radio" name="discipline" value="Jonas Mollel"> Vote</label>
-            <button type="button" onclick="openProfile('discipline_male')">View Profile</button>
-            <div class="progress"><div id="bar_Jonas_Mollel" class="progress-bar"></div></div>
           </div>
         </div>
 
@@ -127,8 +154,6 @@
           <div class="info">
             <h3>Grace Mwita</h3>
             <label><input type="radio" name="discipline" value="Grace Mwita"> Vote</label>
-            <button type="button" onclick="openProfile('discipline_female')">View Profile</button>
-            <div class="progress"><div id="bar_Grace_Mwita" class="progress-bar"></div></div>
           </div>
         </div>
       </div>
@@ -137,28 +162,23 @@
     </form>
   </div>
 
-  <!-- PROFILE MODAL -->
-  <div id="profileModal" class="modal">
-    <div id="profileContent" class="modal-content"></div>
-  </div>
+  <!-- === RECEIPT DISPLAY === -->
+  <div id="receipt"></div>
 
-  <!-- Import Candidates Data -->
   <script type="module">
-    import { openProfile, closeModal } from "./candidates.js";
-    window.openProfile = openProfile;
-    window.closeModal = closeModal;
-  </script>
-
-  <!-- Voting Script -->
-  <script type="module">
-    import { ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
     import { db } from "./firebase-config.js";
 
     const voterID = localStorage.getItem("voterID");
     const firstName = localStorage.getItem("firstName");
+    const middleName = localStorage.getItem("middleName");
+    const lastName = localStorage.getItem("lastName");
+    const studentClass = localStorage.getItem("classSelect");
     const gender = localStorage.getItem("gender");
 
     const form = document.getElementById("voteForm");
+    const receiptDiv = document.getElementById("receipt");
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -182,8 +202,9 @@
 
       await set(ref(db, "votes/" + voterID), {
         voterID,
-        name: firstName,
+        name: `${firstName} ${middleName} ${lastName}`,
         gender,
+        class: studentClass,
         votes,
         timestamp: new Date().toISOString(),
       });
@@ -191,26 +212,32 @@
       await update(ref(db, "voters/" + voterID), { hasVoted: true });
 
       const title = gender === "Male" ? "MR" : "MRS";
-      alert(`✅ ${title} ${firstName.toUpperCase()}, you have voted successfully!`);
-      window.location.href = "index.html";
-    });
+      const timestamp = new Date().toLocaleString();
 
-    // Live vote progress
-    const votesRef = ref(db, "votes/");
-    onValue(votesRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      const counts = {};
-      for (let id in data) {
-        const vote = data[id].votes;
-        Object.values(vote).forEach((name) => {
-          counts[name] = (counts[name] || 0) + 1;
-        });
+      // Generate receipt HTML
+      let voteList = "";
+      for (let [pos, candidate] of Object.entries(votes)) {
+        voteList += `<li><b>${pos}:</b> ${candidate}</li>`;
       }
-      const maxVotes = Math.max(...Object.values(counts), 1);
-      for (let name in counts) {
-        const bar = document.getElementById(`bar_${name.replace(/\s+/g, "_")}`);
-        if (bar) bar.style.width = `${(counts[name] / maxVotes) * 100}%`;
-      }
+
+      receiptDiv.innerHTML = `
+        <h2>🧾 UKSS VOTING RECEIPT</h2>
+        <p><b>Name:</b> ${title} ${firstName} ${middleName} ${lastName}</p>
+        <p><b>Class:</b> ${studentClass}</p>
+        <p><b>Gender:</b> ${gender}</p>
+        <p><b>Date & Time:</b> ${timestamp}</p>
+        <p><b>Your Votes:</b></p>
+        <ul>${voteList}</ul>
+        <p style="color:green"><b>${title} ${firstName.toUpperCase()}, your vote has been recorded successfully!</b></p>
+        <div class="receipt-buttons">
+          <button onclick="window.print()">🖨️ Print Receipt</button>
+          <button onclick="window.location.href='index.html'">⬅️ Return Home</button>
+        </div>
+      `;
+
+      // Hide form, show receipt
+      form.style.display = "none";
+      receiptDiv.style.display = "block";
     });
   </script>
 </body>
