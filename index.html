@@ -6,37 +6,30 @@
   <title>UMOJA KING'ORI VOTING SYSTEM</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    #voterIDSection {
-      margin-top: 25px;
-      text-align: center;
-      background: #e8f5e9;
-      padding: 15px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    body { font-family: Arial, sans-serif; background: #f4fff4; color: #222; text-align: center; margin: 0; }
+
+    header { background: forestgreen; color: white; padding: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+
+    input, select, button {
+      margin: 8px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px;
     }
-    #voterIDSection input {
-      width: 80%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      font-size: 15px;
+
+    button { background: forestgreen; color: white; cursor: pointer; border: none; }
+    button:hover { background: darkgreen; }
+
+    .admin-btn { margin-top: 30px; padding: 10px 25px; background: forestgreen; color: white; border-radius: 8px; }
+
+    /* Popup Styling */
+    .modal {
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); justify-content: center; align-items: center;
     }
-    #voterIDSection button {
-      background: forestgreen;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
+    .modal-content {
+      background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px;
+      text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
-    #voterIDSection button:hover {
-      background: darkgreen;
-    }
+    .modal-content h2 { color: forestgreen; }
+    .modal-content button { margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -46,9 +39,9 @@
     <p>Cast your vote wisely – Your choice matters!</p>
   </header>
 
-  <!-- === Login Form === -->
-  <section id="loginSection">
-    <h2>Enter Your Details</h2>
+  <!-- === Registration Section === -->
+  <section id="registerSection">
+    <h2>Register to Get Your Voter ID</h2>
     <input type="text" id="firstName" placeholder="First Name" required>
     <input type="text" id="middleName" placeholder="Middle Name">
     <input type="text" id="lastName" placeholder="Last Name" required>
@@ -61,29 +54,39 @@
       <option value="Form Four">Form Four</option>
     </select>
 
-    <div>
-      <label class="block text-gray-700 font-semibold mb-2">Gender</label>
-      <select id="gender" required class="border border-gray-300 rounded-lg p-2 w-full">
-        <option value="">-- Select Gender --</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-      </select>
-    </div>
+    <select id="gender" required>
+      <option value="">Select Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+    </select>
 
-    <button onclick="openVoting()">Proceed to Voting</button>
+    <button onclick="registerVoter()">🧾 Register & Get Voter ID</button>
   </section>
 
   <!-- === Login with Voter ID === -->
   <div id="voterIDSection">
-    <h3>Already Registered?</h3>
-    <p>Enter your Voter ID to access voting directly:</p>
+    <h3>Already Have a Voter ID?</h3>
+    <p>Enter your Voter ID below:</p>
     <input type="text" id="voterIDInput" placeholder="Enter Your Voter ID">
     <button onclick="loginWithVoterID()">Login with Voter ID</button>
   </div>
 
-  <!-- Admin Login -->
-  <div style="text-align:center; margin-top:40px;">
+  <!-- === Admin Login === -->
+  <div style="text-align:center;">
     <button onclick="adminLogin()" class="admin-btn">🔐 Admin Login</button>
+  </div>
+
+  <!-- === Popup for Voter ID === -->
+  <div id="idPopup" class="modal">
+    <div class="modal-content">
+      <h2>✅ Registration Successful!</h2>
+      <p>Your Voter ID is:</p>
+      <h3 id="generatedID" style="color:forestgreen"></h3>
+      <p style="font-size:13px; color:#666;">Save this ID carefully. You’ll need it to access voting.</p>
+      <button onclick="copyVoterID()">📋 Copy ID</button>
+      <button onclick="proceedToVote()">➡️ Proceed to Voting</button>
+      <button onclick="closePopup()" style="background:gray;">Close</button>
+    </div>
   </div>
 
   <!-- Firebase SDK -->
@@ -105,8 +108,18 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // === Normal Login (Details + Save voterID) ===
-    window.openVoting = async function() {
+    // === Generate unique voter ID ===
+    async function generateUniqueVoterID(firstName) {
+      const randomNum = Math.floor(100 + Math.random() * 900); // random 3-digit number
+      const baseID = firstName.toLowerCase() + randomNum;
+      const dbRef = ref(db);
+      const snapshot = await get(child(dbRef, `voters/${baseID}`));
+      if (snapshot.exists()) return generateUniqueVoterID(firstName); // retry if duplicate
+      return baseID;
+    }
+
+    // === Register new voter ===
+    window.registerVoter = async function() {
       const firstName = document.getElementById("firstName").value.trim();
       const middleName = document.getElementById("middleName").value.trim();
       const lastName = document.getElementById("lastName").value.trim();
@@ -118,16 +131,15 @@
         return;
       }
 
-      const voterID = `${firstName}_${middleName}_${lastName}_${classSelect}`.replace(/\s+/g, "_").toLowerCase();
-      const dbRef = ref(db);
-      const snapshot = await get(child(dbRef, `voters/${voterID}`));
+      const voterID = await generateUniqueVoterID(firstName);
 
-      if (snapshot.exists() && snapshot.val().hasVoted) {
-        alert("⚠️ You have already voted. Each student can only vote once!");
-        return;
-      }
+      await set(ref(db, "voters/" + voterID), {
+        firstName, middleName, lastName, classSelect, gender,
+        hasVoted: false,
+        registeredAt: new Date().toISOString()
+      });
 
-      // Save locally and Firebase
+      // Store locally
       localStorage.setItem("voterID", voterID);
       localStorage.setItem("firstName", firstName);
       localStorage.setItem("middleName", middleName);
@@ -135,20 +147,28 @@
       localStorage.setItem("classSelect", classSelect);
       localStorage.setItem("gender", gender);
 
-      await set(ref(db, "voters/" + voterID), {
-        firstName,
-        middleName,
-        lastName,
-        classSelect,
-        gender,
-        hasVoted: snapshot.exists() ? snapshot.val().hasVoted : false,
-        timestamp: new Date().toISOString()
-      });
+      document.getElementById("generatedID").textContent = voterID;
+      document.getElementById("idPopup").style.display = "flex";
+    };
 
+    // === Copy Voter ID ===
+    window.copyVoterID = function() {
+      const voterID = document.getElementById("generatedID").textContent;
+      navigator.clipboard.writeText(voterID);
+      alert("✅ Voter ID copied to clipboard!");
+    };
+
+    // === Proceed to Voting ===
+    window.proceedToVote = function() {
       window.location.href = "voting.html";
     };
 
-    // === Login using voterID ===
+    // === Close Popup ===
+    window.closePopup = function() {
+      document.getElementById("idPopup").style.display = "none";
+    };
+
+    // === Login using Voter ID ===
     window.loginWithVoterID = async function() {
       const voterID = document.getElementById("voterIDInput").value.trim().toLowerCase();
       if (!voterID) {
@@ -160,37 +180,33 @@
       const snapshot = await get(child(dbRef, `voters/${voterID}`));
 
       if (!snapshot.exists()) {
-        alert("⚠️ Invalid Voter ID! Please register or check your details.");
+        alert("⚠️ Invalid Voter ID! Please check again or register first.");
         return;
       }
 
       const data = snapshot.val();
 
       if (data.hasVoted) {
-        alert("⚠️ You have already voted. You cannot vote twice!");
+        alert("⚠️ You have already voted!");
         return;
       }
 
-      // Store details locally
       localStorage.setItem("voterID", voterID);
-      localStorage.setItem("firstName", data.firstName || "");
-      localStorage.setItem("middleName", data.middleName || "");
-      localStorage.setItem("lastName", data.lastName || "");
-      localStorage.setItem("classSelect", data.classSelect || "");
-      localStorage.setItem("gender", data.gender || "");
+      localStorage.setItem("firstName", data.firstName);
+      localStorage.setItem("middleName", data.middleName);
+      localStorage.setItem("lastName", data.lastName);
+      localStorage.setItem("classSelect", data.classSelect);
+      localStorage.setItem("gender", data.gender);
 
-      alert(`✅ Welcome back ${data.firstName}! You can now proceed to vote.`);
+      alert(`✅ Welcome ${data.firstName}! Redirecting to voting page...`);
       window.location.href = "voting.html";
     };
 
     // === Admin Login ===
     window.adminLogin = function() {
       const password = prompt("Enter Admin Password:");
-      if (password === "ukss2025") {
-        window.location.href = "admin.html";
-      } else if (password) {
-        alert("❌ Incorrect password!");
-      }
+      if (password === "ukss2025") window.location.href = "admin.html";
+      else if (password) alert("❌ Incorrect password!");
     };
   </script>
 </body>
