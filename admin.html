@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -31,45 +31,9 @@
   .modal .content { background:#fff; width:92%; max-width:980px; border-radius:10px; padding:16px; max-height:86vh; overflow:auto; position:relative; animation:zoomIn .18s ease; }
   .close-btn { position:absolute; top:12px; right:12px; background:crimson; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
   .small { font-size:13px; color:#555; }
-
-  /* 🌿 Improved Green Gradient Admin Popup */
-  .menu-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 14px;
-    background: linear-gradient(135deg, #1b5e20, #43a047);
-    border-radius: 12px;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
-  }
-
-  .menu-list button {
-    text-align: left;
-    padding: 12px 16px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    cursor: pointer;
-    letter-spacing: 0.3px;
-    transition: all 0.25s ease;
-  }
-
-  .menu-list button:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.02);
-  }
-
-  .menu-list button:last-child {
-    background: white;
-    color: #1b5e20;
-    font-weight: bold;
-  }
-
-  .menu-list button:last-child:hover {
-    background: #f0f0f0;
-  }
+  .menu-list { display:flex; flex-direction:column; gap:8px; padding:10px; }
+  .menu-list button { text-align:left; padding:8px 10px; border-radius:8px; background:var(--light-green); border:1px solid #d8efd8; cursor:pointer; }
+  .menu-list button:hover { background:#dff3df; }
 
   .controls-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
   input, select, button { padding:8px 10px; border-radius:6px; border:1px solid #cfcfcf; }
@@ -115,6 +79,7 @@
   @media (max-width:700px){
     .charts{flex-direction:column; align-items:center}
   }
+
 </style>
 </head>
 <body>
@@ -132,20 +97,55 @@
   </div>
 </header>
 
-<!-- 🌀 Loading spinner -->
+<!-- Loading spinner (center) -->
 <div id="loadingOverlay" class="loading-overlay" aria-hidden="false" style="display:flex;">
   <div class="spinner" role="status" aria-label="Loading"></div>
   <div class="loading-text">Loading data... please wait</div>
 </div>
 
-<!-- 🔍 Filters, Results, Tables, Modals, Audit, and Scripts -->
-<!-- ✅ All content from your previous code remains unchanged below -->
+<div class="topbar panel" id="topControls" style="opacity:0;">
+  <div class="controls-row">
+    <input id="searchName" placeholder="Search voter name" />
+    <select id="filterClass">
+      <option value="">All Classes</option>
+      <option>Form One</option><option>Form Two</option><option>Form Three</option><option>Form Four</option>
+    </select>
+    <select id="filterGender">
+      <option value="">All Genders</option><option>Male</option><option>Female</option>
+    </select>
+    <select id="filterPosition">
+      <option value="">All Positions</option>
+      <option value="headBoy">headBoy</option><option value="headGirl">headGirl</option>
+      <option value="generalSec">generalSec</option><option value="discipline">discipline</option>
+    </select>
+    <button id="clearFilters">Clear</button>
+  </div>
+  <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+    <div id="topSummary" class="small">Loading...</div>
+  </div>
+</div>
 
-<!-- Example popup -->
+<!-- winner summary -->
+<div id="winnerSummary" class="panel table-container" style="opacity:0;"></div>
+
+<!-- results (per-position tables) -->
+<div id="resultsContainer" class="panel" style="opacity:0;"></div>
+
+<!-- charts -->
+<div class="charts" id="chartsWrap" style="opacity:0;">
+  <canvas id="barChart" width="600" height="260"></canvas>
+  <canvas id="pieChart" width="360" height="260"></canvas>
+  <canvas id="lineChart" width="600" height="260"></canvas>
+</div>
+
+<!-- timeline -->
+<div id="timelineContainer" class="panel table-container" style="opacity:0;"></div>
+
+<!-- ================= Menu Popup (Hamburger) ================= -->
 <div id="menuPopup" class="modal" aria-hidden="true">
   <div class="content" role="dialog" aria-modal="true">
     <button class="close-btn" onclick="closeMenuPopup()">✖</button>
-    <h2 style="color:#fff; text-align:center; margin-top:4px;">☰ ADMIN MENU</h2>
+    <h2 style="color:var(--green); margin-top:4px">☰ Admin Menu</h2>
     <div class="menu-list">
       <button onclick="openVotersModal()">🧾 View All Voters List</button>
       <button onclick="openRegisteredModal()">📋 Registered Voters List</button>
@@ -154,15 +154,753 @@
       <button onclick="triggerDownloadResults()">⬇️ Download Results (CSV)</button>
       <button onclick="backupVotes()">💾 Backup Votes (JSON)</button>
       <button onclick="triggerRestore()">♻️ Restore Votes (JSON)</button>
-      <button onclick="closeMenuPopup()">❌ Close</button>
+      <button onclick="closeMenuPopup()" style="background:#f5f5f5; border:1px solid #ddd; color:#111;">❌ Close</button>
     </div>
   </div>
 </div>
 
-<!-- 🔥 Everything else (voters modal, audit, confirm modal, JS logic) continues from your last version -->
-<script type="module">
-// (Your full JavaScript code remains here unchanged)
-</script>
+<!-- ================= Voters Modal (who voted) ================= -->
+<div id="votersModal" class="modal" role="dialog" aria-modal="true">
+  <div class="content">
+    <button class="close-btn" onclick="closeVotersModal()">✖</button>
+    <h2 style="color:var(--green); margin-top:4px">🧾 All Voters (Who Voted) — Full Details</h2>
 
+    <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px;">
+      <input id="votersSearch" placeholder="Search name, class or voter ID" style="flex:1" />
+      <button id="downloadVotersCSV">⬇️ Download Voters CSV</button>
+      <button onclick="closeVotersModal()" style="background:gray;">Cancel</button>
+    </div>
+
+    <table id="votersTable" style="width:100%">
+      <thead>
+        <tr>
+          <th>Voter ID</th>
+          <th>Name</th>
+          <th>Class</th>
+          <th>Gender</th>
+          <th>Votes (position : candidate)</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= Registered Voters Modal ================= -->
+<div id="registeredModal" class="modal" role="dialog" aria-modal="true">
+  <div class="content">
+    <button class="close-btn" onclick="closeRegisteredModal()">✖</button>
+    <h2 style="color:var(--green); margin-top:4px">📋 Registered Voters List</h2>
+
+    <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px;">
+      <input id="registeredSearch" placeholder="Search name, voter ID or class" style="flex:1" />
+      <button id="downloadRegisteredCSV">⬇️ Download Registered CSV</button>
+      <button onclick="closeRegisteredModal()" style="background:gray;">Cancel</button>
+    </div>
+
+    <table id="registeredTable" style="width:100%">
+      <thead>
+        <tr><th>Voter ID</th><th>Name</th><th>Class</th><th>Gender</th><th>Registered At</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= Audit Modal ================= -->
+<div id="auditModal" class="modal" role="dialog" aria-modal="true">
+  <div class="content">
+    <button class="close-btn" onclick="closeAuditModal()">✖</button>
+    <h2 style="color:var(--green); margin-top:4px">🔍 Audit — Yearly Summary</h2>
+
+    <div style="display:flex; gap:10px; align-items:center; margin:8px 0 12px; flex-wrap:wrap;">
+      <label for="auditYear">Select year:</label>
+      <select id="auditYear"></select>
+
+      <label for="auditScope">Scope:</label>
+      <select id="auditScope">
+        <option value="all">All registered (default)</option>
+        <option value="registeredThisYear">Only registered in selected year</option>
+      </select>
+
+      <div class="audit-actions">
+        <button id="runAuditBtn">Run Audit</button>
+        <button id="exportAuditCSV">⬇️ Export Summary CSV</button>
+        <button onclick="closeAuditModal()" style="background:gray">Cancel</button>
+      </div>
+    </div>
+
+    <div id="auditResult" style="margin-top:12px;">
+      <!-- filled dynamically -->
+    </div>
+
+    <div style="margin-top:10px;">
+      <canvas id="auditChart" width="700" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- confirm modal -->
+<div id="confirmModal" class="modal"><div class="content" style="max-width:520px;text-align:center">
+  <button class="close-btn" onclick="closeConfirm()">✖</button>
+  <h3 id="confirmText">Confirm action</h3>
+  <div style="margin-top:12px"><button id="confirmYes">Yes</button> <button id="confirmNo" style="background:crimson">Cancel</button></div>
+</div></div>
+
+<!-- hidden file input for restore -->
+<input id="restoreFile" type="file" accept=".json" style="display:none">
+
+<p id="voterSummary" class="small panel" style="opacity:0;"></p>
+
+<script type="module">
+/* Full admin page: menu popup, voters list, registered list, audit added (summary-only export), CSV, backup, restore, charts, spinner.
+   Uses Realtime Database: nodes 'votes' and 'voters'. */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getDatabase, ref, onValue, remove, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+/* Firebase config */
+const firebaseConfig = {
+  apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+  authDomain: "ukss-voting-system.firebaseapp.com",
+  databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+  projectId: "ukss-voting-system",
+  storageBucket: "ukss-voting-system.firebasestorage.app",
+  messagingSenderId: "525528255065",
+  appId: "1:525528255065:web:97c4e55d2984acc718bf48",
+  measurementId: "G-14ZV9E3X7C"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* refs */
+const votesRef = ref(db, "votes");
+const votersRef = ref(db, "voters");
+const TOTAL_STUDENTS = 308;
+
+/* state */
+let votesObj = {};
+let allVotes = [];
+let registeredObj = {};
+let registeredList = [];
+let barChart, pieChart, lineChart;
+
+/* elements */
+const barCtx = document.getElementById("barChart").getContext("2d");
+const pieCtx = document.getElementById("pieChart").getContext("2d");
+const lineCtx = document.getElementById("lineChart").getContext("2d");
+
+const resultsContainer = document.getElementById("resultsContainer");
+const winnerSummary = document.getElementById("winnerSummary");
+const voterSummaryP = document.getElementById("voterSummary");
+
+/* popup/menu elements & global exposure (so HTML onclick="" works) */
+const menuPopup = document.getElementById("menuPopup");
+function openMenuPopup(){ menuPopup.style.display = "flex"; }
+function closeMenuPopup(){ menuPopup.style.display = "none"; }
+window.openMenuPopup = openMenuPopup;
+window.closeMenuPopup = closeMenuPopup;
+
+/* voters modal */
+const votersModal = document.getElementById("votersModal");
+const votersTableBody = document.querySelector("#votersTable tbody");
+const votersSearch = document.getElementById("votersSearch");
+function openVotersModal(){ populateVotersTable(allVotes); votersModal.style.display = "flex"; votersSearch.value=""; }
+function closeVotersModal(){ votersModal.style.display = "none"; }
+window.openVotersModal = openVotersModal;
+window.closeVotersModal = closeVotersModal;
+
+/* registered modal */
+const registeredModal = document.getElementById("registeredModal");
+const registeredTableBody = document.querySelector("#registeredTable tbody");
+const registeredSearch = document.getElementById("registeredSearch");
+function openRegisteredModal(){ populateRegisteredTable(registeredList); registeredModal.style.display = "flex"; registeredSearch.value=""; }
+function closeRegisteredModal(){ registeredModal.style.display = "none"; }
+window.openRegisteredModal = openRegisteredModal;
+window.closeRegisteredModal = closeRegisteredModal;
+
+/* audit modal */
+const auditModal = document.getElementById("auditModal");
+const auditYearSelect = document.getElementById("auditYear");
+const auditScope = document.getElementById("auditScope");
+const runAuditBtn = document.getElementById("runAuditBtn");
+const exportAuditCSVBtn = document.getElementById("exportAuditCSV");
+const auditResultDiv = document.getElementById("auditResult");
+const auditChartCtx = document.getElementById("auditChart").getContext("2d");
+let auditChart;
+function openAuditModal(){
+  // populate years (this year down to -5)
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  auditYearSelect.innerHTML = "";
+  for(let y=thisYear; y>= thisYear - 5; y--){
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    auditYearSelect.appendChild(opt);
+  }
+  auditModal.style.display = "flex";
+}
+function closeAuditModal(){ auditModal.style.display = "none"; if(auditChart) { auditChart.destroy(); auditChart = null; } }
+window.openAuditModal = openAuditModal;
+window.closeAuditModal = closeAuditModal;
+
+/* confirm modal */
+const confirmModal = document.getElementById("confirmModal");
+const confirmText = document.getElementById("confirmText");
+const confirmYes = document.getElementById("confirmYes");
+const confirmNo = document.getElementById("confirmNo");
+function closeConfirm(){ confirmModal.style.display = "none"; }
+window.closeConfirm = closeConfirm;
+
+/* filters */
+const searchName = document.getElementById("searchName");
+const filterClass = document.getElementById("filterClass");
+const filterGender = document.getElementById("filterGender");
+const filterPosition = document.getElementById("filterPosition");
+const clearFiltersBtn = document.getElementById("clearFilters");
+
+/* loading overlay */
+const loadingOverlay = document.getElementById("loadingOverlay");
+const topControls = document.getElementById("topControls");
+const chartsWrap = document.getElementById("chartsWrap");
+const winnerSummaryEl = document.getElementById("winnerSummary");
+const resultsContainerEl = document.getElementById("resultsContainer");
+const timelineContainer = document.getElementById("timelineContainer");
+const voterSummaryEl = document.getElementById("voterSummary");
+
+/* show loading until both listeners have fired at least once */
+let votesLoaded = false;
+let votersLoaded = false;
+function hideLoadingIfReady(){
+  if(votesLoaded && votersLoaded){
+    loadingOverlay.style.display = "none";
+    topControls.style.opacity = "1";
+    chartsWrap.style.opacity = "1";
+    winnerSummaryEl.style.opacity = "1";
+    resultsContainerEl.style.opacity = "1";
+    timelineContainer.style.opacity = "1";
+    voterSummaryEl.style.opacity = "1";
+  }
+}
+
+/* Live listeners */
+onValue(votesRef, (snap) => {
+  votesLoaded = true;
+  votesObj = snap.val() || {};
+  allVotes = Object.entries(votesObj).map(([k,v]) => ({ _id: k, ...v }));
+  allVotes.forEach(r => { if (!r.timestamp) r.timestamp = new Date().toISOString(); });
+  applyFilters();
+  hideLoadingIfReady();
+});
+
+onValue(votersRef, (snap) => {
+  votersLoaded = true;
+  registeredObj = snap.val() || {};
+  registeredList = Object.entries(registeredObj).map(([id,v]) => ({ id, ...v }));
+  hideLoadingIfReady();
+});
+
+/* filters & apply */
+function applyFilters(){
+  const nameQ = (searchName.value || "").toLowerCase();
+  const cQ = filterClass.value || "";
+  const gQ = filterGender.value || "";
+  const pQ = filterPosition.value || "";
+
+  const filtered = allVotes.filter(rec => {
+    const voter = rec.voter || {};
+    const first = (voter.firstName || rec.firstName || rec.name || "").toString();
+    const middle = (voter.middleName || rec.middleName || "").toString();
+    const last = (voter.lastName || rec.lastName || "").toString();
+    const fullName = `${first} ${middle} ${last}`.toLowerCase();
+    const matchesName = !nameQ || fullName.includes(nameQ);
+    const recClass = (voter.classSelect || rec.class || rec.classSelect || "").toString();
+    const matchesClass = !cQ || recClass === cQ;
+    const recGender = (voter.gender || rec.gender || "").toString();
+    const matchesGender = !gQ || recGender === gQ;
+    const matchesPos = !pQ || (rec.votes && rec.votes[pQ]);
+    return matchesName && matchesClass && matchesGender && matchesPos;
+  });
+
+  displayResults(filtered);
+}
+
+/* display results */
+function displayResults(votes){
+  displayWinners(votes);
+
+  if (!votes || votes.length === 0) {
+    resultsContainer.innerHTML = "<p>No votes yet.</p>";
+    voterSummaryEl.textContent = "No votes cast yet.";
+    clearCharts();
+    document.getElementById("timelineContainer").innerHTML = "";
+    return;
+  }
+
+  // totals per position
+  const totals = {};
+  votes.forEach(rec => {
+    const v = rec.votes || {};
+    Object.entries(v).forEach(([pos, cand]) => {
+      if (!totals[pos]) totals[pos] = {};
+      totals[pos][cand] = (totals[pos][cand] || 0) + 1;
+    });
+  });
+
+  // render tables
+  let html = "";
+  for (const [pos, cands] of Object.entries(totals)) {
+    html += `<div class="table-container"><h3 style="text-transform:capitalize">${pos}</h3><table><thead><tr><th>Candidate</th><th>Votes</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
+    sorted.forEach(([name,count], idx) => {
+      const status = idx === 0 ? "👑 Leading" : "";
+      html += `<tr><td>${escapeHtml(name)}</td><td>${count}</td><td>${status}</td><td><button data-candidate="${escapeHtml(name)}" class="deleteCandidateBtn">🗑️ Delete</button></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+  resultsContainer.innerHTML = html;
+
+  // attach delete buttons
+  document.querySelectorAll(".deleteCandidateBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=> showConfirmDelete(btn.dataset.candidate));
+  });
+
+  // update summary
+  const voted = votes.length;
+  const notVoted = TOTAL_STUDENTS - voted;
+  voterSummaryEl.innerHTML = `🧍‍♂️ <b>${voted}</b> voted out of ${TOTAL_STUDENTS} | <b>${notVoted}</b> not yet voted.`;
+  document.getElementById("topSummary").textContent = `${voted} voted / ${TOTAL_STUDENTS}`;
+
+  drawCharts(totals, votes);
+  drawTimeline(votes);
+}
+
+/* winners */
+function displayWinners(votes){
+  if(!votes || votes.length===0){ winnerSummary.innerHTML = ""; return; }
+  const totals = {};
+  votes.forEach(rec => {
+    Object.entries(rec.votes || {}).forEach(([pos,cand])=>{
+      if(!totals[pos]) totals[pos] = {};
+      totals[pos][cand] = (totals[pos][cand]||0)+1;
+    });
+  });
+  let html = `<h3>🏆 Winners Summary</h3><table class="winner-table"><thead><tr><th>Position</th><th>Winner</th><th>Votes</th></tr></thead><tbody>`;
+  Object.entries(totals).forEach(([pos,cands])=>{
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
+    const [winner, count] = sorted[0] || ["-",0];
+    html += `<tr><td style="text-transform:capitalize">${pos}</td><td>${escapeHtml(winner)}</td><td>${count}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  winnerSummary.innerHTML = html;
+}
+
+/* charts */
+function clearCharts(){
+  if(barChart) { barChart.destroy(); barChart = null; }
+  if(pieChart) { pieChart.destroy(); pieChart = null; }
+  if(lineChart) { lineChart.destroy(); lineChart = null; }
+}
+
+function drawCharts(totals, votes){
+  const labels = [];
+  const counts = [];
+  Object.entries(totals).forEach(([pos,cands])=>{
+    Object.entries(cands).forEach(([cand,count])=>{
+      labels.push(`${pos}: ${cand}`);
+      counts.push(count);
+    });
+  });
+
+  clearCharts();
+
+  barChart = new Chart(barCtx, {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Votes", data: counts, backgroundColor: "rgba(34,139,34,0.6)" }] },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  pieChart = new Chart(pieCtx, {
+    type: "pie",
+    data: { labels, datasets: [{ data: counts, backgroundColor: generatePalette(counts.length) }] },
+    options: { responsive:true }
+  });
+
+  const sorted = votes.slice().sort((a,b)=> new Date(a.timestamp) - new Date(b.timestamp));
+  const times = sorted.map(s => new Date(s.timestamp).toLocaleTimeString());
+  const cum = []; let acc = 0;
+  sorted.forEach(s => { acc += 1; cum.push(acc); });
+
+  lineChart = new Chart(lineCtx, {
+    type: "line",
+    data: { labels: times, datasets: [{ label: "Votes over time", data: cum, borderColor:"forestgreen", tension:0.25, fill:false }] },
+    options: { responsive:true, scales:{ y:{ beginAtZero:true } } }
+  });
+}
+
+function generatePalette(n){
+  const base = ["#2e7d32","#388e3c","#66bb6a","#81c784","#a5d6a7","#c8e6c9","#4caf50","#99d68a"];
+  const out = [];
+  for(let i=0;i<n;i++) out.push(base[i % base.length]);
+  return out;
+}
+
+/* timeline */
+function drawTimeline(votes){
+  const container = document.getElementById("timelineContainer");
+  const sorted = votes.slice().sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+  let html = `<h3>🕒 Vote Timeline (latest first)</h3><table><thead><tr><th>Voter</th><th>Class</th><th>Gender</th><th>Voted For</th><th>Time</th></tr></thead><tbody>`;
+  sorted.forEach(rec=>{
+    const voter = rec.voter || {};
+    const first = voter.firstName || rec.firstName || rec.name || '';
+    const middle = voter.middleName || rec.middleName || '';
+    const last = voter.lastName || rec.lastName || '';
+    const name = `${first} ${middle} ${last}`.trim();
+    const recClass = voter.classSelect || rec.class || rec.classSelect || '-';
+    const recGender = voter.gender || rec.gender || '-';
+    const votesList = Object.entries(rec.votes || {}).map(([p,c])=>`${p}: ${c}`).join("; ");
+    html += `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(recClass)}</td><td>${escapeHtml(recGender)}</td><td>${escapeHtml(votesList)}</td><td>${new Date(rec.timestamp).toLocaleString()}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+}
+
+/* voters modal populate/search */
+votersSearch.addEventListener("input", ()=> {
+  const q = (votersSearch.value||'').toLowerCase();
+  const filtered = allVotes.filter(rec => {
+    const voter = rec.voter || {};
+    const first = (voter.firstName || rec.firstName || rec.name || '').toString();
+    const middle = (voter.middleName || rec.middleName || '').toString();
+    const last = (voter.lastName || rec.lastName || '').toString();
+    const id = rec._id || '';
+    const full = `${first} ${middle} ${last} ${id}`.toLowerCase();
+    return full.includes(q);
+  });
+  populateVotersTable(filtered);
+});
+
+function populateVotersTable(data){
+  votersTableBody.innerHTML = "";
+  data.forEach(rec=>{
+    const voter = rec.voter || {};
+    const voterID = rec._id || (rec.voterID || '');
+    const first = voter.firstName || rec.firstName || rec.name || '';
+    const middle = voter.middleName || rec.middleName || '';
+    const last = voter.lastName || rec.lastName || '';
+    const name = `${first} ${middle} ${last}`.trim();
+    const recClass = voter.classSelect || rec.class || rec.classSelect || '-';
+    const recGender = voter.gender || rec.gender || '-';
+    const votesList = Object.entries(rec.votes||{}).map(([p,c])=>`${p}: ${c}`).join("; ");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${escapeHtml(voterID)}</td><td>${escapeHtml(name)}</td><td>${escapeHtml(recClass)}</td><td>${escapeHtml(recGender)}</td><td>${escapeHtml(votesList)}</td><td>${new Date(rec.timestamp).toLocaleString()}</td>`;
+    votersTableBody.appendChild(tr);
+  });
+}
+
+/* download voters CSV (who voted) */
+document.getElementById("downloadVotersCSV").addEventListener("click", ()=>{
+  if(allVotes.length===0) return alert("No voters yet");
+  let csv = "VoterID,First,Middle,Last,Class,Gender,Votes,Timestamp\n";
+  allVotes.forEach(rec=>{
+    const voter = rec.voter || {};
+    const voterID = rec._id || (rec.voterID || '');
+    const first = voter.firstName || rec.firstName || rec.name || '';
+    const middle = voter.middleName || rec.middleName || '';
+    const last = voter.lastName || rec.lastName || '';
+    const recClass = voter.classSelect || rec.class || rec.classSelect || '';
+    const recGender = voter.gender || rec.gender || '';
+    const votesList = Object.entries(rec.votes||{}).map(([p,c])=>`${p}:${c}`).join("; ");
+    csv += `"${voterID}","${first}","${middle}","${last}","${recClass}","${recGender}","${votesList}","${new Date(rec.timestamp).toLocaleString()}"\n`;
+  });
+  downloadBlob(csv, "UKSS_Voters_Who_Voted.csv", "text/csv");
+});
+
+/* registered modal populate/search */
+registeredSearch.addEventListener("input", ()=> {
+  const q = (registeredSearch.value||'').toLowerCase();
+  const filtered = registeredList.filter(rec => {
+    const id = (rec.id || '').toLowerCase();
+    const name = ((rec.firstName||'') + ' ' + (rec.lastName||'')).toLowerCase();
+    const cls = (rec.classSelect || '').toLowerCase();
+    return id.includes(q) || name.includes(q) || cls.includes(q);
+  });
+  populateRegisteredTable(filtered);
+});
+
+function populateRegisteredTable(data){
+  registeredTableBody.innerHTML = "";
+  data.forEach(rec=>{
+    const id = rec.id || '';
+    const name = `${rec.firstName||''} ${rec.middleName||''} ${rec.lastName||''}`.trim();
+    const cls = rec.classSelect || '';
+    const gender = rec.gender || '';
+    const regAt = rec.registeredAt || rec.registeredAt || '';
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${escapeHtml(id)}</td><td>${escapeHtml(name)}</td><td>${escapeHtml(cls)}</td><td>${escapeHtml(gender)}</td><td>${escapeHtml(regAt)}</td>`;
+    registeredTableBody.appendChild(tr);
+  });
+}
+
+/* download registered CSV */
+document.getElementById("downloadRegisteredCSV").addEventListener("click", ()=>{
+  if(registeredList.length===0) return alert("No registered voters yet");
+  let csv = "VoterID,First,Middle,Last,Class,Gender,RegisteredAt\n";
+  registeredList.forEach(rec=>{
+    csv += `"${rec.id||''}","${rec.firstName||''}","${rec.middleName||''}","${rec.lastName||''}","${rec.classSelect||''}","${rec.gender||''}","${rec.registeredAt||''}"\n`;
+  });
+  downloadBlob(csv, "UKSS_Registered_Voters.csv", "text/csv");
+});
+
+/* delete candidate votes (confirm) */
+function showConfirmDelete(candidateName){
+  confirmText.textContent = `Delete all votes for "${candidateName}"? This will remove that candidate entry from every vote record but keep the rest.`;
+  confirmModal.style.display = "flex";
+  confirmYes.onclick = async () => {
+    for(const rec of allVotes){
+      const newVotes = {};
+      for(const [pos,cand] of Object.entries(rec.votes || {})){
+        if(cand !== candidateName) newVotes[pos] = cand;
+      }
+      await set(ref(db, "votes/" + rec._id), { ...rec, votes: newVotes });
+    }
+    confirmModal.style.display = "none";
+  };
+  confirmNo.onclick = ()=> confirmModal.style.display = "none";
+}
+window.showConfirmDelete = showConfirmDelete;
+
+/* delete all votes */
+function confirmDeleteAll(){
+  confirmText.textContent = "Delete ALL votes permanently? This action cannot be undone.";
+  confirmModal.style.display = "flex";
+  confirmYes.onclick = async () => { await remove(votesRef); confirmModal.style.display = "none"; closeMenuPopup(); alert("All votes deleted."); };
+  confirmNo.onclick = ()=> confirmModal.style.display = "none";
+}
+window.confirmDeleteAll = confirmDeleteAll;
+
+/* download results CSV (summary) */
+function triggerDownloadResults(){
+  if(allVotes.length === 0) return alert("No data to export");
+  let csv = "VoterID,First,Middle,Last,Class,Gender,HeadBoy,HeadGirl,GeneralSec,Discipline,Timestamp\n";
+  allVotes.forEach(rec=>{
+    const voter = rec.voter || {};
+    const id = rec._id || '';
+    const first = voter.firstName || rec.firstName || rec.name || '';
+    const middle = voter.middleName || rec.middleName || '';
+    const last = voter.lastName || rec.lastName || '';
+    const cls = voter.classSelect || rec.class || rec.classSelect || '';
+    const gender = voter.gender || rec.gender || '';
+    csv += `"${id}","${first}","${middle}","${last}","${cls}","${gender}","${rec.votes?.headBoy||''}","${rec.votes?.headGirl||''}","${rec.votes?.generalSec||''}","${rec.votes?.discipline||''}","${new Date(rec.timestamp).toLocaleString()}"\n`;
+  });
+  downloadBlob(csv, "UKSS_Voting_Results.csv", "text/csv");
+  closeMenuPopup();
+}
+window.triggerDownloadResults = triggerDownloadResults;
+
+/* backup & restore */
+function backupVotes(){
+  const blob = new Blob([JSON.stringify(allVotes, null, 2)], { type: "application/json" });
+  downloadBlob(blob, "UKSS_Votes_Backup.json");
+  closeMenuPopup();
+}
+window.backupVotes = backupVotes;
+
+function triggerRestore(){
+  document.getElementById("restoreFile").click();
+}
+window.triggerRestore = triggerRestore;
+
+document.getElementById("restoreFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  try {
+    const text = await file.text();
+    const json = JSON.parse(text);
+    if(!Array.isArray(json)) return alert("Invalid backup format. Expected array.");
+    for(const item of json){
+      const key = item._id || (item.voterID || (item.name ? (item.name.replace(/\s+/g,'_') + '_' + Date.now()) : Date.now()));
+      await set(ref(db, "votes/" + key), item);
+    }
+    alert("✅ Backup restored successfully!");
+    closeMenuPopup();
+  } catch(err){
+    alert("Restore failed: " + (err.message || err));
+  }
+  e.target.value = "";
+});
+
+/* ================= Audit: compute & export (summary-only) ================= */
+
+/**
+ * Helper: try parse date string into year (YYYY). returns null if can't parse.
+ * Accepts ISO or locale strings.
+ */
+function parseYearFromString(s){
+  if(!s) return null;
+  // try ISO parse
+  const d = new Date(s);
+  if(!isNaN(d.getTime())) return d.getFullYear();
+  // try number extraction (YYYY)
+  const m = String(s).match(/(20\d{2}|19\d{2})/);
+  if(m) return parseInt(m[0],10);
+  return null;
+}
+
+/**
+ * Run audit for selected year.
+ * scope:
+ *   - 'all' => registered = all registered (regardless of reg date)
+ *   - 'registeredThisYear' => registered only those with registeredAt year === selected year
+ */
+async function runAuditForYear(year, scope='all'){
+  const y = parseInt(year,10);
+  // compute registered count for that year depending on scope
+  let registeredCount = 0;
+  let registeredIDs = new Set();
+
+  registeredList.forEach(r => {
+    // try parse registration year
+    const regYear = parseYearFromString(r.registeredAt || r.timestamp || r.registered_at || r.registeredOn || r.registeredDate);
+    if(scope === 'all'){
+      registeredCount++;
+      registeredIDs.add(r.id || r.id === 0 ? (r.id) : (r.voterID || `${r.firstName||''}_${r.lastName||''}`));
+    } else {
+      if(regYear === y){
+        registeredCount++;
+        registeredIDs.add(r.id || r.voterID || `${r.firstName||''}_${r.lastName||''}`);
+      }
+    }
+  });
+
+  // If no registered found and scope=registeredThisYear -> zero (expected)
+  // If registeredCount is zero and scope === 'all' fallback to length
+  if(scope === 'all' && registeredCount === 0) {
+    registeredCount = registeredList.length;
+    registeredList.forEach(r => registeredIDs.add(r.id || r.voterID || `${r.firstName||''}_${r.lastName||''}`));
+  }
+
+  // Count votes for that year by examining vote.timestamp year
+  const votesInYear = allVotes.filter(rec => {
+    const voteYear = parseYearFromString(rec.timestamp);
+    return voteYear === y;
+  });
+
+  const votedCount = votesInYear.length;
+
+  // duplicates (same voterID appearing more than once in votesInYear)
+  const seen = {};
+  const duplicates = [];
+  votesInYear.forEach(rec => {
+    const vid = rec._id || rec.voterID || (rec.voter && (rec.voter.id || (rec.voter.firstName + '_' + (rec.voter.lastName||'')))) || '';
+    const key = String(vid || (rec.name || '')).toLowerCase();
+    seen[key] = (seen[key] || 0) + 1;
+    if(seen[key] > 1) duplicates.push({ id: vid, count: seen[key] });
+  });
+  const dupCount = Object.values(seen).filter(c=>c>1).reduce((acc,c)=> acc + (c-1), 0);
+
+  // not voted = registeredCount - votedCount (but cannot be negative)
+  const notVotedCount = Math.max(0, registeredCount - votedCount);
+
+  // turnout %
+  const turnout = registeredCount > 0 ? ((votedCount / registeredCount) * 100) : 0;
+
+  // Build summary object
+  const summary = {
+    year: y,
+    registered: registeredCount,
+    voted: votedCount,
+    notVoted: notVotedCount,
+    turnoutPercent: Number(turnout.toFixed(2)),
+    duplicates: dupCount
+  };
+
+  return { summary, votesInYear, duplicatesList: duplicates };
+}
+
+/* render audit UI */
+runAuditBtn.addEventListener("click", async () => {
+  const year = auditYearSelect.value;
+  const scope = auditScope.value;
+  auditResultDiv.innerHTML = "Running audit...";
+
+  try {
+    const { summary } = await runAuditForYear(year, scope);
+    // display nicely
+    auditResultDiv.innerHTML = `
+      <div class="audit-summary">
+        <div class="audit-card"><h4>Year</h4><div>${summary.year}</div></div>
+        <div class="audit-card"><h4>Registered</h4><div>${summary.registered}</div></div>
+        <div class="audit-card"><h4>Voted</h4><div>${summary.voted}</div></div>
+        <div class="audit-card"><h4>Not Voted</h4><div>${summary.notVoted}</div></div>
+        <div class="audit-card"><h4>Turnout</h4><div>${summary.turnoutPercent}%</div></div>
+        <div class="audit-card"><h4>Duplicates</h4><div>${summary.duplicates}</div></div>
+      </div>
+    `;
+
+    // draw small chart: voted vs not voted (if registered>0)
+    if(auditChart) { auditChart.destroy(); auditChart = null; }
+    const labels = ['Voted','Not Voted'];
+    const data = [summary.voted, summary.notVoted];
+    auditChart = new Chart(auditChartCtx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: ['#2e7d32', '#c8e6c9'] }] },
+      options: { responsive:true, plugins:{legend:{position:'bottom'}} }
+    });
+
+  } catch(err){
+    auditResultDiv.innerHTML = `<div style="color:crimson">Audit failed: ${err.message||err}</div>`;
+  }
+});
+
+/* Export audit summary CSV (summary only as requested) */
+exportAuditCSVBtn.addEventListener("click", async () => {
+  const year = auditYearSelect.value;
+  const scope = auditScope.value;
+  try {
+    const { summary } = await runAuditForYear(year, scope);
+    // CSV with header and one row summary
+    const csv = `Year,Registered,Voted,NotVoted,TurnoutPercent,Duplicates\n"${summary.year}","${summary.registered}","${summary.voted}","${summary.notVoted}","${summary.turnoutPercent}","${summary.duplicates}"\n`;
+    downloadBlob(csv, `UKSS_Audit_Summary_${summary.year}.csv`, "text/csv");
+  } catch(err){
+    alert("Export failed: " + (err.message||err));
+  }
+});
+
+/* helpers */
+function downloadBlob(content, filename, type){
+  const blob = (content instanceof Blob) ? content : new Blob([content], { type: type || "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function escapeHtml(str){
+  if(!str) return "";
+  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[s]);
+}
+
+/* filters binding */
+searchName.addEventListener("input", applyFilters);
+filterClass.addEventListener("change", applyFilters);
+filterGender.addEventListener("change", applyFilters);
+filterPosition.addEventListener("change", applyFilters);
+clearFiltersBtn.addEventListener("click", ()=>{
+  searchName.value=""; filterClass.value=""; filterGender.value=""; filterPosition.value="";
+  applyFilters();
+});
+
+/* small UI bindings to close popups when clicking outside content */
+menuPopup.addEventListener("click", (e) => { if(e.target === menuPopup) closeMenuPopup(); });
+votersModal.addEventListener("click", (e)=>{ if(e.target === votersModal) closeVotersModal(); });
+registeredModal.addEventListener("click", (e)=>{ if(e.target === registeredModal) closeRegisteredModal(); });
+auditModal.addEventListener("click", (e)=>{ if(e.target === auditModal) closeAuditModal(); });
+confirmModal.addEventListener("click", (e)=>{ if(e.target === confirmModal) closeConfirm(); });
+
+</script>
 </body>
 </html>
