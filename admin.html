@@ -34,45 +34,14 @@
   .menu-list { display:flex; flex-direction:column; gap:8px; padding:10px; }
   .menu-list button { text-align:left; padding:8px 10px; border-radius:8px; background:var(--light-green); border:1px solid #d8efd8; cursor:pointer; }
   .menu-list button:hover { background:#dff3df; }
-
   .controls-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
   input, select, button { padding:8px 10px; border-radius:6px; border:1px solid #cfcfcf; }
   button { background:var(--green); color:white; border:none; cursor:pointer; }
   button[style*="background:gray"]{ background:gray }
   button:hover { opacity:0.95; }
-
-  /* Loading spinner center */
-  .loading-overlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items:center;
-    justify-content:center;
-    background: rgba(255,255,255,0.7);
-    z-index: 2000;
-    flex-direction: column;
-    gap:12px;
-  }
-  .spinner {
-    width:64px; height:64px; border-radius:50%;
-    border:8px solid rgba(46,125,50,0.15);
-    border-top-color: var(--green);
-    animation:spin 1s linear infinite;
-  }
-  .loading-text { font-weight:600; color:var(--green); }
-
   @keyframes spin { to{ transform: rotate(360deg); } }
   @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
   @keyframes zoomIn { from {transform:scale(.96); opacity:0;} to {transform:scale(1); opacity:1;} }
-
-  /* small table tweaks for modal tables */
-  #votersTable, #registeredTable { width:100%; border-collapse:collapse; margin-top:8px; }
-  #votersTable th, #votersTable td, #registeredTable th, #registeredTable td { padding:6px; font-size:13px; }
-
-  /* responsive tweaks */
-  @media (max-width:700px){
-    .charts{flex-direction:column; align-items:center}
-  }
 </style>
 </head>
 <body>
@@ -82,7 +51,6 @@
     <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
     <div style="font-size:13px; color:#666;">Admin control panel</div>
   </div>
-
   <div style="display:flex; align-items:center; gap:8px;">
     <div title="Menu" class="hamburger" id="hamburgerBtn" onclick="openMenuPopup()">
       <span></span><span></span><span></span>
@@ -90,136 +58,44 @@
   </div>
 </header>
 
-<!-- Loading spinner (center) -->
-<div id="loadingOverlay" class="loading-overlay" aria-hidden="false" style="display:flex;">
-  <div class="spinner" role="status" aria-label="Loading"></div>
-  <div class="loading-text">Loading data... please wait</div>
-</div>
-
-<div class="topbar panel" id="topControls" style="opacity:0;">
-  <div class="controls-row">
-    <input id="searchName" placeholder="Search voter name" />
-    <select id="filterClass">
-      <option value="">All Classes</option>
-      <option>Form One</option><option>Form Two</option><option>Form Three</option><option>Form Four</option>
-    </select>
-    <select id="filterGender">
-      <option value="">All Genders</option><option>Male</option><option>Female</option>
-    </select>
-    <select id="filterPosition">
-      <option value="">All Positions</option>
-      <option value="headBoy">headBoy</option><option value="headGirl">headGirl</option>
-      <option value="generalSec">generalSec</option><option value="discipline">discipline</option>
-    </select>
-    <button id="clearFilters">Clear</button>
-  </div>
-  <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
-    <div id="topSummary" class="small">Loading...</div>
-  </div>
-</div>
-
-<!-- winner summary -->
-<div id="winnerSummary" class="panel table-container" style="opacity:0;"></div>
-
-<!-- results (per-position tables) -->
-<div id="resultsContainer" class="panel" style="opacity:0;"></div>
-
-<!-- charts -->
-<div class="charts" id="chartsWrap" style="opacity:0;">
-  <canvas id="barChart" width="600" height="260"></canvas>
-  <canvas id="pieChart" width="360" height="260"></canvas>
-  <canvas id="lineChart" width="600" height="260"></canvas>
-</div>
-
-<!-- timeline -->
-<div id="timelineContainer" class="panel table-container" style="opacity:0;"></div>
-
-<!-- ================= Menu Popup (Hamburger) ================= -->
-<div id="menuPopup" class="modal" aria-hidden="true">
-  <div class="content" role="dialog" aria-modal="true">
+<!-- Menu Popup -->
+<div id="menuPopup" class="modal">
+  <div class="content">
     <button class="close-btn" onclick="closeMenuPopup()">✖</button>
-    <h2 style="color:var(--green); margin-top:4px">☰ Admin Menu</h2>
+    <h2 style="color:var(--green)">☰ Admin Menu</h2>
     <div class="menu-list">
       <button onclick="openVotersModal()">🧾 View All Voters List</button>
       <button onclick="openRegisteredModal()">📋 Registered Voters List</button>
+      <button onclick="openAuditModal()">🧮 Audit Comparison</button>
       <button onclick="confirmDeleteAll()">🗑️ Delete All Votes</button>
       <button onclick="triggerDownloadResults()">⬇️ Download Results (CSV)</button>
       <button onclick="backupVotes()">💾 Backup Votes (JSON)</button>
       <button onclick="triggerRestore()">♻️ Restore Votes (JSON)</button>
-      <button onclick="closeMenuPopup()" style="background:#f5f5f5; border:1px solid #ddd; color:#111;">❌ Close</button>
+      <button onclick="closeMenuPopup()" style="background:#f5f5f5; border:1px solid #ddd;">❌ Close</button>
     </div>
   </div>
 </div>
 
-<!-- ================= Voters Modal (who voted) ================= -->
-<div id="votersModal" class="modal" role="dialog" aria-modal="true">
+<!-- Audit Comparison Modal -->
+<div id="auditModal" class="modal" role="dialog" aria-modal="true">
   <div class="content">
-    <button class="close-btn" onclick="closeVotersModal()">✖</button>
-    <h2 style="color:var(--green); margin-top:4px">🧾 All Voters (Who Voted) — Full Details</h2>
-
-    <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px;">
-      <input id="votersSearch" placeholder="Search name, class or voter ID" style="flex:1" />
-      <button id="downloadVotersCSV">⬇️ Download Voters CSV</button>
-      <button onclick="closeVotersModal()" style="background:gray;">Cancel</button>
-    </div>
-
-    <table id="votersTable" style="width:100%">
-      <thead>
-        <tr>
-          <th>Voter ID</th>
-          <th>Name</th>
-          <th>Class</th>
-          <th>Gender</th>
-          <th>Votes (position : candidate)</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <button class="close-btn" onclick="closeAuditModal()">✖</button>
+    <h2 style="color:var(--green)">🧮 Annual Audit Comparison</h2>
+    <p id="auditYear" style="margin-bottom:10px; font-weight:600; color:#444;"></p>
+    <div id="auditStats"></div>
+    <canvas id="auditChart" width="600" height="300" style="margin-top:20px;"></canvas>
   </div>
 </div>
 
-<!-- ================= Registered Voters Modal ================= -->
-<div id="registeredModal" class="modal" role="dialog" aria-modal="true">
-  <div class="content">
-    <button class="close-btn" onclick="closeRegisteredModal()">✖</button>
-    <h2 style="color:var(--green); margin-top:4px">📋 Registered Voters List</h2>
-
-    <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px;">
-      <input id="registeredSearch" placeholder="Search name, voter ID or class" style="flex:1" />
-      <button id="downloadRegisteredCSV">⬇️ Download Registered CSV</button>
-      <button onclick="closeRegisteredModal()" style="background:gray;">Cancel</button>
-    </div>
-
-    <table id="registeredTable" style="width:100%">
-      <thead>
-        <tr><th>Voter ID</th><th>Name</th><th>Class</th><th>Gender</th><th>Registered At</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- confirm modal -->
-<div id="confirmModal" class="modal"><div class="content" style="max-width:520px;text-align:center">
-  <button class="close-btn" onclick="closeConfirm()">✖</button>
-  <h3 id="confirmText">Confirm action</h3>
-  <div style="margin-top:12px"><button id="confirmYes">Yes</button> <button id="confirmNo" style="background:crimson">Cancel</button></div>
-</div></div>
-
-<!-- hidden file input for restore -->
-<input id="restoreFile" type="file" accept=".json" style="display:none">
-
-<p id="voterSummary" class="small panel" style="opacity:0;"></p>
+<!-- Placeholder for other modals -->
+<div id="votersModal" class="modal"><div class="content"><button class="close-btn" onclick="closeVotersModal()">✖</button><h2>🧾 Voters List</h2><table id="votersTable"><tbody></tbody></table></div></div>
+<div id="registeredModal" class="modal"><div class="content"><button class="close-btn" onclick="closeRegisteredModal()">✖</button><h2>📋 Registered List</h2><table id="registeredTable"><tbody></tbody></table></div></div>
 
 <script type="module">
-/* Full admin page: menu popup, voters list, registered list, CSV, backup, restore, charts, spinner.
-   Uses Realtime Database: nodes 'votes' and 'voters'. */
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getDatabase, ref, onValue, remove, set, get, child } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-/* Firebase config */
+/* Firebase setup */
 const firebaseConfig = {
   apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
   authDomain: "ukss-voting-system.firebaseapp.com",
@@ -227,474 +103,99 @@ const firebaseConfig = {
   projectId: "ukss-voting-system",
   storageBucket: "ukss-voting-system.firebasestorage.app",
   messagingSenderId: "525528255065",
-  appId: "1:525528255065:web:97c4e55d2984acc718bf48",
-  measurementId: "G-14ZV9E3X7C"
+  appId: "1:525528255065:web:97c4e55d2984acc718bf48"
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-
-/* refs */
 const votesRef = ref(db, "votes");
 const votersRef = ref(db, "voters");
-const TOTAL_STUDENTS = 308;
 
-/* state */
-let votesObj = {};
 let allVotes = [];
-let registeredObj = {};
 let registeredList = [];
-let barChart, pieChart, lineChart;
 
-/* elements */
-const barCtx = document.getElementById("barChart").getContext("2d");
-const pieCtx = document.getElementById("pieChart").getContext("2d");
-const lineCtx = document.getElementById("lineChart").getContext("2d");
+/* Fetch live data */
+onValue(votesRef, (snap) => { allVotes = Object.entries(snap.val() || {}).map(([id,v]) => ({_id:id,...v})); });
+onValue(votersRef, (snap) => { registeredList = Object.entries(snap.val() || {}).map(([id,v]) => ({id,...v})); });
 
-const resultsContainer = document.getElementById("resultsContainer");
-const winnerSummary = document.getElementById("winnerSummary");
-const voterSummaryP = document.getElementById("voterSummary");
+/* Popup controls */
+function openMenuPopup(){ document.getElementById("menuPopup").style.display="flex"; }
+function closeMenuPopup(){ document.getElementById("menuPopup").style.display="none"; }
+window.openMenuPopup=openMenuPopup; window.closeMenuPopup=closeMenuPopup;
 
-/* popup/menu elements & global exposure (so HTML onclick="" works) */
-const menuPopup = document.getElementById("menuPopup");
-function openMenuPopup(){ menuPopup.style.display = "flex"; }
-function closeMenuPopup(){ menuPopup.style.display = "none"; }
-window.openMenuPopup = openMenuPopup;
-window.closeMenuPopup = closeMenuPopup;
+function openVotersModal(){ document.getElementById("votersModal").style.display="flex"; }
+function closeVotersModal(){ document.getElementById("votersModal").style.display="none"; }
+window.openVotersModal=openVotersModal; window.closeVotersModal=closeVotersModal;
 
-/* voters modal */
-const votersModal = document.getElementById("votersModal");
-const votersTableBody = document.querySelector("#votersTable tbody");
-const votersSearch = document.getElementById("votersSearch");
-function openVotersModal(){ populateVotersTable(allVotes); votersModal.style.display = "flex"; votersSearch.value=""; }
-function closeVotersModal(){ votersModal.style.display = "none"; }
-window.openVotersModal = openVotersModal;
-window.closeVotersModal = closeVotersModal;
+function openRegisteredModal(){ document.getElementById("registeredModal").style.display="flex"; }
+function closeRegisteredModal(){ document.getElementById("registeredModal").style.display="none"; }
+window.openRegisteredModal=openRegisteredModal; window.closeRegisteredModal=closeRegisteredModal;
 
-/* registered modal */
-const registeredModal = document.getElementById("registeredModal");
-const registeredTableBody = document.querySelector("#registeredTable tbody");
-const registeredSearch = document.getElementById("registeredSearch");
-function openRegisteredModal(){ populateRegisteredTable(registeredList); registeredModal.style.display = "flex"; registeredSearch.value=""; }
-function closeRegisteredModal(){ registeredModal.style.display = "none"; }
-window.openRegisteredModal = openRegisteredModal;
-window.closeRegisteredModal = closeRegisteredModal;
+/* === Audit Comparison Logic === */
+const auditModal = document.getElementById("auditModal");
+const auditStats = document.getElementById("auditStats");
+const auditYearLabel = document.getElementById("auditYear");
+const auditChartCtx = document.getElementById("auditChart").getContext("2d");
+let auditChart;
 
-/* confirm modal */
-const confirmModal = document.getElementById("confirmModal");
-const confirmText = document.getElementById("confirmText");
-const confirmYes = document.getElementById("confirmYes");
-const confirmNo = document.getElementById("confirmNo");
-function closeConfirm(){ confirmModal.style.display = "none"; }
-window.closeConfirm = closeConfirm;
+function openAuditModal() {
+  const currentYear = new Date().getFullYear();
+  auditYearLabel.textContent = `📅 Audit Summary for Year ${currentYear}`;
 
-/* filters */
-const searchName = document.getElementById("searchName");
-const filterClass = document.getElementById("filterClass");
-const filterGender = document.getElementById("filterGender");
-const filterPosition = document.getElementById("filterPosition");
-const clearFiltersBtn = document.getElementById("clearFilters");
-
-/* loading overlay */
-const loadingOverlay = document.getElementById("loadingOverlay");
-const topControls = document.getElementById("topControls");
-const chartsWrap = document.getElementById("chartsWrap");
-const winnerSummaryEl = document.getElementById("winnerSummary");
-const resultsContainerEl = document.getElementById("resultsContainer");
-const timelineContainer = document.getElementById("timelineContainer");
-const voterSummaryEl = document.getElementById("voterSummary");
-
-/* show loading until both listeners have fired at least once */
-let votesLoaded = false;
-let votersLoaded = false;
-function hideLoadingIfReady(){
-  if(votesLoaded && votersLoaded){
-    loadingOverlay.style.display = "none";
-    topControls.style.opacity = "1";
-    chartsWrap.style.opacity = "1";
-    winnerSummaryEl.style.opacity = "1";
-    resultsContainerEl.style.opacity = "1";
-    timelineContainer.style.opacity = "1";
-    voterSummaryEl.style.opacity = "1";
-  }
-}
-
-/* Live listeners */
-onValue(votesRef, (snap) => {
-  votesLoaded = true;
-  votesObj = snap.val() || {};
-  allVotes = Object.entries(votesObj).map(([k,v]) => ({ _id: k, ...v }));
-  allVotes.forEach(r => { if (!r.timestamp) r.timestamp = new Date().toISOString(); });
-  applyFilters();
-  hideLoadingIfReady();
-});
-
-onValue(votersRef, (snap) => {
-  votersLoaded = true;
-  registeredObj = snap.val() || {};
-  registeredList = Object.entries(registeredObj).map(([id,v]) => ({ id, ...v }));
-  hideLoadingIfReady();
-});
-
-/* filters & apply */
-function applyFilters(){
-  const nameQ = (searchName.value || "").toLowerCase();
-  const cQ = filterClass.value || "";
-  const gQ = filterGender.value || "";
-  const pQ = filterPosition.value || "";
-
-  const filtered = allVotes.filter(rec => {
-    const voter = rec.voter || {};
-    const first = (voter.firstName || rec.firstName || rec.name || "").toString();
-    const middle = (voter.middleName || rec.middleName || "").toString();
-    const last = (voter.lastName || rec.lastName || "").toString();
-    const fullName = `${first} ${middle} ${last}`.toLowerCase();
-    const matchesName = !nameQ || fullName.includes(nameQ);
-    const recClass = (voter.classSelect || rec.class || rec.classSelect || "").toString();
-    const matchesClass = !cQ || recClass === cQ;
-    const recGender = (voter.gender || rec.gender || "").toString();
-    const matchesGender = !gQ || recGender === gQ;
-    const matchesPos = !pQ || (rec.votes && rec.votes[pQ]);
-    return matchesName && matchesClass && matchesGender && matchesPos;
+  const votesThisYear = allVotes.filter(v => new Date(v.timestamp).getFullYear() === currentYear);
+  const votersThisYear = registeredList.filter(v => {
+    const regTime = v.registeredAt ? new Date(v.registeredAt) : null;
+    return regTime && regTime.getFullYear() === currentYear;
   });
 
-  displayResults(filtered);
-}
-
-/* display results */
-function displayResults(votes){
-  displayWinners(votes);
-
-  if (!votes || votes.length === 0) {
-    resultsContainer.innerHTML = "<p>No votes yet.</p>";
-    voterSummaryEl.textContent = "No votes cast yet.";
-    clearCharts();
-    document.getElementById("timelineContainer").innerHTML = "";
+  if (votersThisYear.length === 0 && votesThisYear.length === 0) {
+    auditStats.innerHTML = `<p style="color:crimson; font-weight:bold;">⚠️ No election data available for ${currentYear}.</p>`;
+    if (auditChart) auditChart.destroy();
+    auditModal.style.display = "flex";
     return;
   }
 
-  // totals per position
-  const totals = {};
-  votes.forEach(rec => {
-    const v = rec.votes || {};
-    Object.entries(v).forEach(([pos, cand]) => {
-      if (!totals[pos]) totals[pos] = {};
-      totals[pos][cand] = (totals[pos][cand] || 0) + 1;
-    });
-  });
+  const totalRegistered = votersThisYear.length;
+  const totalVoted = votesThisYear.length;
+  const notVoted = totalRegistered - totalVoted;
+  const turnout = totalRegistered > 0 ? ((totalVoted / totalRegistered) * 100).toFixed(1) : 0;
+  const ids = votesThisYear.map(v => v.voterID || v._id);
+  const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
+  const uniqueDuplicates = [...new Set(duplicates)];
 
-  // render tables
-  let html = "";
-  for (const [pos, cands] of Object.entries(totals)) {
-    html += `<div class="table-container"><h3 style="text-transform:capitalize">${pos}</h3><table><thead><tr><th>Candidate</th><th>Votes</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
-    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
-    sorted.forEach(([name,count], idx) => {
-      const status = idx === 0 ? "👑 Leading" : "";
-      html += `<tr><td>${escapeHtml(name)}</td><td>${count}</td><td>${status}</td><td><button data-candidate="${escapeHtml(name)}" class="deleteCandidateBtn">🗑️ Delete</button></td></tr>`;
-    });
-    html += `</tbody></table></div>`;
-  }
-  resultsContainer.innerHTML = html;
+  auditStats.innerHTML = `
+    <table style="width:100%; border-collapse:collapse;">
+      <tr><th>Total Registered</th><td>${totalRegistered}</td></tr>
+      <tr><th>Total Voted</th><td>${totalVoted}</td></tr>
+      <tr><th>Not Voted</th><td>${notVoted < 0 ? 0 : notVoted}</td></tr>
+      <tr><th>Turnout Percentage</th><td>${turnout}%</td></tr>
+      <tr><th>Possible Duplicates</th><td style="color:${uniqueDuplicates.length ? 'crimson':'green'}">${uniqueDuplicates.length ? uniqueDuplicates.join(', ') : 'None'}</td></tr>
+    </table>
+  `;
 
-  // attach delete buttons
-  document.querySelectorAll(".deleteCandidateBtn").forEach(btn=>{
-    btn.addEventListener("click", ()=> showConfirmDelete(btn.dataset.candidate));
-  });
+  const labels = ["Registered", "Voted", "Not Voted"];
+  const data = [totalRegistered, totalVoted, Math.max(notVoted, 0)];
 
-  // update summary
-  const voted = votes.length;
-  const notVoted = TOTAL_STUDENTS - voted;
-  voterSummaryEl.innerHTML = `🧍‍♂️ <b>${voted}</b> voted out of ${TOTAL_STUDENTS} | <b>${notVoted}</b> not yet voted.`;
-  document.getElementById("topSummary").textContent = `${voted} voted / ${TOTAL_STUDENTS}`;
-
-  drawCharts(totals, votes);
-  drawTimeline(votes);
-}
-
-/* winners */
-function displayWinners(votes){
-  if(!votes || votes.length===0){ winnerSummary.innerHTML = ""; return; }
-  const totals = {};
-  votes.forEach(rec => {
-    Object.entries(rec.votes || {}).forEach(([pos,cand])=>{
-      if(!totals[pos]) totals[pos] = {};
-      totals[pos][cand] = (totals[pos][cand]||0)+1;
-    });
-  });
-  let html = `<h3>🏆 Winners Summary</h3><table class="winner-table"><thead><tr><th>Position</th><th>Winner</th><th>Votes</th></tr></thead><tbody>`;
-  Object.entries(totals).forEach(([pos,cands])=>{
-    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
-    const [winner, count] = sorted[0] || ["-",0];
-    html += `<tr><td style="text-transform:capitalize">${pos}</td><td>${escapeHtml(winner)}</td><td>${count}</td></tr>`;
-  });
-  html += `</tbody></table>`;
-  winnerSummary.innerHTML = html;
-}
-
-/* charts */
-function clearCharts(){
-  if(barChart) { barChart.destroy(); barChart = null; }
-  if(pieChart) { pieChart.destroy(); pieChart = null; }
-  if(lineChart) { lineChart.destroy(); lineChart = null; }
-}
-
-function drawCharts(totals, votes){
-  const labels = [];
-  const counts = [];
-  Object.entries(totals).forEach(([pos,cands])=>{
-    Object.entries(cands).forEach(([cand,count])=>{
-      labels.push(`${pos}: ${cand}`);
-      counts.push(count);
-    });
-  });
-
-  clearCharts();
-
-  barChart = new Chart(barCtx, {
+  if (auditChart) auditChart.destroy();
+  auditChart = new Chart(auditChartCtx, {
     type: "bar",
-    data: { labels, datasets: [{ label: "Votes", data: counts, backgroundColor: "rgba(34,139,34,0.6)" }] },
-    options: { responsive:true, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+    data: {
+      labels,
+      datasets: [{
+        label: "Audit Comparison",
+        data,
+        backgroundColor: ["#4caf50", "#2196f3", "#f44336"]
+      }]
+    },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
   });
 
-  pieChart = new Chart(pieCtx, {
-    type: "pie",
-    data: { labels, datasets: [{ data: counts, backgroundColor: generatePalette(counts.length) }] },
-    options: { responsive:true }
-  });
-
-  const sorted = votes.slice().sort((a,b)=> new Date(a.timestamp) - new Date(b.timestamp));
-  const times = sorted.map(s => new Date(s.timestamp).toLocaleTimeString());
-  const cum = []; let acc = 0;
-  sorted.forEach(s => { acc += 1; cum.push(acc); });
-
-  lineChart = new Chart(lineCtx, {
-    type: "line",
-    data: { labels: times, datasets: [{ label: "Votes over time", data: cum, borderColor:"forestgreen", tension:0.25, fill:false }] },
-    options: { responsive:true, scales:{ y:{ beginAtZero:true } } }
-  });
+  auditModal.style.display = "flex";
 }
 
-function generatePalette(n){
-  const base = ["#2e7d32","#388e3c","#66bb6a","#81c784","#a5d6a7","#c8e6c9","#4caf50","#99d68a"];
-  const out = [];
-  for(let i=0;i<n;i++) out.push(base[i % base.length]);
-  return out;
-}
-
-/* timeline */
-function drawTimeline(votes){
-  const container = document.getElementById("timelineContainer");
-  const sorted = votes.slice().sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
-  let html = `<h3>🕒 Vote Timeline (latest first)</h3><table><thead><tr><th>Voter</th><th>Class</th><th>Gender</th><th>Voted For</th><th>Time</th></tr></thead><tbody>`;
-  sorted.forEach(rec=>{
-    const voter = rec.voter || {};
-    const first = voter.firstName || rec.firstName || rec.name || '';
-    const middle = voter.middleName || rec.middleName || '';
-    const last = voter.lastName || rec.lastName || '';
-    const name = `${first} ${middle} ${last}`.trim();
-    const recClass = voter.classSelect || rec.class || rec.classSelect || '-';
-    const recGender = voter.gender || rec.gender || '-';
-    const votesList = Object.entries(rec.votes || {}).map(([p,c])=>`${p}: ${c}`).join("; ");
-    html += `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(recClass)}</td><td>${escapeHtml(recGender)}</td><td>${escapeHtml(votesList)}</td><td>${new Date(rec.timestamp).toLocaleString()}</td></tr>`;
-  });
-  html += `</tbody></table>`;
-  container.innerHTML = html;
-}
-
-/* voters modal populate/search */
-votersSearch.addEventListener("input", ()=> {
-  const q = (votersSearch.value||'').toLowerCase();
-  const filtered = allVotes.filter(rec => {
-    const voter = rec.voter || {};
-    const first = (voter.firstName || rec.firstName || rec.name || '').toString();
-    const middle = (voter.middleName || rec.middleName || '').toString();
-    const last = (voter.lastName || rec.lastName || '').toString();
-    const id = rec._id || '';
-    const full = `${first} ${middle} ${last} ${id}`.toLowerCase();
-    return full.includes(q);
-  });
-  populateVotersTable(filtered);
-});
-
-function populateVotersTable(data){
-  votersTableBody.innerHTML = "";
-  data.forEach(rec=>{
-    const voter = rec.voter || {};
-    const voterID = rec._id || (rec.voterID || '');
-    const first = voter.firstName || rec.firstName || rec.name || '';
-    const middle = voter.middleName || rec.middleName || '';
-    const last = voter.lastName || rec.lastName || '';
-    const name = `${first} ${middle} ${last}`.trim();
-    const recClass = voter.classSelect || rec.class || rec.classSelect || '-';
-    const recGender = voter.gender || rec.gender || '-';
-    const votesList = Object.entries(rec.votes||{}).map(([p,c])=>`${p}: ${c}`).join("; ");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${escapeHtml(voterID)}</td><td>${escapeHtml(name)}</td><td>${escapeHtml(recClass)}</td><td>${escapeHtml(recGender)}</td><td>${escapeHtml(votesList)}</td><td>${new Date(rec.timestamp).toLocaleString()}</td>`;
-    votersTableBody.appendChild(tr);
-  });
-}
-
-/* download voters CSV (who voted) */
-document.getElementById("downloadVotersCSV").addEventListener("click", ()=>{
-  if(allVotes.length===0) return alert("No voters yet");
-  let csv = "VoterID,First,Middle,Last,Class,Gender,Votes,Timestamp\n";
-  allVotes.forEach(rec=>{
-    const voter = rec.voter || {};
-    const voterID = rec._id || (rec.voterID || '');
-    const first = voter.firstName || rec.firstName || rec.name || '';
-    const middle = voter.middleName || rec.middleName || '';
-    const last = voter.lastName || rec.lastName || '';
-    const recClass = voter.classSelect || rec.class || rec.classSelect || '';
-    const recGender = voter.gender || rec.gender || '';
-    const votesList = Object.entries(rec.votes||{}).map(([p,c])=>`${p}:${c}`).join("; ");
-    csv += `"${voterID}","${first}","${middle}","${last}","${recClass}","${recGender}","${votesList}","${new Date(rec.timestamp).toLocaleString()}"\n`;
-  });
-  downloadBlob(csv, "UKSS_Voters_Who_Voted.csv", "text/csv");
-});
-
-/* registered modal populate/search */
-registeredSearch.addEventListener("input", ()=> {
-  const q = (registeredSearch.value||'').toLowerCase();
-  const filtered = registeredList.filter(rec => {
-    const id = (rec.id || '').toLowerCase();
-    const name = ((rec.firstName||'') + ' ' + (rec.lastName||'')).toLowerCase();
-    const cls = (rec.classSelect || '').toLowerCase();
-    return id.includes(q) || name.includes(q) || cls.includes(q);
-  });
-  populateRegisteredTable(filtered);
-});
-
-function populateRegisteredTable(data){
-  registeredTableBody.innerHTML = "";
-  data.forEach(rec=>{
-    const id = rec.id || '';
-    const name = `${rec.firstName||''} ${rec.middleName||''} ${rec.lastName||''}`.trim();
-    const cls = rec.classSelect || '';
-    const gender = rec.gender || '';
-    const regAt = rec.registeredAt || rec.registeredAt || '';
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${escapeHtml(id)}</td><td>${escapeHtml(name)}</td><td>${escapeHtml(cls)}</td><td>${escapeHtml(gender)}</td><td>${escapeHtml(regAt)}</td>`;
-    registeredTableBody.appendChild(tr);
-  });
-}
-
-/* download registered CSV */
-document.getElementById("downloadRegisteredCSV").addEventListener("click", ()=>{
-  if(registeredList.length===0) return alert("No registered voters yet");
-  let csv = "VoterID,First,Middle,Last,Class,Gender,RegisteredAt\n";
-  registeredList.forEach(rec=>{
-    csv += `"${rec.id||''}","${rec.firstName||''}","${rec.middleName||''}","${rec.lastName||''}","${rec.classSelect||''}","${rec.gender||''}","${rec.registeredAt||''}"\n`;
-  });
-  downloadBlob(csv, "UKSS_Registered_Voters.csv", "text/csv");
-});
-
-/* delete candidate votes (confirm) */
-function showConfirmDelete(candidateName){
-  confirmText.textContent = `Delete all votes for "${candidateName}"? This will remove that candidate entry from every vote record but keep the rest.`;
-  confirmModal.style.display = "flex";
-  confirmYes.onclick = async () => {
-    for(const rec of allVotes){
-      const newVotes = {};
-      for(const [pos,cand] of Object.entries(rec.votes || {})){
-        if(cand !== candidateName) newVotes[pos] = cand;
-      }
-      await set(ref(db, "votes/" + rec._id), { ...rec, votes: newVotes });
-    }
-    confirmModal.style.display = "none";
-  };
-  confirmNo.onclick = ()=> confirmModal.style.display = "none";
-}
-window.showConfirmDelete = showConfirmDelete;
-
-/* delete all votes */
-function confirmDeleteAll(){
-  confirmText.textContent = "Delete ALL votes permanently? This action cannot be undone.";
-  confirmModal.style.display = "flex";
-  confirmYes.onclick = async () => { await remove(votesRef); confirmModal.style.display = "none"; closeMenuPopup(); alert("All votes deleted."); };
-  confirmNo.onclick = ()=> confirmModal.style.display = "none";
-}
-window.confirmDeleteAll = confirmDeleteAll;
-
-/* download results CSV (summary) */
-function triggerDownloadResults(){
-  if(allVotes.length === 0) return alert("No data to export");
-  let csv = "VoterID,First,Middle,Last,Class,Gender,HeadBoy,HeadGirl,GeneralSec,Discipline,Timestamp\n";
-  allVotes.forEach(rec=>{
-    const voter = rec.voter || {};
-    const id = rec._id || '';
-    const first = voter.firstName || rec.firstName || rec.name || '';
-    const middle = voter.middleName || rec.middleName || '';
-    const last = voter.lastName || rec.lastName || '';
-    const cls = voter.classSelect || rec.class || rec.classSelect || '';
-    const gender = voter.gender || rec.gender || '';
-    csv += `"${id}","${first}","${middle}","${last}","${cls}","${gender}","${rec.votes?.headBoy||''}","${rec.votes?.headGirl||''}","${rec.votes?.generalSec||''}","${rec.votes?.discipline||''}","${new Date(rec.timestamp).toLocaleString()}"\n`;
-  });
-  downloadBlob(csv, "UKSS_Voting_Results.csv", "text/csv");
-  closeMenuPopup();
-}
-window.triggerDownloadResults = triggerDownloadResults;
-
-/* backup & restore */
-function backupVotes(){
-  const blob = new Blob([JSON.stringify(allVotes, null, 2)], { type: "application/json" });
-  downloadBlob(blob, "UKSS_Votes_Backup.json");
-  closeMenuPopup();
-}
-window.backupVotes = backupVotes;
-
-function triggerRestore(){
-  document.getElementById("restoreFile").click();
-}
-window.triggerRestore = triggerRestore;
-
-document.getElementById("restoreFile").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if(!file) return;
-  try {
-    const text = await file.text();
-    const json = JSON.parse(text);
-    if(!Array.isArray(json)) return alert("Invalid backup format. Expected array.");
-    for(const item of json){
-      const key = item._id || (item.voterID || (item.name ? (item.name.replace(/\s+/g,'_') + '_' + Date.now()) : Date.now()));
-      await set(ref(db, "votes/" + key), item);
-    }
-    alert("✅ Backup restored successfully!");
-    closeMenuPopup();
-  } catch(err){
-    alert("Restore failed: " + (err.message || err));
-  }
-  e.target.value = "";
-});
-
-/* helpers */
-function downloadBlob(content, filename, type){
-  const blob = (content instanceof Blob) ? content : new Blob([content], { type: type || "text/plain" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
-function escapeHtml(str){
-  if(!str) return "";
-  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[s]);
-}
-
-/* filters binding */
-searchName.addEventListener("input", applyFilters);
-filterClass.addEventListener("change", applyFilters);
-filterGender.addEventListener("change", applyFilters);
-filterPosition.addEventListener("change", applyFilters);
-clearFiltersBtn.addEventListener("click", ()=>{
-  searchName.value=""; filterClass.value=""; filterGender.value=""; filterPosition.value="";
-  applyFilters();
-});
-
-/* small UI bindings to close menu if clicked outside content */
-menuPopup.addEventListener("click", (e) => { if(e.target === menuPopup) closeMenuPopup(); });
-votersModal.addEventListener("click", (e)=>{ if(e.target === votersModal) closeVotersModal(); });
-registeredModal.addEventListener("click", (e)=>{ if(e.target === registeredModal) closeRegisteredModal(); });
-confirmModal.addEventListener("click", (e)=>{ if(e.target === confirmModal) closeConfirm(); });
-
+function closeAuditModal() { auditModal.style.display = "none"; }
+window.openAuditModal = openAuditModal;
+window.closeAuditModal = closeAuditModal;
 </script>
+
 </body>
 </html>
