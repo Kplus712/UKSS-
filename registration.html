@@ -224,17 +224,20 @@
 
 <!-- Firebase -->
 <script type="module">
+    /* ---------------- FIREBASE IMPORTS ------------------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase, ref, set, update, remove, onValue, get, child } 
+        from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
     import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
         from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
 
+    /* ---------------- CORRECT CONFIG -------------------- */
     const firebaseConfig = {
         apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
         authDomain: "ukss-voting-system.firebaseapp.com",
         databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
         projectId: "ukss-voting-system",
-        storageBucket: "ukss-voting-system.appspot.com",
+        storageBucket: "ukss-voting-system.firebasestorage.app",
         messagingSenderId: "525528255065",
         appId: "1:525528255065:web:97c4e55d2984acc718bf48"
     };
@@ -243,15 +246,17 @@
     const db = getDatabase(app);
     const storage = getStorage(app);
 
-    // unlock form
+    /* ----------------- UNLOCK FORM ------------------------ */
     window.unlockForm = function(){
         const pass = document.getElementById("adminPass").value;
         if(pass === "ukss2025"){
             document.getElementById("formArea").style.display = "block";
-        } else { alert("Incorrect Admin Password!"); }
+        } else { 
+            alert("Incorrect Admin Password!"); 
+        }
     };
 
-    // preview image
+    /* ---------------- PREVIEW IMAGE ----------------------- */
     document.getElementById("photo").addEventListener("change", function(){
         const file = this.files[0];
         if(file){
@@ -264,70 +269,71 @@
         }
     });
 
-    // LOAD ALL CANDIDATES
+    /* ---------------- LOAD CANDIDATES --------------------- */
     const table = document.getElementById("candidateTable");
+
     onValue(ref(db, "candidates"), snap => {
         table.innerHTML = "";
         if(!snap.exists()) return;
 
-        const data = snap.val();
-        Object.entries(data).forEach(([id, info]) => {
-            const tr = document.createElement("tr");
-
-            tr.innerHTML = `
-                <td><img src="${info.photoURL}" style="width:60px;height:60px;border-radius:8px;border:2px solid #2e7d32;"></td>
-                <td>${info.firstName} ${info.middleName} ${info.lastName}</td>
-                <td>${info.gender}</td>
-                <td>${info.classSelect}</td>
-                <td>${info.position}</td>
-                <td>
-                    <button class="edit-btn" onclick="editCandidate('${id}')">Edit</button>
-                    <button class="delete-btn" onclick="deleteCandidate('${id}')">Delete</button>
-                </td>
+        Object.entries(snap.val()).forEach(([id, c]) => {
+            table.innerHTML += `
+                <tr>
+                    <td><img src="${c.photoURL}" style="width:60px;height:60px;border-radius:8px;border:2px solid #2e7d32;"></td>
+                    <td>${c.firstName} ${c.middleName} ${c.lastName}</td>
+                    <td>${c.gender}</td>
+                    <td>${c.classSelect}</td>
+                    <td>${c.position}</td>
+                    <td>
+                        <button class="edit-btn" onclick="editCandidate('${id}')">Edit</button>
+                        <button class="delete-btn" onclick="deleteCandidate('${id}')">Delete</button>
+                    </td>
+                </tr>
             `;
-
-            table.appendChild(tr);
         });
     });
 
-    // EDIT CANDIDATE
-    window.editCandidate = function(id){
+    /* ---------------- EDIT CANDIDATE ---------------------- */
+    window.editCandidate = async function(id){
+        const snap = await get(ref(db, "candidates/" + id));
+        if(!snap.exists()) return;
+
+        const c = snap.val();
+
         document.getElementById("editMode").value = "edit";
         document.getElementById("editID").value = id;
 
-        onValue(ref(db, "candidates/" + id), snap => {
-            const d = snap.val();
-            document.getElementById("firstName").value = d.firstName;
-            document.getElementById("middleName").value = d.middleName;
-            document.getElementById("lastName").value = d.lastName;
-            document.getElementById("gender").value = d.gender;
-            document.getElementById("classSelect").value = d.classSelect;
-            document.getElementById("position").value = d.position;
+        firstName.value = c.firstName;
+        middleName.value = c.middleName;
+        lastName.value = c.lastName;
+        gender.value = c.gender;
+        classSelect.value = c.classSelect;
+        position.value = c.position;
 
-            document.getElementById("previewImg").src = d.photoURL;
-            document.getElementById("previewImg").style.display = "block";
-        });
-    }
+        document.getElementById("previewImg").src = c.photoURL;
+        document.getElementById("previewImg").style.display = "block";
+    };
 
-    // DELETE
+    /* ---------------- DELETE ---------------------- */
     window.deleteCandidate = async function(id){
         if(confirm("Delete this candidate?")){
             await remove(ref(db, "candidates/" + id));
             alert("Candidate removed.");
         }
-    }
+    };
 
-    // SAVE / UPDATE
+    /* ---------------- SAVE / UPDATE ---------------------- */
     window.saveCandidate = async function(){
+
         const first = firstName.value.trim();
         const middle = middleName.value.trim();
         const last = lastName.value.trim();
-        const gender = gender.value;
-        const classSelect = classSelect.value;
-        const position = position.value;
+        const gen = gender.value;
+        const cls = classSelect.value;
+        const pos = position.value;
         const file = photo.files[0];
 
-        if(!first || !last || !gender || !classSelect || !position){
+        if(!first || !last || !gen || !cls || !pos){
             alert("Fill all fields!");
             return;
         }
@@ -338,30 +344,41 @@
         if(mode === "edit"){
             candidateID = document.getElementById("editID").value;
         } else {
-            candidateID = (first + "_" + last + "_" + position).toLowerCase().replace(/\s+/g, "_");
+            candidateID = (first + "_" + last + "_" + pos)
+                .toLowerCase()
+                .replace(/\s+/g, "_");
         }
 
         let photoURL = "";
-        if(file){
-            const storageRef = sRef(storage, "candidates/" + candidateID + ".jpg");
-            await uploadBytes(storageRef, file);
-            photoURL = await getDownloadURL(storageRef);
-        } else {
-            const snap = await getDatabase(app);
+        try{
+
+            if(file){
+                const storageRef = sRef(storage, "candidates/" + candidateID + ".jpg");
+                await uploadBytes(storageRef, file);
+                photoURL = await getDownloadURL(storageRef);
+            } else {
+                // keep old image
+                photoURL = document.getElementById("previewImg").src;
+            }
+
+            // write to database
+            await set(ref(db, "candidates/" + candidateID), {
+                firstName:first,
+                middleName:middle,
+                lastName:last,
+                gender:gen,
+                classSelect:cls,
+                position:pos,
+                photoURL
+            });
+
+            alert("Candidate saved!");
+            location.reload();
+
+        }catch(err){
+            alert("ERROR SAVING: " + err.message);
+            console.log(err);
         }
-
-        await set(ref(db, "candidates/" + candidateID), {
-            firstName:first,
-            middleName:middle,
-            lastName:last,
-            gender,
-            classSelect,
-            position,
-            photoURL: photoURL || document.getElementById("previewImg").src
-        });
-
-        alert("Candidate saved!");
-        location.reload();
     };
 
 </script>
