@@ -11,222 +11,250 @@
     --soft-green: #e6f4e6;
     --text: #0b2b18;
     --accent: #6fbf73;
-    --border-gold: #d4b46f;
   }
 
   body{
     margin:0;
     font-family:"Georgia", serif;
-    background:linear-gradient(180deg, #f3fff3 0%, #e8ffe8 100%);
+    background:linear-gradient(180deg,#f3fff3,#e8ffe8);
     padding:30px;
     color:var(--text);
   }
 
   .container{
-    max-width:900px;
+    max-width:920px;
     margin:20px auto;
     background:white;
     border-radius:14px;
-    box-shadow:0 0 30px rgba(0,0,0,0.10);
+    box-shadow:0 0 30px rgba(0,0,0,0.12);
     border:10px solid var(--ukss-green);
     position:relative;
     overflow:hidden;
   }
 
-  /* Decorative corners (flowers) */
+  /* corner flowers */
   .corner-decoration{
     position:absolute;
-    width:120px;
-    height:120px;
-    background:url('flowers.png') center/contain no-repeat;
-    opacity:0.25;
+    width:140px;
+    height:140px;
+    background-image:url('flowers.png');
+    background-size:contain;
+    background-repeat:no-repeat;
+    opacity:0.16;
+    pointer-events:none;
   }
-  .corner-top-left{ top:0; left:0; }
-  .corner-top-right{ top:0; right:0; }
-  .corner-bottom-left{ bottom:0; left:0; }
-  .corner-bottom-right{ bottom:0; right:0; }
+  .corner-top-left{ top:8px; left:8px; transform:rotate(5deg); }
+  .corner-top-right{ top:8px; right:8px; transform:scaleX(-1); }
+  .corner-bottom-left{ bottom:8px; left:8px; transform:rotate(-6deg); }
+  .corner-bottom-right{ bottom:8px; right:8px; transform:scaleX(-1) rotate(-4deg); }
 
-  /* Header section */
   .letter-header{
-    padding:20px;
+    padding:18px;
     display:flex;
     justify-content:space-between;
     align-items:center;
     border-bottom:4px double var(--ukss-green);
     background:var(--soft-green);
+    gap:12px;
   }
 
-  .school-logo{
-    width:110px;
-    height:110px;
-    background:url('school_logo.png') center/contain no-repeat;
+  .logo-wrap{
+    width:120px;
+    height:120px;
+  }
+  .logo-wrap img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
   }
 
-  /* Title */
+  .header-center{
+    text-align:center;
+    flex:1;
+  }
+  .header-center h2{
+    margin:0;
+    color:var(--ukss-green);
+    font-size:22px;
+    letter-spacing:1px;
+  }
+
   .title-block{
     text-align:center;
-    padding:20px 30px 5px;
+    padding:25px;
   }
   .title-block h1{
-    font-size:28px;
     margin:0;
-    letter-spacing:1px;
     color:var(--ukss-green);
-    text-transform:uppercase;
+    font-size:30px;
+    letter-spacing:1px;
     font-weight:700;
-    text-shadow:0 1px 2px rgba(0,0,0,0.2);
-  }
-  .title-block h2{
-    margin:5px 0 0;
-    font-style:italic;
-    font-size:16px;
-    color:#4d6e55;
   }
 
-  /* Body */
   .letter-body{
     padding:30px 40px;
+    font-size:18px;
     line-height:1.7;
-    font-size:17px;
-    position:relative;
-    z-index:2;
   }
 
-  /* Info table */
   .info-table{
     width:100%;
+    margin-top:25px;
     border-collapse:collapse;
-    margin-top:20px;
   }
   .info-table td{
-    padding:8px 4px;
+    padding:9px 6px;
     font-size:16px;
   }
-  .info-table .label{
-    font-weight:bold;
+  .label{
+    font-weight:700;
     width:200px;
     color:#3f6048;
   }
 
-  /* Signature */
+  /* signature */
   .signature{
-    margin-top:40px;
+    margin-top:45px;
     display:flex;
     justify-content:space-between;
     align-items:center;
   }
-  .signature-left{
+
+  .sign-col{
     text-align:left;
   }
+
   .signature-img{
-    width:140px;
-    height:auto;
-    margin-bottom:-10px;
-    background:url('hm_sign.png') center/contain no-repeat;
+    width:200px;
+    height:85px;
   }
+  .signature-img img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+  }
+
   .role{
     font-size:14px;
+    margin-top:4px;
     color:#4a6b52;
   }
 
-  /* Buttons */
   .actions{
-    padding:20px;
+    padding:18px;
     text-align:right;
-    border-top:3px solid var(--soft-green);
-    background:#fbfffb;
+    background:#f9fff9;
+    border-top:4px double var(--soft-green);
   }
+
   .btn{
-    padding:10px 16px;
-    border:none;
-    border-radius:8px;
+    padding:10px 14px;
     font-weight:bold;
-    cursor:pointer;
+    border-radius:7px;
     margin-left:8px;
+    cursor:pointer;
   }
-  .btn-print{ background:var(--ukss-green); color:white; }
+
+  .btn-print{ background:var(--ukss-green); color:white; border:none; }
+  .btn-download{ background:var(--accent); color:white; border:none; }
   .btn-back{ background:white; border:2px solid var(--ukss-green); color:var(--ukss-green); }
-  .btn-download{ background:var(--accent); color:white; }
 
   @media print{
-    body{ padding:0; background:white; }
     .actions{ display:none; }
-    .container{ border:0; margin:0; border-radius:0; }
+    body{ background:white; padding:0; }
+    .container{ border:none; }
   }
 </style>
 </head>
 
 <body>
 
-<div class="container" id="letterContainer">
+<div class="container">
 
-  <!-- Corner Decorations -->
+  <!-- Flower corners -->
   <div class="corner-decoration corner-top-left"></div>
   <div class="corner-decoration corner-top-right"></div>
   <div class="corner-decoration corner-bottom-left"></div>
   <div class="corner-decoration corner-bottom-right"></div>
 
-  <!-- Header -->
+  <!-- HEADER -->
   <div class="letter-header">
-    <div class="school-logo"></div>
-    <div style="text-align:center;">
-      <h2 style="margin:0; color:var(--ukss-green); font-size:22px;">UMOJA KING'ORI SECONDARY SCHOOL</h2>
-      <p style="margin:2px 0; color:#345840; font-size:13px;">"Excellence in Education, Unity & Discipline"</p>
-      <p style="font-size:11px; color:#6a8f72;">Official Appreciation Letter</p>
+
+    <div class="logo-wrap">
+      <img src="school_logo_1-removebg-preview.png" alt="School Logo Left">
     </div>
-    <div class="school-logo"></div>
+
+    <div class="header-center">
+      <h2>UMOJA KING'ORI SECONDARY SCHOOL</h2>
+      <p style="font-size:13px;color:#345840;">Official Appreciation Letter — Student Leadership</p>
+    </div>
+
+    <div class="logo-wrap">
+      <img src="school_logo_1-removebg-preview.png" alt="School Logo Right">
+    </div>
+
   </div>
 
-  <!-- Title -->
+  <!-- TITLE -->
   <div class="title-block">
     <h1>CERTIFICATE OF APPRECIATION</h1>
-    <h2>Presented to an Outstanding Student Leader</h2>
+    <h2 style="color:#4d6e55;font-style:italic;">Presented to an Outstanding Student Leader</h2>
   </div>
 
-  <!-- Body -->
+  <!-- BODY -->
   <div class="letter-body">
+
     <p id="contentParagraph"></p>
 
     <table class="info-table">
-      <tr><td class="label">Student Name:</td><td id="studentName">[Name]</td></tr>
-      <tr><td class="label">Position:</td><td id="positionName">[headBoy/headGirl]</td></tr>
-      <tr><td class="label">Class:</td><td id="studentClass">[Class]</td></tr>
-      <tr><td class="label">Gender:</td><td id="studentGender">[Gender]</td></tr>
-      <tr><td class="label">Votes Received:</td><td id="votesCount">[Votes]</td></tr>
-      <tr><td class="label">Election Year:</td><td id="yearLabel">[Year]</td></tr>
+      <tr><td class="label">Student Name:</td><td id="studentName"></td></tr>
+      <tr><td class="label">Position:</td><td id="positionName"></td></tr>
+      <tr><td class="label">Class:</td><td id="studentClass"></td></tr>
+      <tr><td class="label">Gender:</td><td id="studentGender"></td></tr>
+      <tr><td class="label">Votes Received:</td><td id="votesCount"></td></tr>
+      <tr><td class="label">Election Year:</td><td id="yearLabel"></td></tr>
     </table>
 
+    <!-- SIGNATURE -->
     <div class="signature">
-      <div class="signature-left">
-        <div class="signature-img"></div>
-        <div class="role">Headmaster — UKSS</div>
+
+      <div class="sign-col">
+        <div class="signature-img">
+          <img src="hm_sign-removebg-preview.png" alt="Headmaster Signature">
+        </div>
+        <div class="role">
+          <b>Headmaster</b><br>Umoja King'ori Secondary School
+        </div>
       </div>
-      <div>
-        <div style="font-size:14px;color:#4a6b52">Date:</div>
-        <div id="todayDate" style="font-weight:bold; font-size:15px; color:#295d3a"></div>
+
+      <div style="text-align:right;">
+        <div style="font-size:14px;color:#5a7a5b;">Date:</div>
+        <div id="todayDate" style="font-size:18px;font-weight:700;color:#3f6a4f;"></div>
       </div>
+
     </div>
 
   </div>
 
+  <!-- ACTION BUTTONS -->
   <div class="actions">
-    <button class="btn btn-back" id="backToDashboard">← Back to Dashboard</button>
-    <button class="btn btn-download" id="downloadPdf">Download PDF</button>
-    <button class="btn btn-print" id="printBtn">Print</button>
+    <button class="btn btn-back" onclick="window.location.href='admin.html'">← Back</button>
+    <button class="btn btn-download" onclick="window.print()">Download PDF</button>
+    <button class="btn btn-print" onclick="window.print()">Print</button>
   </div>
 
 </div>
 
 <script>
   function getParams(){
-    const p = new URLSearchParams(location.search);
+    const p = new URLSearchParams(window.location.search);
     return {
-      name:p.get('name') || '',
-      position:p.get('position') || '',
-      votes:p.get('votes') || '',
-      year:p.get('year') || new Date().getFullYear(),
-      cls:p.get('class') || '',
-      gender:p.get('gender') || ''
+      name: p.get("name") || "",
+      position: p.get("position") || "",
+      votes: p.get("votes") || "",
+      class: p.get("class") || "",
+      gender: p.get("gender") || "",
+      year: p.get("year") || new Date().getFullYear()
     };
   }
 
@@ -236,30 +264,21 @@
     document.getElementById("studentName").textContent = p.name;
     document.getElementById("positionName").textContent = p.position;
     document.getElementById("votesCount").textContent = p.votes;
-    document.getElementById("yearLabel").textContent = p.year;
-    document.getElementById("studentClass").textContent = p.cls;
+    document.getElementById("studentClass").textContent = p.class;
     document.getElementById("studentGender").textContent = p.gender;
+    document.getElementById("yearLabel").textContent = p.year;
     document.getElementById("todayDate").textContent = new Date().toLocaleDateString();
 
-    const text = `
-      This certificate is proudly presented to <strong>${p.name}</strong>
-      in recognition of outstanding leadership and exemplary service as the elected
-      <strong>${p.position}</strong> of Umoja King'ori Secondary School. With a total of
-      <strong>${p.votes}</strong> votes in the ${p.year} student elections, we honour your
-      commitment, integrity, and dedication to guiding and representing your fellow students.
-      May your leadership journey continue to inspire confidence, unity, and excellence.
+    document.getElementById("contentParagraph").innerHTML = `
+      This certificate is proudly presented to <strong>${p.name}</strong> in recognition of
+      exemplary leadership and service as the elected <strong>${p.position}</strong>.
+      With a total of <strong>${p.votes}</strong> votes in the ${p.year} elections, the school praises
+      your integrity, dedication and outstanding commitment to student leadership.
     `;
-
-    document.getElementById("contentParagraph").innerHTML = text;
   }
-
-  document.getElementById("printBtn").onclick = () => window.print();
-  document.getElementById("downloadPdf").onclick = () => window.print();
-  document.getElementById("backToDashboard").onclick = () => location.href="admin.html";
 
   fillLetter();
 </script>
 
 </body>
 </html>
-
