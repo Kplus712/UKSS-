@@ -958,26 +958,7 @@ clearFiltersBtn.addEventListener("click", ()=>{
   applyFilters();
 });
   
- /* ==========================
-   DELETE ALL REGISTERED VOTERS
-   ========================== */
 
-import { ref, remove } 
-from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-
-document.getElementById("resetVotersBtn").addEventListener("click", async () => {
-    const confirmDel = confirm("⚠️ Are you SURE you want to DELETE ALL REGISTERED VOTERS? This cannot be undone!");
-
-    if (!confirmDel) return;
-
-    try {
-        await remove(ref(db, "voters"));
-        alert("✔ All registered voters have been successfully deleted from the system.");
-    } catch (err) {
-        alert("❌ Error deleting voters: " + err.message);
-    }
-});
-  
 /* small UI bindings to close popups when clicking outside content */
 menuPopup.addEventListener("click", (e) => { if(e.target === menuPopup) closeMenuPopup(); });
 votersModal.addEventListener("click", (e)=>{ if(e.target === votersModal) closeVotersModal(); });
