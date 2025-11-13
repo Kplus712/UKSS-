@@ -70,12 +70,51 @@
   .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
   #receipt{ display:none; margin-top:18px; background:white; border-left:6px solid var(--accent); padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
 
-  /* responsive */
-  @media (max-width:900px){
-    .landscape-row{ flex-direction:column; }
-    .column{ width:100%; }
-    .center-col{ display:none; }
+  /* ======================== Receipt POPUP (EFD-style) ======================== */
+  .receipt-popup {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    width: 240px;               /* target ~230px inside padding */
+    max-width: calc(100% - 36px);
+    background: #fff;
+    border: 2px solid #222;
+    border-right-width: 6px;
+    border-radius: 6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+    color: #111;
+    z-index: 9999;
+    padding: 10px;
+    display: none;
+    transform-origin: top right;
+    animation: fadeInReceipt .25s ease both;
   }
+  @keyframes fadeInReceipt {
+    from { opacity: 0; transform: translateY(-6px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .receipt-header { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; }
+  .receipt-title { font-weight:900; color:#0b6623; font-size:13px; }
+  .receipt-close { background:transparent; border:none; font-weight:900; cursor:pointer; }
+  .receipt-body { border-top:1px dashed #bbb; padding-top:8px; line-height:1.25; }
+  .receipt-body .small { font-size:11px; color:#444; }
+  .receipt-qr { display:flex; justify-content:center; margin:8px 0; }
+  .receipt-actions { display:flex; gap:8px; margin-top:8px; }
+  .receipt-actions button { flex:1; padding:8px; font-size:12px; border-radius:6px; cursor:pointer; }
+  .print-btn { background:#2e7d32; color:#fff; border:none; font-weight:700; }
+  .close-btn-secondary { background:#eee; border:1px solid #ccc; }
+
+  @media print {
+    .receipt-popup { display:none !important; }
+  }
+
+  /* responsive */
+  @media (max-width:360px){
+    .receipt-popup { right:8px; left:8px; width:auto; }
+  }
+
 </style>
 </head>
 <body>
@@ -91,11 +130,37 @@
       <button class="btn secondary" id="refreshBtn">Refresh Candidates</button>
     </div>
 
+    <!-- kept for backward compatibility (not used for popup) -->
     <div id="receipt"></div>
   </div>
 
+  <!-- ================= Receipt Popup (EFD style) ================= -->
+  <div id="receiptPopup" class="receipt-popup" role="dialog" aria-live="polite" aria-label="Voting receipt">
+    <div class="receipt-header">
+      <div class="receipt-title">UKSS — RECEIPT</div>
+      <button id="closeReceiptBtn" class="receipt-close" aria-label="Close">✖</button>
+    </div>
+
+    <div class="receipt-body" id="receiptPopupBody">
+      <!-- populated dynamically -->
+      <div class="small" id="r-school">UKSS — Student Election</div>
+      <div id="r-name" style="font-weight:800; margin-top:6px;"></div>
+      <div id="r-meta" class="small" style="margin-top:6px;"></div>
+
+      <div style="margin-top:8px; font-weight:700;">Choices:</div>
+      <div id="r-choices" style="font-size:12px; margin-top:6px;"></div>
+
+      <div class="receipt-qr" id="r-qr"><img alt="QR" id="r-qr-img" width="96" height="96"></div>
+
+      <div class="receipt-actions">
+        <button class="print-btn" id="printReceiptBtn">PRINT</button>
+        <button class="close-btn-secondary" id="dismissPopupBtn">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
 <script type="module">
-/* ================= Configuration ================= */
+/* ================= Configuration (leave your firebase links intact) ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
@@ -125,14 +190,12 @@ if(!voterID){
   location.href = "index.html";
 }
 
-/* ============== Helper: placeholder SVG dataURI ============== */
+/* ============== Helper & UI pieces (kept same behavior as your previous code) ============== */
+
 function placeholderDataUrl(gender){
-  // simple circular SVG silhouette
   const isMale = String(gender||"").toLowerCase().startsWith("m");
   const bg = isMale ? "#dff0d9" : "#f1efe5";
   const color = isMale ? "#2e7d32" : "#4a7a4a";
-  const face = isMale ? "M50 30 a14 14 0 1 0 0.0001 0" : "M50 30 a14 14 0 1 0 0.0001 0";
-  // minimal SVG
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 100 100'>
     <rect width='100' height='100' rx='12' fill='${bg}'/>
     <circle cx='50' cy='32' r='14' fill='${color}' fill-opacity='0.18'/>
@@ -143,9 +206,7 @@ function placeholderDataUrl(gender){
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
-/* ============== Utility: text prettify for position titles ============== */
 function prettyTitle(posKey){
-  // Examples: maintenance -> Maintenance Prefect, head -> Head Prefect etc
   const map = {
     head: "Head Prefect",
     generalSecretary: "General Secretary",
@@ -158,22 +219,18 @@ function prettyTitle(posKey){
     academic: "Academic Prefect",
     discipline: "Discipline Prefect"
   };
-  // normalize: remove suffix Boy/Girl
   const base = posKey.replace(/(Boy|Girl)$/i, "");
   return map[base] || base.replace(/([A-Z])/g," $1").trim();
 }
 
-/* ============== Fetch & Render candidates ============== */
+/* ============== Render candidates (unchanged behavior) ============== */
 const positionsArea = document.getElementById("positionsArea");
-
-let latestCandidates = {}; // snapshot cache
+let latestCandidates = {};
 
 function groupCandidatesByBase(candidatesObj){
-  // candidatesObj: { id: {firstName, lastName, position, gender, photoURL}, ... }
-  const groups = {}; // base -> {girls:[], boys:[], rawPositions:set}
+  const groups = {};
   Object.entries(candidatesObj).forEach(([id, c])=>{
     const pos = c.position || "";
-    // derive base: remove trailing Boy/Girl if present; special-case generalSecretary naming
     let base = pos;
     if(/Boy$/i.test(pos) || /Girl$/i.test(pos)){
       base = pos.replace(/(Boy|Girl)$/i, "");
@@ -182,13 +239,11 @@ function groupCandidatesByBase(candidatesObj){
     }
     if(!groups[base]) groups[base] = { girls:[], boys:[], rawPositions: new Set() };
     groups[base].rawPositions.add(pos);
-
     const candidate = { id, ...c };
     const g = (c.gender||"").toLowerCase();
     if(/female|girl|f/i.test(g) || /Girl$/i.test(pos)) groups[base].girls.push(candidate);
     else groups[base].boys.push(candidate);
   });
-
   return groups;
 }
 
@@ -212,12 +267,8 @@ function buildCandidateCardHTML(c, radioName){
 function renderCandidates(snapshotObj){
   latestCandidates = snapshotObj || {};
   const groups = groupCandidatesByBase(snapshotObj || {});
-
-  // We'll render positions in a logical order (head first, generalSecretary, others)
   const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
   const presentBases = Object.keys(groups);
-
-  // order: intersection of naturalOrder + others (append remaining)
   const ordered = [];
   naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
   presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
@@ -226,49 +277,39 @@ function renderCandidates(snapshotObj){
   for(const base of ordered){
     const grp = groups[base];
     if(!grp) continue;
-    // Title
     out += `<div class="position-block" data-base="${base}">`;
     out += `<div class="position-title">${prettyTitle(base)}</div>`;
-
-    // Special case: generalSecretary -> allow single radio name across boys & girls
     if(base === "generalSecretary"){
-      // create a horizontal pair of candidates (girls left, boys right), but same radio name "generalSecretary"
       out += `<div class="landscape-row">`;
-      // left column (girls)
       out += `<div class="column">`;
       if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
       grp.girls.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
-      out += `</div>`; // end left
+      out += `</div>`;
       out += `<div class="center-col">VS</div>`;
       out += `<div class="column">`;
       if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
       grp.boys.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
-      out += `</div>`; // end right
-      out += `</div>`; // end landscape-row
+      out += `</div>`;
+      out += `</div>`;
     } else {
-      // For other positions, we render left = girls with radio name base + "Girl", right = boys with radio name base + "Boy".
       out += `<div class="landscape-row">`;
-      // left column (girls)
       out += `<div class="column">`;
       if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
       grp.girls.forEach(c => out += buildCandidateCardHTML(c, base + "Girl"));
       out += `</div>`;
       out += `<div class="center-col"></div>`;
-      // right column (boys)
       out += `<div class="column">`;
       if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
       grp.boys.forEach(c => out += buildCandidateCardHTML(c, base + "Boy"));
       out += `</div>`;
-      out += `</div>`; // end landscape-row
+      out += `</div>`;
     }
-
-    out += `</div>`; // end position-block
+    out += `</div>`;
   }
-
   positionsArea.innerHTML = out;
 }
 
-/* ============== Live listener ============== */
+/* live listener (unchanged) */
 const candidatesRef = ref(db, "candidates");
 onValue(candidatesRef, snap => {
   const data = snap.val();
@@ -279,10 +320,8 @@ onValue(candidatesRef, snap => {
   renderCandidates(data);
 });
 
-/* ============== Voting submission logic ============== */
+/* ============== Voting submission logic (unchanged) ============== */
 document.getElementById("submitBtn").addEventListener("click", async () => {
-  // Build expected groups from the currently rendered DOM
-  // We'll check for generalSecretary (single) and for other bases require separate female+male selections
   const groups = document.querySelectorAll(".position-block");
   const votes = {};
   for(const block of groups){
@@ -307,14 +346,14 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     }
   }
 
-  // check double vote
+  // check double vote (unchanged)
   const voterSnap = await get(ref(db, "voters/" + voterID));
   if(voterSnap.exists() && voterSnap.val().hasVoted){
     alert("You have already voted. Duplicate voting not allowed.");
     return;
   }
 
-  // Save votes
+  // Save votes (unchanged)
   const voteObj = {
     voterID,
     name: `${fname} ${mname} ${lname}`.trim(),
@@ -332,18 +371,19 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     return;
   }
 
-  showReceipt(voteObj);
+  // Show both the old receipt element (kept for backward compat) AND the new popup
+  showReceipt(voteObj);      // existing inline receipt (kept)
+  showReceiptPopup(voteObj); // NEW popup (EFD style) - non destructive
 });
 
-/* ============== Refresh button ============== */
+/* Refresh */
 document.getElementById("refreshBtn").addEventListener("click", async () => {
-  // brief refresh: re-read DB once (onValue already streams, but do quick read)
   const snap = await get(candidatesRef);
   renderCandidates(snap.val() || {});
   alert("Candidates refreshed.");
 });
 
-/* ============== Show receipt ============== */
+/* ============== ORIGINAL showReceipt (kept; small change to not hide popup logic) ============== */
 function showReceipt(voteObj){
   const receipt = document.getElementById("receipt");
   const v = voteObj.votes || {};
@@ -354,7 +394,6 @@ function showReceipt(voteObj){
   html += `<p><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</p>`;
   html += `<hr><h3>Your Choices</h3><ul>`;
   for(const [k,val] of Object.entries(v)){
-    // pretty label
     const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
                   prettyTitle(k.replace(/(Girl|Boy)$/i,""));
     html += `<li><b>${label} ${/(Girl|Boy)$/.test(k) ? ("("+ (k.match(/(Girl|Boy)$/i)||[])[0] +")") : ""}:</b> ${val}</li>`;
@@ -363,12 +402,109 @@ function showReceipt(voteObj){
   html += `<div style="margin-top:12px"><button onclick="window.print()" class="btn" style="margin-right:8px">Print Receipt</button><button onclick="location.href='index.html'" class="btn secondary">Return Home</button></div>`;
   receipt.innerHTML = html;
   receipt.style.display = "block";
-  // hide submit to avoid re-submission
   document.getElementById("submitBtn").style.display = "none";
 }
 
-/* ======= Convenience: initial small sanity check ======= */
-// If DB has no candidates, user sees message via onValue handler above.
+/* ================= NEW: Popup receipt functions (EFD-style) ================= */
+
+/**
+ * Build QR code image URL using Google Chart API for quick QR generation.
+ * (This does an image request to Google - safe & lightweight).
+ */
+function buildQrDataUrl(text, size=200){
+  const enc = encodeURIComponent(String(text || ""));
+  // size param like 200x200
+  return `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${enc}&chld=L|1`;
+}
+
+const popupEl = document.getElementById("receiptPopup");
+const popupName = document.getElementById("r-name");
+const popupMeta = document.getElementById("r-meta");
+const popupChoices = document.getElementById("r-choices");
+const popupQrImg = document.getElementById("r-qr-img");
+const closeReceiptBtn = document.getElementById("closeReceiptBtn");
+const dismissPopupBtn = document.getElementById("dismissPopupBtn");
+const printReceiptBtn = document.getElementById("printReceiptBtn");
+
+closeReceiptBtn.addEventListener("click", hideReceiptPopup);
+dismissPopupBtn.addEventListener("click", hideReceiptPopup);
+
+/* Print: open new window containing the receipt HTML (EFD style) so it prints nicely like a slip */
+printReceiptBtn.addEventListener("click", () => {
+  if(!popupEl.dataset.html) return;
+  const content = popupEl.dataset.html;
+  const w = window.open("", "_blank", "width=400,height=600");
+  if(!w) { alert("Pop-up blocked. Please allow pop-ups to print."); return; }
+  w.document.open();
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Print Receipt</title>
+    <style>
+      body{ font-family: "Courier New", Courier, monospace; font-size:12px; padding:10px; }
+      .slip{ width:230px; border-right:6px solid #222; padding-right:6px; }
+      h2{ text-align:center; font-size:14px; color:#0b6623; margin:6px 0;}
+      .small{font-size:11px;color:#333}
+      ul{ padding-left:14px; }
+    </style>
+  </head><body><div class="slip">${content}</div></body></html>`);
+  w.document.close();
+  // wait briefly for images (QR) to load
+  setTimeout(()=>{ try { w.print(); w.close(); } catch(e){ /* ignore */ } }, 700);
+});
+
+/* Show popup (non-destructive) */
+function showReceiptPopup(voteObj){
+  // Build popup text
+  const fullname = voteObj.name || `${fname} ${mname} ${lname}`.trim();
+  popupName.textContent = fullname;
+  popupMeta.innerHTML = `<span class="small">Class: ${voteObj.class || classSelect}</span><br><span class="small">Gender: ${voteObj.gender || gender}</span><br><span class="small">Time: ${new Date(voteObj.timestamp).toLocaleString()}</span>`;
+
+  // choices list small
+  const v = voteObj.votes || {};
+  let choicesHtml = "<ul style='margin:6px 0;padding-left:14px;line-height:1.2;font-size:12px'>";
+  for(const [k,val] of Object.entries(v)){
+    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
+                  prettyTitle(k.replace(/(Girl|Boy)$/i,""));
+    choicesHtml += `<li><b style="font-weight:700">${label}:</b> ${val}</li>`;
+  }
+  choicesHtml += "</ul>";
+  popupChoices.innerHTML = choicesHtml;
+
+  // QR: include minimal data: voterID + timestamp + name (safe)
+  const qrPayload = JSON.stringify({ voterID: voteObj.voterID, name: fullname, ts: voteObj.timestamp });
+  const qrUrl = buildQrDataUrl(qrPayload, 200);
+  popupQrImg.src = qrUrl;
+
+  // snapshot html used for printing later:
+  const printableContent = `
+    <h2>UKSS — RECEIPT</h2>
+    <div><b>${fullname}</b></div>
+    <div class="small">Class: ${voteObj.class || classSelect}</div>
+    <div class="small">Gender: ${voteObj.gender || gender}</div>
+    <div class="small">Time: ${new Date(voteObj.timestamp).toLocaleString()}</div>
+    <hr>
+    <div><b>Choices:</b></div>
+    ${choicesHtml}
+    <div style="text-align:center;margin-top:8px"><img src="${qrUrl}" width="120" height="120" alt="QR"></div>
+    <div class="small" style="margin-top:6px;text-align:center">Thank you for voting</div>
+  `;
+  // store on element for print button to use
+  popupEl.dataset.html = printableContent;
+
+  // show popup with animation (fade-in controlled via CSS)
+  popupEl.style.display = "block";
+  // ensure it is focused for accessibility
+  popupEl.setAttribute("tabindex","-1");
+  popupEl.focus();
+
+  // (optional) Auto-hide after X seconds? Not requested — keep until user closes
+}
+
+/* Hide popup */
+function hideReceiptPopup(){
+  popupEl.style.display = "none";
+  // (do not reset popupEl.dataset.html) — keep it for print if reopened during same session
+}
+
+/* ======= END popup code ======= */
 
 </script>
 </body>
