@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Candidate Registration — UKSS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    body{
+        font-family: Arial, sans-serif;
+        background:#f3fff3;
+        margin:0;
+        padding:20px;
+    }
+    .container{
+        max-width:800px;
+        margin:20px auto;
+        background:white;
+        padding:20px;
+        border-radius:12px;
+        box-shadow:0 0 14px rgba(0,0,0,0.15);
+        border:5px solid #2e7d32;
+    }
+    h2{
+        text-align:center;
+        color:#2e7d32;
+        margin-bottom:10px;
+    }
+    label{
+        font-weight:bold;
+        color:#215725;
+    }
+    input, select{
+        width:100%;
+        padding:10px;
+        margin:6px 0 12px;
+        border-radius:6px;
+        border:1px solid #cccccc;
+    }
+    .btn{
+        padding:12px 18px;
+        border:none;
+        background:#2e7d32;
+        color:white;
+        font-weight:bold;
+        border-radius:8px;
+        cursor:pointer;
+        width:100%;
+    }
+    .btn:hover{opacity:0.9;}
+    .preview{
+        text-align:center;
+        margin:15px 0;
+    }
+    .preview img{
+        max-width:160px;
+        border-radius:10px;
+        border:3px solid #2e7d32;
+        display:none;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Register School Candidate</h2>
+
+    <label>Admin Password</label>
+    <input type="password" id="adminPass" placeholder="Enter admin password to unlock form">
+    <button onclick="unlockForm()" class="btn" style="background:#388e3c;">UNLOCK</button>
+
+    <div id="formArea" style="display:none; margin-top:20px;">
+        <label>First Name</label>
+        <input type="text" id="firstName">
+
+        <label>Middle Name</label>
+        <input type="text" id="middleName">
+
+        <label>Last Name</label>
+        <input type="text" id="lastName">
+
+        <label>Gender</label>
+        <select id="gender">
+            <option value="">--Select Gender--</option>
+            <option>Male</option>
+            <option>Female</option>
+        </select>
+
+        <label>Class</label>
+        <select id="classSelect">
+            <option value="">--Select Class--</option>
+            <option>Form One</option>
+            <option>Form Two</option>
+            <option>Form Three</option>
+            <option>Form Four</option>
+        </select>
+
+        <label>Position</label>
+        <select id="position">
+            <option value="">-- Select Position --</option>
+
+            <optgroup label="Head Boy & Head Girl">
+                <option value="headBoy">Head Boy</option>
+                <option value="headGirl">Head Girl</option>
+            </optgroup>
+
+            <optgroup label="General Secretary">
+                <option value="generalSecretaryBoy">General Secretary (Male)</option>
+                <option value="generalSecretaryGirl">General Secretary (Female)</option>
+            </optgroup>
+
+            <optgroup label="Sports & Games">
+                <option value="sportsBoy1">Sports & Games (Male)</option>
+                <option value="sportsGirl1">Sports & Games (Female)</option>
+            </optgroup>
+
+            <optgroup label="Food Prefect">
+                <option value="foodBoy">Food Prefect (Male)</option>
+                <option value="foodGirl">Food Prefect (Female)</option>
+            </optgroup>
+
+            <optgroup label="Environmental">
+                <option value="environmentBoy">Environmental (Male)</option>
+                <option value="environmentGirl">Environmental (Female)</option>
+            </optgroup>
+
+            <optgroup label="Health">
+                <option value="healthBoy">Health (Male)</option>
+                <option value="healthGirl">Health (Female)</option>
+            </optgroup>
+
+            <optgroup label="Maintenance">
+                <option value="maintenanceBoy">Maintenance (Male)</option>
+                <option value="maintenanceGirl">Maintenance (Female)</option>
+            </optgroup>
+
+            <optgroup label="Store Keeper">
+                <option value="storeBoy">Store Keeper (Male)</option>
+                <option value="storeGirl">Store Keeper (Female)</option>
+            </optgroup>
+
+            <optgroup label="Academic">
+                <option value="academicBoy">Academic (Male)</option>
+                <option value="academicGirl">Academic (Female)</option>
+            </optgroup>
+
+            <optgroup label="Discipline">
+                <option value="disciplineBoy">Discipline (Male)</option>
+                <option value="disciplineGirl">Discipline (Female)</option>
+            </optgroup>
+
+        </select>
+
+        <label>Upload Candidate Picture</label>
+        <input type="file" id="photo" accept="image/*">
+
+        <div class="preview">
+            <img id="previewImg">
+        </div>
+
+        <button class="btn" onclick="registerCandidate()">REGISTER CANDIDATE</button>
+    </div>
+</div>
+
+<!-- Firebase -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
+        from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+        authDomain: "ukss-voting-system.firebaseapp.com",
+        databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+        projectId: "ukss-voting-system",
+        storageBucket: "ukss-voting-system.appspot.com",
+        messagingSenderId: "525528255065",
+        appId: "1:525528255065:web:97c4e55d2984acc718bf48"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const storage = getStorage(app);
+
+    window.unlockForm = function(){
+        const pass = document.getElementById("adminPass").value;
+        if(pass === "ukss2025"){
+            document.getElementById("formArea").style.display = "block";
+        } else {
+            alert("Incorrect Admin Password!");
+        }
+    };
+
+    // preview image
+    document.getElementById("photo").addEventListener("change", function(){
+        const file = this.files[0];
+        if(file){
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = document.getElementById("previewImg");
+                img.src = e.target.result;
+                img.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    window.registerCandidate = async function(){
+        const first = document.getElementById("firstName").value.trim();
+        const middle = document.getElementById("middleName").value.trim();
+        const last = document.getElementById("lastName").value.trim();
+        const gender = document.getElementById("gender").value;
+        const classSelect = document.getElementById("classSelect").value;
+        const position = document.getElementById("position").value;
+        const photoFile = document.getElementById("photo").files[0];
+
+        if(!first || !last || !gender || !classSelect || !position || !photoFile){
+            alert("Fill all fields including picture!");
+            return;
+        }
+
+        const candidateID = (first + "_" + last + "_" + position).toLowerCase().replace(/\s+/g, "_");
+
+        // check if candidate exists
+        const dbRef = ref(db);
+        const snap = await get(child(dbRef, "candidates/" + candidateID));
+        if(snap.exists()){
+            alert("Candidate already registered for this position!");
+            return;
+        }
+
+        // upload photo
+        const storageRef = sRef(storage, "candidates/" + candidateID + ".jpg");
+        await uploadBytes(storageRef, photoFile);
+        const photoURL = await getDownloadURL(storageRef);
+
+        // save to database
+        await set(ref(db, "candidates/" + candidateID), {
+            firstName:first,
+            middleName:middle,
+            lastName:last,
+            gender,
+            classSelect,
+            position,
+            photoURL
+        });
+
+        alert("Candidate registered successfully!");
+        location.reload();
+    };
+</script>
+
+</body>
+</html>
