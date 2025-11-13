@@ -11,8 +11,6 @@
     --bg:#f4fff4;
     --card:#e8f5e9;
     --accent:#2e7d32;
-    --receipt-bg:#fffef8;
-    --receipt-border:#222;
   }
   *{box-sizing:border-box}
   body{
@@ -33,13 +31,18 @@
     text-transform:uppercase;
   }
 
-  /* layout */
+  /* landscape row: left = girls, center = spacer/title area, right = boys */
   .landscape-row{
     display:flex; gap:12px; align-items:flex-start;
     flex-wrap:nowrap; justify-content:space-between;
   }
-  .column { width:48%; display:flex; flex-direction:column; gap:10px; }
 
+  .column {
+    width:48%;
+    display:flex; flex-direction:column; gap:10px;
+  }
+
+  /* candidate card */
   .candidate-card{
     display:flex; gap:12px; align-items:center;
     background:var(--card); padding:10px; border-radius:10px;
@@ -50,87 +53,49 @@
   }
   .candidate-info h3{ margin:0; font-size:16px; color:#15491a; }
   .candidate-info p{ margin:4px 0 0; font-size:13px; color:#21572a; }
+
   .vote-row{ margin-top:8px; }
   .vote-row label{ font-weight:700; color:#083f20; cursor:pointer; user-select:none; }
   input[type="radio"]{ margin-right:8px; transform:scale(1.02); }
 
+  /* center placeholder column for title/notes (optional) */
   .center-col{ width:4%; min-width:60px; display:flex; align-items:center; justify-content:center; color:#2e7d32; font-weight:700; font-size:12px; }
 
+  /* general secretary pair layout */
   .pair{ display:flex; gap:12px; flex-wrap:wrap; }
 
+  /* submit */
   .actions{ display:flex; gap:12px; margin-top:22px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
   .btn{ padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:800; }
   .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
-
-  /* EFD-style popup receipt (top-right) */
-  .receipt-popup{
-    position:fixed;
-    top:18px;
-    right:18px;
-    width:270px;
-    max-width: calc(100% - 36px);
-    background:var(--receipt-bg);
-    border:1px solid var(--receipt-border);
-    border-radius:6px;
-    padding:10px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    font-family: "Courier New", Courier, monospace;
-    font-size:12px;
-    display:none;
-    z-index:9999;
-  }
-  .receipt-popup h4{ margin:4px 0 6px; text-align:center; color:var(--accent); }
-  .receipt-line{ border-top:1px dashed #ccc; margin:6px 0; padding-top:6px; }
-  .receipt-buttons{ display:flex; gap:6px; justify-content:center; margin-top:8px; }
-  .rbtn{ padding:6px 8px; border-radius:4px; border:none; cursor:pointer; font-weight:700; font-size:12px; }
-  .rbtn.print{ background:var(--accent); color:white; }
-  .rbtn.close{ background:#eee; color:#222; }
-
-  /* small note */
-  .muted{ color:#556; font-size:12px; }
+  #receipt{ display:none; margin-top:18px; background:white; border-left:6px solid var(--accent); padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
 
   /* responsive */
   @media (max-width:900px){
     .landscape-row{ flex-direction:column; }
     .column{ width:100%; }
     .center-col{ display:none; }
-    .receipt-popup{ width:88%; left:6%; right:6%; top:12px; }
-  }
-
-  /* print styling for receipt only */
-  @media print{
-    body *{ visibility: hidden; }
-    .receipt-printable { visibility: visible; position: absolute; left:0; top:0; width:100%; }
   }
 </style>
 </head>
 <body>
   <div class="container">
     <h1>🗳️ UKSS Student Voting</h1>
-    <p class="lead">Choose leaders carefully — girls displayed left, boys right. General Secretary: choose one (male or female).</p>
+    <p class="lead">Choose leaders carefully — girls displayed on the left, boys on the right. General Secretary: choose one (male or female).</p>
 
+    <!-- positions area will be filled dynamically -->
     <div id="positionsArea">Loading candidates...</div>
 
     <div class="actions">
       <button class="btn" id="submitBtn">SUBMIT VOTE</button>
       <button class="btn secondary" id="refreshBtn">Refresh Candidates</button>
     </div>
-  </div>
 
-  <!-- EFD style receipt popup (top-right) -->
-  <div id="receiptPopup" class="receipt-popup" role="dialog" aria-hidden="true">
-    <h4>UKSS — VOTING RECEIPT</h4>
-    <div id="receiptContent" style="white-space:pre-wrap; line-height:1.25; font-size:12px;"></div>
-    <div class="receipt-line"></div>
-    <div class="muted" id="receiptFooter">Thank you for participating.</div>
-    <div class="receipt-buttons">
-      <button class="rbtn print" id="printReceiptBtn">PRINT</button>
-      <button class="rbtn close" id="closeReceiptBtn">CLOSE</button>
-    </div>
+    <div id="receipt"></div>
   </div>
 
 <script type="module">
-/* ================= Configuration & Firebase ================= */
+/* ================= Configuration ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
@@ -149,9 +114,9 @@ const db = getDatabase(app);
 
 /* ============== VOTER SESSION (from localStorage) ============== */
 const voterID = localStorage.getItem("voterID");
-const fname = (localStorage.getItem("firstName")||"").trim();
-const mname = (localStorage.getItem("middleName")||"").trim();
-const lname = (localStorage.getItem("lastName")||"").trim();
+const fname = localStorage.getItem("firstName") || "";
+const mname = localStorage.getItem("middleName") || "";
+const lname = localStorage.getItem("lastName") || "";
 const classSelect = localStorage.getItem("classSelect") || "";
 const gender = localStorage.getItem("gender") || "";
 
@@ -160,22 +125,27 @@ if(!voterID){
   location.href = "index.html";
 }
 
-/* ============== Helpers ============== */
+/* ============== Helper: placeholder SVG dataURI ============== */
 function placeholderDataUrl(gender){
+  // simple circular SVG silhouette
   const isMale = String(gender||"").toLowerCase().startsWith("m");
-  const bg = isMale ? "#dff0d9" : "#f4ebdf";
+  const bg = isMale ? "#dff0d9" : "#f1efe5";
   const color = isMale ? "#2e7d32" : "#4a7a4a";
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 100 100'>
-    <rect width='100' height='100' rx='8' fill='${bg}'/>
-    <circle cx='50' cy='30' r='14' fill='${color}' fill-opacity='0.16'/>
-    <circle cx='50' cy='30' r='6' fill='${color}'/>
-    <rect x='20' y='56' width='60' height='22' rx='6' fill='${color}' fill-opacity='0.10'/>
+  const face = isMale ? "M50 30 a14 14 0 1 0 0.0001 0" : "M50 30 a14 14 0 1 0 0.0001 0";
+  // minimal SVG
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 100 100'>
+    <rect width='100' height='100' rx='12' fill='${bg}'/>
+    <circle cx='50' cy='32' r='14' fill='${color}' fill-opacity='0.18'/>
+    <circle cx='50' cy='32' r='6' fill='${color}'/>
+    <rect x='20' y='58' width='60' height='22' rx='8' fill='${color}' fill-opacity='0.12'/>
     <text x='50' y='88' font-size='6' fill='${color}' text-anchor='middle' font-family='Arial'>${isMale ? 'Boy' : 'Girl'}</text>
   </svg>`;
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
+/* ============== Utility: text prettify for position titles ============== */
 function prettyTitle(posKey){
+  // Examples: maintenance -> Maintenance Prefect, head -> Head Prefect etc
   const map = {
     head: "Head Prefect",
     generalSecretary: "General Secretary",
@@ -188,19 +158,22 @@ function prettyTitle(posKey){
     academic: "Academic Prefect",
     discipline: "Discipline Prefect"
   };
+  // normalize: remove suffix Boy/Girl
   const base = posKey.replace(/(Boy|Girl)$/i, "");
   return map[base] || base.replace(/([A-Z])/g," $1").trim();
 }
 
-/* ============== Render logic ============== */
+/* ============== Fetch & Render candidates ============== */
 const positionsArea = document.getElementById("positionsArea");
-let latestCandidates = {};
 
-/* groups candidates by base name (e.g. maintenance -> girls/boys arrays) */
+let latestCandidates = {}; // snapshot cache
+
 function groupCandidatesByBase(candidatesObj){
-  const groups = {};
-  Object.entries(candidatesObj || {}).forEach(([id, c])=>{
+  // candidatesObj: { id: {firstName, lastName, position, gender, photoURL}, ... }
+  const groups = {}; // base -> {girls:[], boys:[], rawPositions:set}
+  Object.entries(candidatesObj).forEach(([id, c])=>{
     const pos = c.position || "";
+    // derive base: remove trailing Boy/Girl if present; special-case generalSecretary naming
     let base = pos;
     if(/Boy$/i.test(pos) || /Girl$/i.test(pos)){
       base = pos.replace(/(Boy|Girl)$/i, "");
@@ -209,24 +182,25 @@ function groupCandidatesByBase(candidatesObj){
     }
     if(!groups[base]) groups[base] = { girls:[], boys:[], rawPositions: new Set() };
     groups[base].rawPositions.add(pos);
+
     const candidate = { id, ...c };
     const g = (c.gender||"").toLowerCase();
     if(/female|girl|f/i.test(g) || /Girl$/i.test(pos)) groups[base].girls.push(candidate);
     else groups[base].boys.push(candidate);
   });
+
   return groups;
 }
 
 function buildCandidateCardHTML(c, radioName){
   const fullname = `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim();
   const photo = c.photoURL || placeholderDataUrl(c.gender);
-  const classInfo = c.classSelect ? ` • ${c.classSelect}` : "";
   return `
     <div class="candidate-card" data-id="${c.id}">
       <img src="${photo}" alt="${fullname}">
       <div class="candidate-info">
         <h3>${fullname}</h3>
-        <p>${c.gender || ""}${classInfo}</p>
+        <p>${c.classSelect || ""} ${c.gender ? " • " + c.gender : ""}</p>
         <div class="vote-row">
           <label><input type="radio" name="${radioName}" value="${fullname}"> Select</label>
         </div>
@@ -238,52 +212,63 @@ function buildCandidateCardHTML(c, radioName){
 function renderCandidates(snapshotObj){
   latestCandidates = snapshotObj || {};
   const groups = groupCandidatesByBase(snapshotObj || {});
+
+  // We'll render positions in a logical order (head first, generalSecretary, others)
   const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
   const presentBases = Object.keys(groups);
+
+  // order: intersection of naturalOrder + others (append remaining)
   const ordered = [];
   naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
   presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
 
-  let html = "";
+  let out = "";
   for(const base of ordered){
     const grp = groups[base];
     if(!grp) continue;
-    html += `<div class="position-block" data-base="${base}">`;
-    html += `<div class="position-title">${prettyTitle(base)}</div>`;
+    // Title
+    out += `<div class="position-block" data-base="${base}">`;
+    out += `<div class="position-title">${prettyTitle(base)}</div>`;
 
+    // Special case: generalSecretary -> allow single radio name across boys & girls
     if(base === "generalSecretary"){
-      html += `<div class="landscape-row">`;
-      html += `<div class="column">`;
-      if(grp.girls.length === 0) html += `<div style="color:#556; font-style:italic">No female candidates</div>`;
-      grp.girls.forEach(c => html += buildCandidateCardHTML(c, "generalSecretary"));
-      html += `</div>`;
-      html += `<div class="center-col">VS</div>`;
-      html += `<div class="column">`;
-      if(grp.boys.length === 0) html += `<div style="color:#556; font-style:italic">No male candidates</div>`;
-      grp.boys.forEach(c => html += buildCandidateCardHTML(c, "generalSecretary"));
-      html += `</div>`;
-      html += `</div>`;
+      // create a horizontal pair of candidates (girls left, boys right), but same radio name "generalSecretary"
+      out += `<div class="landscape-row">`;
+      // left column (girls)
+      out += `<div class="column">`;
+      if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
+      grp.girls.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
+      out += `</div>`; // end left
+      out += `<div class="center-col">VS</div>`;
+      out += `<div class="column">`;
+      if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
+      grp.boys.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
+      out += `</div>`; // end right
+      out += `</div>`; // end landscape-row
     } else {
-      html += `<div class="landscape-row">`;
-      html += `<div class="column">`;
-      if(grp.girls.length === 0) html += `<div style="color:#556; font-style:italic">No female candidates</div>`;
-      grp.girls.forEach(c => html += buildCandidateCardHTML(c, base + "Girl"));
-      html += `</div>`;
-      html += `<div class="center-col"></div>`;
-      html += `<div class="column">`;
-      if(grp.boys.length === 0) html += `<div style="color:#556; font-style:italic">No male candidates</div>`;
-      grp.boys.forEach(c => html += buildCandidateCardHTML(c, base + "Boy"));
-      html += `</div>`;
-      html += `</div>`;
+      // For other positions, we render left = girls with radio name base + "Girl", right = boys with radio name base + "Boy".
+      out += `<div class="landscape-row">`;
+      // left column (girls)
+      out += `<div class="column">`;
+      if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
+      grp.girls.forEach(c => out += buildCandidateCardHTML(c, base + "Girl"));
+      out += `</div>`;
+      out += `<div class="center-col"></div>`;
+      // right column (boys)
+      out += `<div class="column">`;
+      if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
+      grp.boys.forEach(c => out += buildCandidateCardHTML(c, base + "Boy"));
+      out += `</div>`;
+      out += `</div>`; // end landscape-row
     }
 
-    html += `</div>`;
+    out += `</div>`; // end position-block
   }
 
-  positionsArea.innerHTML = html;
+  positionsArea.innerHTML = out;
 }
 
-/* ============== Live listener to candidates ============== */
+/* ============== Live listener ============== */
 const candidatesRef = ref(db, "candidates");
 onValue(candidatesRef, snap => {
   const data = snap.val();
@@ -296,10 +281,11 @@ onValue(candidatesRef, snap => {
 
 /* ============== Voting submission logic ============== */
 document.getElementById("submitBtn").addEventListener("click", async () => {
-  // collect positions in DOM
-  const blocks = document.querySelectorAll(".position-block");
+  // Build expected groups from the currently rendered DOM
+  // We'll check for generalSecretary (single) and for other bases require separate female+male selections
+  const groups = document.querySelectorAll(".position-block");
   const votes = {};
-  for(const block of blocks){
+  for(const block of groups){
     const base = block.dataset.base;
     if(!base) continue;
     if(base === "generalSecretary"){
@@ -313,7 +299,7 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
       const selG = block.querySelector(`input[name="${base}Girl"]:checked`);
       const selB = block.querySelector(`input[name="${base}Boy"]:checked`);
       if(!selG || !selB){
-        alert(`Please choose both female and male for: ${prettyTitle(base)} (girls left, boys right).`);
+        alert(`Please choose both female and male for: ${prettyTitle(base)} (girls left, boys right)`);
         return;
       }
       votes[base + "Girl"] = selG.value;
@@ -321,18 +307,14 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     }
   }
 
-  // prevent double vote
-  try{
-    const voterSnap = await get(ref(db, "voters/" + voterID));
-    if(voterSnap.exists() && voterSnap.val().hasVoted){
-      alert("You have already voted. Duplicate voting is not allowed.");
-      return;
-    }
-  }catch(err){
-    alert("Failed to verify voter status: " + (err.message||err));
+  // check double vote
+  const voterSnap = await get(ref(db, "voters/" + voterID));
+  if(voterSnap.exists() && voterSnap.val().hasVoted){
+    alert("You have already voted. Duplicate voting not allowed.");
     return;
   }
 
+  // Save votes
   const voteObj = {
     voterID,
     name: `${fname} ${mname} ${lname}`.trim(),
@@ -350,117 +332,44 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     return;
   }
 
-  showReceiptPopup(voteObj);
+  showReceipt(voteObj);
 });
 
 /* ============== Refresh button ============== */
 document.getElementById("refreshBtn").addEventListener("click", async () => {
+  // brief refresh: re-read DB once (onValue already streams, but do quick read)
   const snap = await get(candidatesRef);
   renderCandidates(snap.val() || {});
   alert("Candidates refreshed.");
 });
 
-/* ============== Receipt popup (EFD-style) ============== */
-const receiptPopup = document.getElementById("receiptPopup");
-const receiptContent = document.getElementById("receiptContent");
-const receiptFooter = document.getElementById("receiptFooter");
-const printBtn = document.getElementById("printReceiptBtn");
-const closeBtn = document.getElementById("closeReceiptBtn");
-
-function showReceiptPopup(voteObj){
-  // build receipt text in EFD/plain-mono style
+/* ============== Show receipt ============== */
+function showReceipt(voteObj){
+  const receipt = document.getElementById("receipt");
   const v = voteObj.votes || {};
-  const lines = [];
-  lines.push("Umoja King'ori Secondary School");
-  lines.push("STUDENT ELECTION RECEIPT");
-  lines.push("-------------------------------");
-  lines.push(`Name: ${voteObj.name}`);
-  lines.push(`Class: ${voteObj.class}`);
-  lines.push(`Gender: ${voteObj.gender}`);
-  lines.push(`Date: ${new Date(voteObj.timestamp).toLocaleString()}`);
-  lines.push("-------------------------------");
-  lines.push("Your selections:");
-  Object.entries(v).forEach(([k,val])=>{
-    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") : prettyTitle(k.replace(/(Girl|Boy)$/i,""));
-    const suffix = (/(Girl|Boy)$/i.test(k)) ? (" (" + (k.match(/(Girl|Boy)$/i)||[])[0] + ")") : "";
-    lines.push(`${label}${suffix} -> ${val}`);
-  });
-  lines.push("-------------------------------");
-  lines.push("Thank you for participating.");
-  lines.push("Verified by: UKSS");
-  const txt = lines.join("\n");
-  receiptContent.textContent = txt;
-  receiptFooter.textContent = `Receipt ID: ${voteObj.voterID} • ${new Date().toLocaleDateString()}`;
-  receiptPopup.style.display = "block";
-  receiptPopup.setAttribute("aria-hidden", "false");
-  // hide submit button to prevent re-submit
+  let html = `<h2 style="color:var(--accent); text-align:center">🧾 Voting Receipt</h2>`;
+  html += `<p><b>Name:</b> ${voteObj.name}</p>`;
+  html += `<p><b>Class:</b> ${voteObj.class}</p>`;
+  html += `<p><b>Gender:</b> ${voteObj.gender}</p>`;
+  html += `<p><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</p>`;
+  html += `<hr><h3>Your Choices</h3><ul>`;
+  for(const [k,val] of Object.entries(v)){
+    // pretty label
+    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
+                  prettyTitle(k.replace(/(Girl|Boy)$/i,""));
+    html += `<li><b>${label} ${/(Girl|Boy)$/.test(k) ? ("("+ (k.match(/(Girl|Boy)$/i)||[])[0] +")") : ""}:</b> ${val}</li>`;
+  }
+  html += `</ul>`;
+  html += `<div style="margin-top:12px"><button onclick="window.print()" class="btn" style="margin-right:8px">Print Receipt</button><button onclick="location.href='index.html'" class="btn secondary">Return Home</button></div>`;
+  receipt.innerHTML = html;
+  receipt.style.display = "block";
+  // hide submit to avoid re-submission
   document.getElementById("submitBtn").style.display = "none";
 }
 
-function closeReceiptPopup(){
-  receiptPopup.style.display = "none";
-  receiptPopup.setAttribute("aria-hidden", "true");
-  // keep submit hidden to avoid resubmission
-}
+/* ======= Convenience: initial small sanity check ======= */
+// If DB has no candidates, user sees message via onValue handler above.
 
-printBtn.addEventListener("click", () => {
-  // print only receipt: open small window with monospace layout (EFD-like)
-  const content = receiptContent.textContent;
-  const footer = receiptFooter.textContent;
-  const html = `
-    <html><head><title>Receipt</title>
-    <style>
-      body{ font-family: "Courier New", Courier, monospace; margin:10px; font-size:12px; }
-      pre{ white-space:pre-wrap; line-height:1.2; }
-    </style>
-    </head><body>
-    <pre>${escapeHtml(content)}</pre>
-    <div style="margin-top:8px;font-size:11px;color:#444">${escapeHtml(footer)}</div>
-    <script>window.print();setTimeout(()=>window.close(),500);</script>
-    </body></html>
-  `;
-  const w = window.open("", "_blank", "width=380,height=600");
-  w.document.write(html);
-  w.document.close();
-});
-
-closeBtn.addEventListener("click", closeReceiptPopup);
-
-function showReceiptPopup(voteObj){ // override to call showReceiptPopup internal
-  // avoid recursion confusion
-  const v = voteObj.votes || {};
-  const lines = [];
-  lines.push("Umoja King'ori Secondary School");
-  lines.push("STUDENT ELECTION RECEIPT");
-  lines.push("-------------------------------");
-  lines.push(`Name: ${voteObj.name}`);
-  lines.push(`Class: ${voteObj.class}`);
-  lines.push(`Gender: ${voteObj.gender}`);
-  lines.push(`Date: ${new Date(voteObj.timestamp).toLocaleString()}`);
-  lines.push("-------------------------------");
-  lines.push("Your selections:");
-  Object.entries(v).forEach(([k,val])=>{
-    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") : prettyTitle(k.replace(/(Girl|Boy)$/i,""));
-    const suffix = (/(Girl|Boy)$/i.test(k)) ? (" (" + (k.match(/(Girl|Boy)$/i)||[])[0] + ")") : "";
-    lines.push(`${label}${suffix} -> ${val}`);
-  });
-  lines.push("-------------------------------");
-  lines.push("Thank you for participating.");
-  lines.push("Verified by: UKSS");
-  const txt = lines.join("\n");
-  receiptContent.textContent = txt;
-  receiptFooter.textContent = `Receipt ID: ${voteObj.voterID} • ${new Date().toLocaleDateString()}`;
-  receiptPopup.style.display = "block";
-  receiptPopup.setAttribute("aria-hidden", "false");
-  document.getElementById("submitBtn").style.display = "none";
-}
-
-/* escape helper used in print window */
-function escapeHtml(s){
-  return String(s||"").replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]);
-}
-
-/* ============== End of module ============== */
 </script>
 </body>
 </html>
