@@ -977,8 +977,7 @@ document.getElementById("resetVotersBtn").addEventListener("click", async () => 
         alert("❌ Error deleting voters: " + err.message);
     }
 });
- 
-
+  
 /* small UI bindings to close popups when clicking outside content */
 menuPopup.addEventListener("click", (e) => { if(e.target === menuPopup) closeMenuPopup(); });
 votersModal.addEventListener("click", (e)=>{ if(e.target === votersModal) closeVotersModal(); });
