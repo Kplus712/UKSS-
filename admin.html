@@ -965,8 +965,7 @@ registeredModal.addEventListener("click", (e)=>{ if(e.target === registeredModal
 auditModal.addEventListener("click", (e)=>{ if(e.target === auditModal) closeAuditModal(); });
 confirmModal.addEventListener("click", (e)=>{ if(e.target === confirmModal) closeConfirm(); });
 
-<script type ="module">
-  import { ref, remove } 
+import { ref, remove } 
 from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
 document.getElementById("resetVotersBtn").addEventListener("click", async () => {
@@ -979,7 +978,6 @@ document.getElementById("resetVotersBtn").addEventListener("click", async () => 
         }
     }
 });
-
 </script>
 </body>
 </html>
