@@ -104,15 +104,13 @@ button:hover { background:darkgreen; }
 
 <!-- ==== FIREBASE SDK ==== -->
 <script type="module">
+
+/* FIREBASE APP CONFIG */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getDatabase, ref, get, set, update, onValue }
-from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+import { 
+    getDatabase, ref, get, set, update, onValue 
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-import {
-    getStorage, ref as sRef, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
-
-/* ---- Firebase Config ---- */
 const firebaseConfig = {
     apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
     authDomain: "ukss-voting-system.firebaseapp.com",
@@ -125,127 +123,80 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const storage = getStorage(app);
 
-window.db = db;
-window.ref = ref;
-window.get = get;
-window.set = set;
-window.update = update;
-window.onValue = onValue;
-window.getDownloadURL = getDownloadURL;
-window.sRef = sRef;
-</script>
-</head>
-
-<body>
-<div class="container">
-<h1>🗳️ UKSS — Student Voting</h1>
-<p style="text-align:center;color:#388e3c;font-weight:bold;">
-Choose your leaders wisely.
-</p>
-
-<!-- ============================ -->
-<!--   AUTO GENERATED POSITIONS   -->
-<!-- ============================ -->
-<div id="positionsArea">Loading candidates...</div>
-
-<button onclick="submitVote()">SUBMIT YOUR VOTE</button>
-
-<!-- RECEIPT -->
-<div id="receipt"></div>
-</div>
-
-<!-- ============================ -->
-<!--           SCRIPT             -->
-<!-- ============================ -->
-<script type="module">
-
-/* ========== VOTER SESSION ========== */
+/* VOTER DATA */
 const voterID = localStorage.getItem("voterID");
 const fname   = localStorage.getItem("firstName");
 const mname   = localStorage.getItem("middleName");
 const lname   = localStorage.getItem("lastName");
 const classSelect = localStorage.getItem("classSelect");
-const gender = localStorage.getItem("gender");
+const gender  = localStorage.getItem("gender");
 
-if (!voterID) {
-    alert("You are not registered. Returning to home...");
+if (!voterID){
+    alert("You are not registered. Returning...");
     location.href = "index.html";
 }
 
-/* ====== POSITION RULES ====== */
+/* POSITIONS RULE */
 const POSITION_GROUPS = {
-    headBoy:        { gender:"Male",   select:1 },
-    headGirl:       { gender:"Female", select:1 },
-
-    generalSecretary: { gender:"Any", select:1 },
-
-    sportsBoy:      { gender:"Male",   select:1 },
-    sportsGirl:     { gender:"Female", select:1 },
-
-    foodBoy:        { gender:"Male",   select:1 },
-    foodGirl:       { gender:"Female", select:1 },
-
-    environmentBoy: { gender:"Male",   select:1 },
-    environmentGirl:{ gender:"Female", select:1 },
-
-    healthBoy:      { gender:"Male",   select:1 },
-    healthGirl:     { gender:"Female", select:1 },
-
-    maintenanceBoy: { gender:"Male",   select:1 },
-    maintenanceGirl:{ gender:"Female", select:1 },
-
-    storeBoy:       { gender:"Male",   select:1 },
-    storeGirl:      { gender:"Female", select:1 },
-
-    academicBoy:    { gender:"Male",   select:1 },
-    academicGirl:   { gender:"Female", select:1 },
-
-    disciplineBoy:  { gender:"Male",   select:1 },
-    disciplineGirl: { gender:"Female", select:1 }
+    headBoy: 1,
+    headGirl: 1,
+    generalSecretaryBoy: 1,
+    generalSecretaryGirl: 1,
+    sportsBoy: 1,
+    sportsGirl: 1,
+    foodBoy: 1,
+    foodGirl: 1,
+    environmentBoy: 1,
+    environmentGirl: 1,
+    healthBoy: 1,
+    healthGirl: 1,
+    maintenanceBoy: 1,
+    maintenanceGirl: 1,
+    storeBoy: 1,
+    storeGirl: 1,
+    academicBoy: 1,
+    academicGirl: 1,
+    disciplineBoy: 1,
+    disciplineGirl: 1
 };
 
-/* ====== Load all candidates live ====== */
-import { db, ref, onValue } from "./firebase-config.js";
-
+/* RENDER CANDIDATES */
 const posArea = document.getElementById("positionsArea");
 
-onValue(ref(db, "candidates"), async (snap)=>{
+onValue(ref(db, "candidates"), (snap)=>{
     const data = snap.val();
-    if (!data){ posArea.innerHTML="No candidates registered."; return; }
+    if(!data){
+        posArea.innerHTML = "No candidates registered.";
+        return;
+    }
 
-    // group by position
     const groups = {};
     Object.entries(data).forEach(([id, c])=>{
         if(!groups[c.position]) groups[c.position] = [];
-        groups[c.position].push({ id, ...c });
+        groups[c.position].push({...c, id});
     });
 
-    // build UI
     let html = "";
-    for(const [pos, candList] of Object.entries(groups)){
-        html += `<h2 class="section-title">${formatTitle(pos)}</h2>`;
-        html += `<div class="landscape">`;
+    for(const [pos, list] of Object.entries(groups)){
+        html += `<h2 class='section-title'>${formatTitle(pos)}</h2>`;
+        html += `<div class='landscape'>`;
 
-        candList.sort((a,b)=> a.gender.localeCompare(b.gender)); // girl left, boy right
-
-        for(const c of candList){
+        list.forEach(c=>{
             html += `
-                <div class="candidate-box">
-                    <img src="${c.photoURL}">
-                    <div class="candidate-info">
-                        <h3>${c.firstName} ${c.middleName} ${c.lastName}</h3>
-                        <div class="vote-radio">
-                            <label>
-                                <input type="radio" name="${pos}" value="${c.firstName} ${c.middleName} ${c.lastName}">
-                                Vote
-                            </label>
-                        </div>
+            <div class="candidate-box">
+                <img src="${c.photoURL}">
+                <div class="candidate-info">
+                    <h3>${c.firstName} ${c.middleName} ${c.lastName}</h3>
+                    <div class="vote-radio">
+                        <label>
+                            <input type="radio" name="${pos}" value="${c.firstName} ${c.middleName} ${c.lastName}">
+                            Vote
+                        </label>
                     </div>
                 </div>
-            `;
-        }
+            </div>`;
+        });
 
         html += `</div>`;
     }
@@ -253,85 +204,66 @@ onValue(ref(db, "candidates"), async (snap)=>{
     posArea.innerHTML = html;
 });
 
-/* ====== Format Title ====== */
-function formatTitle(key){
-    return key
-        .replace(/Boy/g," (Boy)")
-        .replace(/Girl/g," (Girl)")
-        .replace(/generalSecretary/gi,"General Secretary")
-        .replace(/([A-Z])/g," $1")
-        .replace(/^\s/,"")
-        .toUpperCase();
+/* Format Title */
+function formatTitle(k){
+    return k.replace(/([A-Z])/g," $1").toUpperCase();
 }
 
-/* ========== SUBMIT VOTE ========== */
+/* SUBMIT VOTE */
 window.submitVote = async function(){
-    const voteData = {};
-    let allGood = true;
+    const votes = {};
 
-    for(const [pos, rule] of Object.entries(POSITION_GROUPS)){
-        const selected = document.querySelector(`input[name="${pos}"]:checked`);
-        if(!selected){
-            alert(`Please vote for: ${formatTitle(pos)}`);
-            allGood = false;
-            break;
+    for(const pos of Object.keys(POSITION_GROUPS)){
+        const sel = document.querySelector(`input[name="${pos}"]:checked`);
+        if(!sel){
+            alert(`Please vote for ${formatTitle(pos)}`);
+            return;
         }
-        voteData[pos] = selected.value;
+        votes[pos] = sel.value;
     }
 
-    if(!allGood) return;
-
-    // check double vote
-    const snap = await get(ref(db, "voters/" + voterID));
+    const snap = await get(ref(db, "voters/"+voterID));
     if(snap.exists() && snap.val().hasVoted){
         alert("You already voted!");
         return;
     }
 
-    // save vote
-    await set(ref(db, "votes/" + voterID), {
+    await set(ref(db, "votes/"+voterID), {
         voterID,
         name: `${fname} ${mname} ${lname}`,
         class: classSelect,
         gender,
-        votes: voteData,
+        votes,
         timestamp: new Date().toISOString()
     });
 
-    await update(ref(db, "voters/" + voterID), { hasVoted: true });
+    await update(ref(db, "voters/"+voterID), { hasVoted:true });
 
-    // show receipt
-    showReceipt(voteData);
+    showReceipt(votes);
 };
 
-
-/* ========== RECEIPT ========== */
+/* RECEIPT */
 function showReceipt(votes){
     let out = `
-        <h2 style="color:forestgreen;text-align:center;">🧾 UKSS Voting Receipt</h2>
-        <p><b>Name:</b> ${fname} ${mname} ${lname}</p>
-        <p><b>Class:</b> ${classSelect}</p>
-        <p><b>Gender:</b> ${gender}</p>
-        <p><b>Date:</b> ${new Date().toLocaleString()}</p>
-        <hr>
-        <h3>Your Votes:</h3>
-        <ul>
-    `;
+    <h2 style="color:forestgreen;text-align:center;">🧾 UKSS Voting Receipt</h2>
+    <p><b>Name:</b> ${fname} ${mname} ${lname}</p>
+    <p><b>Class:</b> ${classSelect}</p>
+    <p><b>Gender:</b> ${gender}</p>
+    <p><b>Date:</b> ${new Date().toLocaleString()}</p>
+    <hr>
+    <h3>Your Votes:</h3>
+    <ul>`;
 
-    for(const [pos, value] of Object.entries(votes)){
-        out += `<li><b>${formatTitle(pos)}:</b> ${value}</li>`;
+    for(const [pos,val] of Object.entries(votes)){
+        out += `<li><b>${formatTitle(pos)}</b>: ${val}</li>`;
     }
 
-    out += `
-        </ul>
-        <p style="color:green;"><b>Your vote has been recorded successfully!</b></p>
-        <button onclick="window.print()">Print Receipt</button>
-        <button onclick="location.href='index.html'">Return Home</button>
-    `;
+    out += `</ul>
+    <button onclick="window.print()">Print</button>
+    <button onclick="location.href='index.html'">Home</button>`;
 
     document.getElementById("receipt").innerHTML = out;
-    document.getElementById("receipt").style.display = "block";
-    document.querySelector("button").style.display="none";
+    document.getElementById("receipt").style.display="block";
 }
 </script>
 
