@@ -30,124 +30,44 @@ input{
     border-radius:8px;
     border:1px solid #ccc;
 }
+button{
+    padding:10px 12px;
+    border:none;
+    background:forestgreen;
+    color:white;
+    border-radius:8px;
+    cursor:pointer;
+}
+button:hover{ opacity:0.9; }
+
+.deleteBtn{
+    background:red;
+}
+
 table{
     width:100%;
     border-collapse:collapse;
-    margin-top:15px;
+    margin-top:20px;
 }
 th, td{
-    border:1px solid #ccc;
-    padding:8px;
+    padding:10px;
+    border:1px solid #ddd;
 }
 th{
     background:forestgreen;
     color:white;
 }
-button{
-    padding:8px 10px;
-    border:none;
-    background:forestgreen;
-    color:white;
-    border-radius:6px;
-    cursor:pointer;
-}
-button:hover{ opacity:0.9; }
-.deleteBtn{
-    background:red;
-}
 </style>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { 
-    getDatabase, ref, get, remove 
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-
-/* FIREBASE CONFIG */
-const firebaseConfig = {
-    apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
-    authDomain: "ukss-voting-system.firebaseapp.com",
-    databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
-    projectId: "ukss-voting-system",
-    storageBucket: "ukss-voting-system.appspot.com",
-    messagingSenderId: "525528255065",
-    appId: "1:525528255065:web:97c4e55d2984acc718bf48"
-};
-
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-
-/* ===== LOAD ALL REGISTERED VOTERS ===== */
-window.loadVoters = async function(){
-    const snap = await get(ref(db, "voters"));
-    const table = document.querySelector("#voterTable tbody");
-
-    table.innerHTML = "";
-
-    if(!snap.exists()){
-        table.innerHTML = "<tr><td colspan='5'>No voters registered.</td></tr>";
-        return;
-    }
-
-    const data = snap.val();
-
-    Object.entries(data).forEach(([id,v])=>{
-        const row = `
-            <tr>
-                <td>${id}</td>
-                <td>${v.firstName} ${v.middleName} ${v.lastName}</td>
-                <td>${v.classSelect}</td>
-                <td>${v.gender}</td>
-                <td><button class='deleteBtn' onclick="deleteVoter('${id}')">Delete</button></td>
-            </tr>
-        `;
-        table.innerHTML += row;
-    });
-};
-
-/* ===== DELETE SINGLE VOTER ===== */
-window.deleteVoter = async function(id){
-    if(!confirm("Delete voter: " + id + " ?")) return;
-
-    await remove(ref(db, "voters/" + id));
-
-    alert("Voter deleted.");
-    loadVoters();
-};
-
-/* ===== DELETE ALL VOTERS ===== */
-window.clearAll = async function(){
-    if(!confirm("DELETE ALL registered voters?")) return;
-
-    await remove(ref(db, "voters"));
-
-    alert("All voters deleted.");
-    loadVoters();
-};
-
-/* SEARCH */
-window.searchVoter = function(){
-    const q = document.getElementById("search").value.toLowerCase();
-    const rows = document.querySelectorAll("#voterTable tbody tr");
-
-    rows.forEach(r=>{
-        const text = r.textContent.toLowerCase();
-        r.style.display = text.includes(q) ? "" : "none";
-    });
-};
-
-loadVoters();
-</script>
-
 </head>
 <body>
 
 <div class="container">
-    <h1>Manage Voters</h1>
 
-    <input id="search" oninput="searchVoter()" placeholder="Search by name or ID">
+    <h1>Manage Registered Voters</h1>
 
-    <button onclick="clearAll()" style="background:red;width:100%;margin-bottom:10px;">
+    <input id="searchBox" placeholder="Search by name, gender or class" oninput="searchVoter()">
+
+    <button onclick="deleteAllVoters()" style="width:100%;background:red;margin-top:5px;">
         DELETE ALL REGISTERED VOTERS
     </button>
 
@@ -164,11 +84,113 @@ loadVoters();
         <tbody></tbody>
     </table>
 
-    <button onclick="window.location.href='admin.html'" style="margin-top:15px;">
+    <button onclick="window.location.href='admin.html'" style="width:100%;margin-top:20px;">
         ⬅ Back to Admin Dashboard
     </button>
 
 </div>
+
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } 
+    from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+
+import { 
+    getDatabase, ref, get, remove 
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+
+/* 🔥 SAME CONFIG AS YOUR ADMIN PAGE */
+const firebaseConfig = {
+    apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+    authDomain: "ukss-voting-system.firebaseapp.com",
+    databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+    projectId: "ukss-voting-system",
+    storageBucket: "ukss-voting-system.appspot.com",
+    messagingSenderId: "525528255065",
+    appId: "1:525528255065:web:97c4e55d2984acc718bf48"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+
+/* ============================
+      LOAD ALL VOTERS
+===============================*/
+async function loadVoters(){
+    const snap = await get(ref(db, "voters"));
+    const tableBody = document.querySelector("#voterTable tbody");
+    tableBody.innerHTML = "";
+
+    if(!snap.exists()){
+        tableBody.innerHTML = `<tr><td colspan="5">No registered voters.</td></tr>`;
+        return;
+    }
+
+    const data = snap.val();
+
+    Object.entries(data).forEach(([id, v]) => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${id}</td>
+            <td>${v.firstName} ${v.middleName} ${v.lastName}</td>
+            <td>${v.classSelect}</td>
+            <td>${v.gender}</td>
+            <td><button class="deleteBtn" onclick="deleteVoter('${id}')">Delete</button></td>
+        `;
+
+        tableBody.appendChild(row);
+    });
+}
+
+
+/* ============================
+     DELETE ONE VOTER
+===============================*/
+window.deleteVoter = async function(id){
+    if(!confirm("Delete voter: " + id + "?")) return;
+
+    await remove(ref(db, "voters/" + id));
+
+    alert("Voter deleted.");
+    loadVoters();
+};
+
+
+/* ============================
+     DELETE ALL VOTERS
+===============================*/
+window.deleteAllVoters = async function(){
+    if(!confirm("DELETE ALL REGISTERED VOTERS? This cannot be undone!")) return;
+
+    await remove(ref(db, "voters"));
+
+    alert("All voters deleted.");
+    loadVoters();
+};
+
+
+/* ============================
+          SEARCH
+===============================*/
+window.searchVoter = function(){
+    const q = document.getElementById("searchBox").value.toLowerCase();
+    const rows = document.querySelectorAll("#voterTable tbody tr");
+
+    rows.forEach(r=>{
+        const text = r.textContent.toLowerCase();
+        r.style.display = text.includes(q) ? "" : "none";
+    });
+};
+
+
+/* Initial load */
+loadVoters();
+
+</script>
 
 </body>
 </html>
