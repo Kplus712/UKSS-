@@ -31,6 +31,7 @@
     text-transform:uppercase;
   }
 
+  /* landscape row: left = girls, center = spacer/title area, right = boys */
   .landscape-row{
     display:flex; gap:12px; align-items:flex-start;
     flex-wrap:nowrap; justify-content:space-between;
@@ -41,6 +42,7 @@
     display:flex; flex-direction:column; gap:10px;
   }
 
+  /* candidate card */
   .candidate-card{
     display:flex; gap:12px; align-items:center;
     background:var(--card); padding:10px; border-radius:10px;
@@ -56,40 +58,116 @@
   .vote-row label{ font-weight:700; color:#083f20; cursor:pointer; user-select:none; }
   input[type="radio"]{ margin-right:8px; transform:scale(1.02); }
 
+  /* center placeholder column for title/notes (optional) */
   .center-col{ width:4%; min-width:60px; display:flex; align-items:center; justify-content:center; color:#2e7d32; font-weight:700; font-size:12px; }
 
+  /* general secretary pair layout */
+  .pair{ display:flex; gap:12px; flex-wrap:wrap; }
+
+  /* submit */
   .actions{ display:flex; gap:12px; margin-top:22px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
   .btn{ padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:800; }
   .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
+  #receipt{ display:none; margin-top:18px; background:white; border-left:6px solid var(--accent); padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
 
-  #receipt{
-    display:none;
-    margin-top:18px;
-    background:white;
-    border-left:6px solid var(--accent);
-    padding:12px;
-    border-radius:8px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.04);
+  /* ========== EFD-style popup (NEW) ========== */
+  .efd-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 230px;             /* approx EFD size */
+    max-width: 90%;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 8px 36px rgba(0,0,0,0.25);
+    z-index: 9999;
+    font-family: "Courier New", Courier, monospace;
+    display: none;
+    flex-direction: column;
+    padding: 10px;
+    border-left: 6px solid #111;
+    transform-origin: top right;
+    animation: slideIn .18s ease;
   }
 
-  #qrBox{
-    text-align:center;
-    margin-top:15px;
-    margin-bottom:10px;
+  @keyframes slideIn {
+    from { transform: translateY(-8px) scale(.98); opacity:0 }
+    to   { transform: translateY(0) scale(1); opacity:1 }
   }
 
-  @media (max-width:900px){
-    .landscape-row{ flex-direction:column; }
-    .column{ width:100%; }
-    .center-col{ display:none; }
+  .efd-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:8px;
   }
+  .efd-title { font-size:12px; font-weight:700; color:#111; letter-spacing:0.6px; }
+  .efd-controls { display:flex; gap:6px; align-items:center; }
+
+  .efd-controls button {
+    background: transparent;
+    border: none;
+    cursor:pointer;
+    font-weight:700;
+    color:#2e7d32;
+    padding:4px 6px;
+    border-radius:4px;
+  }
+
+  .efd-body {
+    font-size:11px;
+    color:#111;
+    line-height:1.1;
+    padding:6px 0;
+  }
+
+  .efd-divider {
+    border-top: 1px dashed #444;
+    margin:8px 0;
+  }
+
+  .efd-item { display:flex; justify-content:space-between; font-size:11px; margin:6px 0; }
+  .efd-small { font-size:10px; color:#444; }
+
+  .efd-qr {
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-top:8px;
+  }
+  .efd-qr img { width:140px; height:140px; object-fit:contain; }
+
+  .efd-actions {
+    margin-top:8px;
+    display:flex;
+    gap:6px;
+  }
+  .efd-actions button {
+    flex:1;
+    padding:8px;
+    border-radius:6px;
+    border:none;
+    cursor:pointer;
+    font-weight:800;
+  }
+  .print-btn { background:#1b5e20; color:white; }
+  .close-btn { background:#eee; color:#111; }
+
+  /* Hide popup for small screens by default? we'll keep it visible when used */
+  @media (max-width:520px){
+    .efd-popup { right:10px; top:10px; width:86vw; }
+    .efd-qr img { width:110px; height:110px; }
+  }
+
+  /* Print rules: when printing from the print button, open a print window (we don't rely on page CSS). */
 </style>
 </head>
+
 <body>
   <div class="container">
     <h1>🗳️ UKSS Student Voting</h1>
     <p class="lead">Choose leaders carefully — girls displayed on the left, boys on the right. General Secretary: choose one (male or female).</p>
 
+    <!-- positions area will be filled dynamically -->
     <div id="positionsArea">Loading candidates...</div>
 
     <div class="actions">
@@ -100,8 +178,34 @@
     <div id="receipt"></div>
   </div>
 
+  <!-- EFD-style popup (added) -->
+  <div id="efdPopup" class="efd-popup" aria-hidden="true" role="dialog" aria-label="Voting receipt">
+    <div class="efd-header">
+      <div class="efd-title">UKSS — RECEIPT</div>
+      <div class="efd-controls">
+        <button id="efdCloseBtn" title="Close">✖</button>
+      </div>
+    </div>
+
+    <div class="efd-body" id="efdBody">
+      <!-- content filled dynamically -->
+      <div class="efd-small">Processing...</div>
+    </div>
+
+    <div class="efd-divider" role="separator"></div>
+
+    <div class="efd-qr" id="efdQrWrap">
+      <!-- QR image inserted here -->
+    </div>
+
+    <div class="efd-actions">
+      <button id="printReceiptBtn" class="print-btn">PRINT</button>
+      <button id="closeReceiptBtn" class="close-btn">CLOSE</button>
+    </div>
+  </div>
+
 <script type="module">
-/* ================= Config ================= */
+/* ================= Configuration ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
@@ -118,7 +222,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-/* ================= Voter Session ================= */
+/* ============== VOTER SESSION (from localStorage) ============== */
 const voterID = localStorage.getItem("voterID");
 const fname = localStorage.getItem("firstName") || "";
 const mname = localStorage.getItem("middleName") || "";
@@ -131,64 +235,324 @@ if(!voterID){
   location.href = "index.html";
 }
 
-/* ----------------------------------------------------------- */
-/* ================= RECEIPT WITH QR CODE ===================== */
-/* ----------------------------------------------------------- */
+/* ============== Helper: placeholder SVG dataURI ============== */
+function placeholderDataUrl(gender){
+  const isMale = String(gender||"").toLowerCase().startsWith("m");
+  const bg = isMale ? "#dff0d9" : "#f1efe5";
+  const color = isMale ? "#2e7d32" : "#4a7a4a";
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 100 100'>
+    <rect width='100' height='100' rx='12' fill='${bg}'/>
+    <circle cx='50' cy='32' r='14' fill='${color}' fill-opacity='0.18'/>
+    <circle cx='50' cy='32' r='6' fill='${color}'/>
+    <rect x='20' y='58' width='60' height='22' rx='8' fill='${color}' fill-opacity='0.12'/>
+    <text x='50' y='88' font-size='6' fill='${color}' text-anchor='middle' font-family='Arial'>${isMale ? 'Boy' : 'Girl'}</text>
+  </svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
 
-function showReceipt(voteObj){
-  const receipt = document.getElementById("receipt");
-  const v = voteObj.votes || {};
+/* ============== Utility: text prettify for position titles ============== */
+function prettyTitle(posKey){
+  const map = {
+    head: "Head Prefect",
+    generalSecretary: "General Secretary",
+    sports: "Sports & Games Prefect",
+    food: "Food Prefect",
+    environment: "Environmental Prefect",
+    health: "Health Prefect",
+    maintenance: "Maintenance Prefect",
+    store: "Store Keeper",
+    academic: "Academic Prefect",
+    discipline: "Discipline Prefect"
+  };
+  const base = posKey.replace(/(Boy|Girl)$/i, "");
+  return map[base] || base.replace(/([A-Z])/g," $1").trim();
+}
 
-  /* ---------------- QR CODE CONTENT ---------------- */
-  const qrText = encodeURIComponent(
-    `UKSS RECEIPT\nName:${voteObj.name}\nClass:${voteObj.class}\nVoterID:${voteObj.voterID}\nTime:${voteObj.timestamp}`
-  );
+/* ============== Fetch & Render candidates ============== */
+const positionsArea = document.getElementById("positionsArea");
+let latestCandidates = {}; // snapshot cache
 
-  const qrURL = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${qrText}`;
+function groupCandidatesByBase(candidatesObj){
+  const groups = {};
+  Object.entries(candidatesObj).forEach(([id, c])=>{
+    const pos = c.position || "";
+    let base = pos;
+    if(/Boy$/i.test(pos) || /Girl$/i.test(pos)){
+      base = pos.replace(/(Boy|Girl)$/i, "");
+    } else if(/generalSecretary/i.test(pos)){
+      base = "generalSecretary";
+    }
+    if(!groups[base]) groups[base] = { girls:[], boys:[], rawPositions: new Set() };
+    groups[base].rawPositions.add(pos);
 
-  /* ---------------- RECEIPT HTML ---------------- */
-  let html = `
-      <h2 style="color:var(--accent); text-align:center">🧾 Voting Receipt</h2>
+    const candidate = { id, ...c };
+    const g = (c.gender||"").toLowerCase();
+    if(/female|girl|f/i.test(g) || /Girl$/i.test(pos)) groups[base].girls.push(candidate);
+    else groups[base].boys.push(candidate);
+  });
+  return groups;
+}
 
-      <p><b>Name:</b> ${voteObj.name}</p>
-      <p><b>Class:</b> ${voteObj.class}</p>
-      <p><b>Gender:</b> ${voteObj.gender}</p>
-      <p><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</p>
-
-      <div id="qrBox">
-        <!-- QR CODE HERE -->
-        <img src="${qrURL}" style="width:160px;height:160px;">
-        <p style="font-size:12px;color:#555;">Scan to verify</p>
+function buildCandidateCardHTML(c, radioName){
+  const fullname = `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim();
+  const photo = c.photoURL || placeholderDataUrl(c.gender);
+  return `
+    <div class="candidate-card" data-id="${c.id}">
+      <img src="${photo}" alt="${fullname}">
+      <div class="candidate-info">
+        <h3>${fullname}</h3>
+        <p>${c.classSelect || ""} ${c.gender ? " • " + c.gender : ""}</p>
+        <div class="vote-row">
+          <label><input type="radio" name="${radioName}" value="${fullname}"> Select</label>
+        </div>
       </div>
-
-      <hr><h3>Your Choices</h3><ul>
+    </div>
   `;
+}
 
-  for(const [k,val] of Object.entries(v)){
-    const label = (k === "generalSecretary")
-      ? prettyTitle("generalSecretary")
-      : prettyTitle(k.replace(/(Girl|Boy)$/i,""));
+function renderCandidates(snapshotObj){
+  latestCandidates = snapshotObj || {};
+  const groups = groupCandidatesByBase(snapshotObj || {});
 
-    html += `<li><b>${label}</b>: ${val}</li>`;
+  const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
+  const presentBases = Object.keys(groups);
+
+  const ordered = [];
+  naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
+  presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
+
+  let out = "";
+  for(const base of ordered){
+    const grp = groups[base];
+    if(!grp) continue;
+    out += `<div class="position-block" data-base="${base}">`;
+    out += `<div class="position-title">${prettyTitle(base)}</div>`;
+
+    if(base === "generalSecretary"){
+      out += `<div class="landscape-row">`;
+      out += `<div class="column">`;
+      if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
+      grp.girls.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
+      out += `</div>`;
+      out += `<div class="center-col">VS</div>`;
+      out += `<div class="column">`;
+      if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
+      grp.boys.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
+      out += `</div>`;
+      out += `</div>`;
+    } else {
+      out += `<div class="landscape-row">`;
+      out += `<div class="column">`;
+      if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
+      grp.girls.forEach(c => out += buildCandidateCardHTML(c, base + "Girl"));
+      out += `</div>`;
+      out += `<div class="center-col"></div>`;
+      out += `<div class="column">`;
+      if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
+      grp.boys.forEach(c => out += buildCandidateCardHTML(c, base + "Boy"));
+      out += `</div>`;
+      out += `</div>`;
+    }
+
+    out += `</div>`;
   }
 
-  html += `</ul>
-      <br>
-      <button onclick="window.print()" class="btn" style="margin-right:8px">Print Receipt</button>
-      <button onclick="location.href='index.html'" class="btn secondary">Return Home</button>
-  `;
+  positionsArea.innerHTML = out;
+}
 
+/* ============== Live listener ============== */
+const candidatesRef = ref(db, "candidates");
+onValue(candidatesRef, snap => {
+  const data = snap.val();
+  if(!data){
+    positionsArea.innerHTML = `<div style="padding:20px;color:#556">No candidates registered yet.</div>`;
+    return;
+  }
+  renderCandidates(data);
+});
+
+/* ============== Voting submission logic ============== */
+document.getElementById("submitBtn").addEventListener("click", async () => {
+  const groups = document.querySelectorAll(".position-block");
+  const votes = {};
+  for(const block of groups){
+    const base = block.dataset.base;
+    if(!base) continue;
+    if(base === "generalSecretary"){
+      const sel = block.querySelector('input[name="generalSecretary"]:checked');
+      if(!sel){
+        alert(`Please choose a candidate for: ${prettyTitle(base)}`);
+        return;
+      }
+      votes["generalSecretary"] = sel.value;
+    } else {
+      const selG = block.querySelector(`input[name="${base}Girl"]:checked`);
+      const selB = block.querySelector(`input[name="${base}Boy"]:checked`);
+      if(!selG || !selB){
+        alert(`Please choose both female and male for: ${prettyTitle(base)} (girls left, boys right)`);
+        return;
+      }
+      votes[base + "Girl"] = selG.value;
+      votes[base + "Boy"] = selB.value;
+    }
+  }
+
+  const voterSnap = await get(ref(db, "voters/" + voterID));
+  if(voterSnap.exists() && voterSnap.val().hasVoted){
+    alert("You have already voted. Duplicate voting not allowed.");
+    return;
+  }
+
+  const voteObj = {
+    voterID,
+    name: `${fname} ${mname} ${lname}`.trim(),
+    class: classSelect,
+    gender,
+    votes,
+    timestamp: new Date().toISOString()
+  };
+
+  try{
+    await set(ref(db, "votes/" + voterID), voteObj);
+    await update(ref(db, "voters/" + voterID), { hasVoted: true });
+  }catch(err){
+    alert("Failed to save your vote: " + (err.message||err));
+    return;
+  }
+
+  // show popup EFD-style receipt (new)
+  showEfdPopup(voteObj);
+});
+
+/* ============== Refresh button ============== */
+document.getElementById("refreshBtn").addEventListener("click", async () => {
+  const snap = await get(candidatesRef);
+  renderCandidates(snap.val() || {});
+  alert("Candidates refreshed.");
+});
+
+/* ============== EFD popup logic (NEW) ============== */
+const efdPopup = document.getElementById("efdPopup");
+const efdBody = document.getElementById("efdBody");
+const efdQrWrap = document.getElementById("efdQrWrap");
+const printReceiptBtn = document.getElementById("printReceiptBtn");
+const closeReceiptBtn = document.getElementById("closeReceiptBtn");
+const efdCloseBtn = document.getElementById("efdCloseBtn");
+
+function safeShortName(name){
+  return (String(name || "").split(" ").slice(0,2).join(" ")).toUpperCase();
+}
+
+function buildEfdHtml(voteObj){
+  // Build a compact EFD-like textual receipt
+  const v = voteObj.votes || {};
+  const fullname = voteObj.name || "";
+  const header = `<div style="text-align:center;font-weight:800;margin-bottom:6px">UKSS — VOTING RECEIPT</div>`;
+  const meta = `<div class="efd-small">ID: ${voteObj.voterID || ''}</div>
+                <div class="efd-small">${new Date(voteObj.timestamp).toLocaleString()}</div>`;
+  // choices: show compressed lines
+  let choicesHtml = "";
+  for(const [k, val] of Object.entries(v)){
+    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
+                  prettyTitle(k.replace(/(Girl|Boy)$/i,""));
+    const suffix = (/(Girl|Boy)$/.test(k)) ? ` (${k.match(/(Girl|Boy)$/i)[0]})` : "";
+    choicesHtml += `<div class="efd-item"><div style="max-width:60%">${label}${suffix}</div><div style="text-align:right">${val}</div></div>`;
+  }
+  const footer = `<div class="efd-divider"></div><div style="text-align:center;font-size:11px" class="efd-small">Thank you for voting</div>`;
+
+  return header + meta + "<div class='efd-divider'></div>" + choicesHtml + footer;
+}
+
+function generateQrDataUrl(payload){
+  // Use Google's Chart API to obtain a QR image (quick, no library). We only construct the URL as img src.
+  // payload should be reasonably small; we'll use encodeURIComponent.
+  const json = JSON.stringify(payload);
+  const encoded = encodeURIComponent(json);
+  // size 200x200 (fits in popup)
+  const url = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encoded}`;
+  return url;
+}
+
+function showEfdPopup(voteObj){
+  // Fill content
+  efdBody.innerHTML = buildEfdHtml(voteObj);
+
+  // Build QR - put vote object (not including heavy data) into QR so scanning yields the vote summary
+  const qrPayload = {
+    id: voteObj.voterID,
+    name: voteObj.name,
+    class: voteObj.class,
+    timestamp: voteObj.timestamp,
+    votes: voteObj.votes
+  };
+  const qrUrl = generateQrDataUrl(qrPayload);
+  efdQrWrap.innerHTML = `<img alt="QR code" src="${qrUrl}" />`;
+
+  // show popup
+  efdPopup.style.display = "flex";
+  efdPopup.setAttribute("aria-hidden","false");
+
+  // attach handlers (print/close)
+  // Print: open small print window containing the EFD markup (preserve monospace look)
+  printReceiptBtn.onclick = () => {
+    const printHtml = `
+      <!doctype html><html><head><meta charset="utf-8"><title>Receipt</title>
+      <style>
+        body{font-family: "Courier New", Courier, monospace; padding:10px; color:#111;}
+        .box{width:240px; margin:auto; border-left:6px solid #111; padding:8px;}
+        .small{font-size:12px;}
+        .item{display:flex; justify-content:space-between; margin:6px 0; font-size:12px;}
+        img{display:block; margin:8px auto; width:140px; height:140px;}
+        hr{border-top:1px dashed #333;}
+      </style>
+      </head><body><div class="box">
+      ${buildEfdHtml(voteObj)}
+      <div style="margin-top:8px"><img src="${qrUrl}" alt="QR"></div>
+      </div>
+      <script>window.onload=function(){ setTimeout(()=>{ window.print(); },120); }</script>
+      </body></html>`;
+    const w = window.open("", "_blank", "width=360,height=640,menubar=no,toolbar=no,location=no");
+    if(!w) { alert("Popup blocked — allow popups to print receipt."); return; }
+    w.document.open();
+    w.document.write(printHtml);
+    w.document.close();
+  };
+
+  closeReceiptBtn.onclick = () => {
+    efdPopup.style.display = "none";
+    efdPopup.setAttribute("aria-hidden","true");
+    // restore submit button so user can't re-submit accidentally? keep submit hidden below
+    // We intentionally DON'T change DB or votes here.
+  };
+
+  efdCloseBtn.onclick = closeReceiptBtn;
+}
+
+/* ============== For compatibility: keep original showReceipt (page receipt area) if needed ============== */
+function showReceiptInline(voteObj){
+  const receipt = document.getElementById("receipt");
+  const v = voteObj.votes || {};
+  let html = `<h2 style="color:var(--accent); text-align:center">🧾 Voting Receipt</h2>`;
+  html += `<p><b>Name:</b> ${voteObj.name}</p>`;
+  html += `<p><b>Class:</b> ${voteObj.class}</p>`;
+  html += `<p><b>Gender:</b> ${voteObj.gender}</p>`;
+  html += `<p><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</p>`;
+  html += `<hr><h3>Your Choices</h3><ul>`;
+  for(const [k,val] of Object.entries(v)){
+    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
+                  prettyTitle(k.replace(/(Girl|Boy)$/i,""));
+    html += `<li><b>${label} ${/(Girl|Boy)$/.test(k) ? ("("+ (k.match(/(Girl|Boy)$/i)||[])[0] +")") : ""}:</b> ${val}</li>`;
+  }
+  html += `</ul>`;
+  html += `<div style="margin-top:12px"><button onclick="window.print()" class="btn" style="margin-right:8px">Print Receipt</button><button onclick="location.href='index.html'" class="btn secondary">Return Home</button></div>`;
   receipt.innerHTML = html;
   receipt.style.display = "block";
   document.getElementById("submitBtn").style.display = "none";
 }
 
-/* ----------------------------------------------------------- */
-/* Everything else remains the same — NOT REMOVED NOR CHANGED */
-/* ----------------------------------------------------------- */
-
-/* placeholder SVG, renderCandidates, event listeners, submission logic... */
-/* I have intentionally left your full original logic untouched. */
+/* ========================================= */
+/* Keep window/global safe: do not alter DB logic elsewhere. */
+/* ========================================= */
 
 </script>
 </body>
