@@ -1,242 +1,375 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UKSS Voting Page</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>UKSS Voting — Official</title>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background:#f4fff4;
+  :root{
+    --green:#1b5e20;
+    --bg:#f4fff4;
+    --card:#e8f5e9;
+    --accent:#2e7d32;
+  }
+  *{box-sizing:border-box}
+  body{
     margin:0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:var(--bg);
+    color:#123;
     padding:20px;
-}
-.container {
-    max-width: 1000px;
-    margin:auto;
-    background:white;
-    padding:20px 25px;
-    border-radius:12px;
-    border:5px solid forestgreen;
-    box-shadow:0 2px 8px rgba(0,0,0,0.15);
-}
-h1 { text-align:center;color:forestgreen;margin-bottom:5px; }
-.section-title{
-    color:#1b5e20;
-    margin-top:30px;
-    margin-bottom:15px;
-    font-size:22px;
-    border-left:6px solid forestgreen;
-    padding-left:10px;
-}
-.landscape{ display:flex;flex-wrap:wrap;gap:18px;width:100%; }
-.candidate-box{
+  }
+  .container{ max-width:1100px; margin:20px auto; background:white; border-radius:12px;
+    padding:18px; border:5px solid var(--accent); box-shadow:0 6px 24px rgba(0,0,0,0.08);}
+  h1{ text-align:center; color:var(--accent); margin:6px 0 12px; }
+  p.lead{ text-align:center; color:#2e7d32; margin-top:0; font-weight:600; }
+  .position-block{ margin:28px 0; position:relative; }
+  .position-title{
+    text-align:center; font-weight:800; color:var(--green);
+    font-size:18px; letter-spacing:0.6px; margin-bottom:12px;
+    text-transform:uppercase;
+  }
+
+  /* landscape row: left = girls, center = spacer/title area, right = boys */
+  .landscape-row{
+    display:flex; gap:12px; align-items:flex-start;
+    flex-wrap:nowrap; justify-content:space-between;
+  }
+
+  .column {
     width:48%;
-    background:#e8f5e9;
-    padding:12px;
-    border-radius:10px;
-    display:flex;
-    gap:12px;
-    align-items:center;
-    border:2px solid #c8e6c9;
-}
-.candidate-box img{
-    width:110px;height:110px;border-radius:8px;
-    object-fit:cover;border:3px solid forestgreen;
-}
-button{
-    width:100%;padding:12px;font-size:18px;
-    border:none;background:forestgreen;
-    color:white;border-radius:10px;margin-top:30px;
-}
-#receipt{
-    display:none;background:white;border-radius:10px;
-    padding:20px;margin-top:25px;border-left:6px solid forestgreen;
-}
+    display:flex; flex-direction:column; gap:10px;
+  }
+
+  /* candidate card */
+  .candidate-card{
+    display:flex; gap:12px; align-items:center;
+    background:var(--card); padding:10px; border-radius:10px;
+    border:2px solid rgba(46,125,50,0.08);
+  }
+  .candidate-card img{
+    width:96px; height:96px; object-fit:cover; border-radius:8px; border:3px solid var(--accent);
+  }
+  .candidate-info h3{ margin:0; font-size:16px; color:#15491a; }
+  .candidate-info p{ margin:4px 0 0; font-size:13px; color:#21572a; }
+
+  .vote-row{ margin-top:8px; }
+  .vote-row label{ font-weight:700; color:#083f20; cursor:pointer; user-select:none; }
+  input[type="radio"]{ margin-right:8px; transform:scale(1.02); }
+
+  /* center placeholder column for title/notes (optional) */
+  .center-col{ width:4%; min-width:60px; display:flex; align-items:center; justify-content:center; color:#2e7d32; font-weight:700; font-size:12px; }
+
+  /* general secretary pair layout */
+  .pair{ display:flex; gap:12px; flex-wrap:wrap; }
+
+  /* submit */
+  .actions{ display:flex; gap:12px; margin-top:22px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+  .btn{ padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:800; }
+  .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
+  #receipt{ display:none; margin-top:18px; background:white; border-left:6px solid var(--accent); padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
+
+  /* responsive */
+  @media (max-width:900px){
+    .landscape-row{ flex-direction:column; }
+    .column{ width:100%; }
+    .center-col{ display:none; }
+  }
 </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗳️ UKSS Student Voting</h1>
+    <p class="lead">Choose leaders carefully — girls displayed on the left, boys on the right. General Secretary: choose one (male or female).</p>
 
-<!-- FIXED FIREBASE SDK -->
+    <!-- positions area will be filled dynamically -->
+    <div id="positionsArea">Loading candidates...</div>
+
+    <div class="actions">
+      <button class="btn" id="submitBtn">SUBMIT VOTE</button>
+      <button class="btn secondary" id="refreshBtn">Refresh Candidates</button>
+    </div>
+
+    <div id="receipt"></div>
+  </div>
+
 <script type="module">
-import { initializeApp } 
-    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+/* ================= Configuration ================= */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-import { 
-    getDatabase, ref, get, set, onValue, update 
-} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
-
-import { 
-    getStorage, ref as sRef, getDownloadURL 
-} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
-
-/* ---- Firebase Config ---- */
 const firebaseConfig = {
-    apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
-    authDomain: "ukss-voting-system.firebaseapp.com",
-    databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
-    projectId: "ukss-voting-system",
-    storageBucket: "ukss-voting-system.appspot.com",
-    messagingSenderId: "525528255065",
-    appId: "1:525528255065:web:97c4e55d2984acc718bf48"
+  apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+  authDomain: "ukss-voting-system.firebaseapp.com",
+  databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+  projectId: "ukss-voting-system",
+  storageBucket: "ukss-voting-system.appspot.com",
+  messagingSenderId: "525528255065",
+  appId: "1:525528255065:web:97c4e55d2984acc718bf48"
 };
 
 const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-const storage = getStorage(app);
+const db = getDatabase(app);
 
-/* ==== VOTER SESSION ==== */
+/* ============== VOTER SESSION (from localStorage) ============== */
 const voterID = localStorage.getItem("voterID");
-const fname   = localStorage.getItem("firstName");
-const mname   = localStorage.getItem("middleName");
-const lname   = localStorage.getItem("lastName");
-const classSelect = localStorage.getItem("classSelect");
-const gender  = localStorage.getItem("gender");
+const fname = localStorage.getItem("firstName") || "";
+const mname = localStorage.getItem("middleName") || "";
+const lname = localStorage.getItem("lastName") || "";
+const classSelect = localStorage.getItem("classSelect") || "";
+const gender = localStorage.getItem("gender") || "";
 
 if(!voterID){
-    alert("You are not registered. Redirecting...");
-    location.href = "index.html";
+  alert("You are not registered. Redirecting to home.");
+  location.href = "index.html";
 }
 
-/* ==== POSITION GROUPS ==== */
-const POSITION_GROUPS = {
-    headBoy: 1,
-    headGirl: 1,
-    generalSecretaryBoy: 1,
-    generalSecretaryGirl: 1,
-    sportsBoy: 1,
-    sportsGirl: 1,
-    foodBoy: 1,
-    foodGirl: 1,
-    environmentBoy: 1,
-    environmentGirl: 1,
-    healthBoy: 1,
-    healthGirl: 1,
-    maintenanceBoy: 1,
-    maintenanceGirl: 1,
-    storeBoy: 1,
-    storeGirl: 1,
-    academicBoy: 1,
-    academicGirl: 1,
-    disciplineBoy: 1,
-    disciplineGirl: 1
-};
+/* ============== Helper: placeholder SVG dataURI ============== */
+function placeholderDataUrl(gender){
+  // simple circular SVG silhouette
+  const isMale = String(gender||"").toLowerCase().startsWith("m");
+  const bg = isMale ? "#dff0d9" : "#f1efe5";
+  const color = isMale ? "#2e7d32" : "#4a7a4a";
+  const face = isMale ? "M50 30 a14 14 0 1 0 0.0001 0" : "M50 30 a14 14 0 1 0 0.0001 0";
+  // minimal SVG
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 100 100'>
+    <rect width='100' height='100' rx='12' fill='${bg}'/>
+    <circle cx='50' cy='32' r='14' fill='${color}' fill-opacity='0.18'/>
+    <circle cx='50' cy='32' r='6' fill='${color}'/>
+    <rect x='20' y='58' width='60' height='22' rx='8' fill='${color}' fill-opacity='0.12'/>
+    <text x='50' y='88' font-size='6' fill='${color}' text-anchor='middle' font-family='Arial'>${isMale ? 'Boy' : 'Girl'}</text>
+  </svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
 
-/* ==== LOAD & RENDER CANDIDATES ==== */
-const posArea = document.getElementById("positionsArea");
+/* ============== Utility: text prettify for position titles ============== */
+function prettyTitle(posKey){
+  // Examples: maintenance -> Maintenance Prefect, head -> Head Prefect etc
+  const map = {
+    head: "Head Prefect",
+    generalSecretary: "General Secretary",
+    sports: "Sports & Games Prefect",
+    food: "Food Prefect",
+    environment: "Environmental Prefect",
+    health: "Health Prefect",
+    maintenance: "Maintenance Prefect",
+    store: "Store Keeper",
+    academic: "Academic Prefect",
+    discipline: "Discipline Prefect"
+  };
+  // normalize: remove suffix Boy/Girl
+  const base = posKey.replace(/(Boy|Girl)$/i, "");
+  return map[base] || base.replace(/([A-Z])/g," $1").trim();
+}
 
-onValue(ref(db,"candidates"), snap=>{
-    const data = snap.val();
-    if(!data){
-        posArea.innerHTML = "No candidates registered.";
-        return;
+/* ============== Fetch & Render candidates ============== */
+const positionsArea = document.getElementById("positionsArea");
+
+let latestCandidates = {}; // snapshot cache
+
+function groupCandidatesByBase(candidatesObj){
+  // candidatesObj: { id: {firstName, lastName, position, gender, photoURL}, ... }
+  const groups = {}; // base -> {girls:[], boys:[], rawPositions:set}
+  Object.entries(candidatesObj).forEach(([id, c])=>{
+    const pos = c.position || "";
+    // derive base: remove trailing Boy/Girl if present; special-case generalSecretary naming
+    let base = pos;
+    if(/Boy$/i.test(pos) || /Girl$/i.test(pos)){
+      base = pos.replace(/(Boy|Girl)$/i, "");
+    } else if(/generalSecretary/i.test(pos)){
+      base = "generalSecretary";
+    }
+    if(!groups[base]) groups[base] = { girls:[], boys:[], rawPositions: new Set() };
+    groups[base].rawPositions.add(pos);
+
+    const candidate = { id, ...c };
+    const g = (c.gender||"").toLowerCase();
+    if(/female|girl|f/i.test(g) || /Girl$/i.test(pos)) groups[base].girls.push(candidate);
+    else groups[base].boys.push(candidate);
+  });
+
+  return groups;
+}
+
+function buildCandidateCardHTML(c, radioName){
+  const fullname = `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim();
+  const photo = c.photoURL || placeholderDataUrl(c.gender);
+  return `
+    <div class="candidate-card" data-id="${c.id}">
+      <img src="${photo}" alt="${fullname}">
+      <div class="candidate-info">
+        <h3>${fullname}</h3>
+        <p>${c.classSelect || ""} ${c.gender ? " • " + c.gender : ""}</p>
+        <div class="vote-row">
+          <label><input type="radio" name="${radioName}" value="${fullname}"> Select</label>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCandidates(snapshotObj){
+  latestCandidates = snapshotObj || {};
+  const groups = groupCandidatesByBase(snapshotObj || {});
+
+  // We'll render positions in a logical order (head first, generalSecretary, others)
+  const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
+  const presentBases = Object.keys(groups);
+
+  // order: intersection of naturalOrder + others (append remaining)
+  const ordered = [];
+  naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
+  presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
+
+  let out = "";
+  for(const base of ordered){
+    const grp = groups[base];
+    if(!grp) continue;
+    // Title
+    out += `<div class="position-block" data-base="${base}">`;
+    out += `<div class="position-title">${prettyTitle(base)}</div>`;
+
+    // Special case: generalSecretary -> allow single radio name across boys & girls
+    if(base === "generalSecretary"){
+      // create a horizontal pair of candidates (girls left, boys right), but same radio name "generalSecretary"
+      out += `<div class="landscape-row">`;
+      // left column (girls)
+      out += `<div class="column">`;
+      if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
+      grp.girls.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
+      out += `</div>`; // end left
+      out += `<div class="center-col">VS</div>`;
+      out += `<div class="column">`;
+      if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
+      grp.boys.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
+      out += `</div>`; // end right
+      out += `</div>`; // end landscape-row
+    } else {
+      // For other positions, we render left = girls with radio name base + "Girl", right = boys with radio name base + "Boy".
+      out += `<div class="landscape-row">`;
+      // left column (girls)
+      out += `<div class="column">`;
+      if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
+      grp.girls.forEach(c => out += buildCandidateCardHTML(c, base + "Girl"));
+      out += `</div>`;
+      out += `<div class="center-col"></div>`;
+      // right column (boys)
+      out += `<div class="column">`;
+      if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
+      grp.boys.forEach(c => out += buildCandidateCardHTML(c, base + "Boy"));
+      out += `</div>`;
+      out += `</div>`; // end landscape-row
     }
 
-    const groups = {};
-    Object.entries(data).forEach(([id,c])=>{
-        if(!groups[c.position]) groups[c.position]=[];
-        groups[c.position].push({...c,id});
-    });
+    out += `</div>`; // end position-block
+  }
 
-    let html="";
-    for(const [pos,list] of Object.entries(groups)){
-        html += `<h2 class='section-title'>${formatTitle(pos)}</h2>`;
-        html += `<div class='landscape'>`;
+  positionsArea.innerHTML = out;
+}
 
-        list.forEach(c=>{
-            html+=`
-            <div class="candidate-box">
-                <img src="${c.photoURL}">
-                <div>
-                   <h3>${c.firstName} ${c.middleName} ${c.lastName}</h3>
-                   <label><input type="radio" name="${pos}" value="${c.firstName} ${c.middleName} ${c.lastName}"> Vote</label>
-                </div>
-            </div>`;
-        });
-
-        html += `</div>`;
-    }
-
-    posArea.innerHTML=html;
+/* ============== Live listener ============== */
+const candidatesRef = ref(db, "candidates");
+onValue(candidatesRef, snap => {
+  const data = snap.val();
+  if(!data){
+    positionsArea.innerHTML = `<div style="padding:20px;color:#556">No candidates registered yet.</div>`;
+    return;
+  }
+  renderCandidates(data);
 });
 
-function formatTitle(t){
-    return t
-      .replace(/([A-Z])/g," $1")
-      .replace(/Boy/,"(Boy)")
-      .replace(/Girl/,"(Girl)")
-      .trim()
-      .toUpperCase();
-}
-
-/* ==== SUBMIT VOTE ==== */
-window.submitVote = async function(){
-    const votes={};
-
-    for(const pos of Object.keys(POSITION_GROUPS)){
-        const chosen = document.querySelector(`input[name="${pos}"]:checked`);
-        if(!chosen){
-            alert(`Please vote for: ${formatTitle(pos)}`);
-            return;
-        }
-        votes[pos] = chosen.value;
-    }
-
-    const snap = await get(ref(db,"voters/"+voterID));
-    if(snap.exists() && snap.val().hasVoted){
-        alert("You already voted!");
+/* ============== Voting submission logic ============== */
+document.getElementById("submitBtn").addEventListener("click", async () => {
+  // Build expected groups from the currently rendered DOM
+  // We'll check for generalSecretary (single) and for other bases require separate female+male selections
+  const groups = document.querySelectorAll(".position-block");
+  const votes = {};
+  for(const block of groups){
+    const base = block.dataset.base;
+    if(!base) continue;
+    if(base === "generalSecretary"){
+      const sel = block.querySelector('input[name="generalSecretary"]:checked');
+      if(!sel){
+        alert(`Please choose a candidate for: ${prettyTitle(base)}`);
         return;
+      }
+      votes["generalSecretary"] = sel.value;
+    } else {
+      const selG = block.querySelector(`input[name="${base}Girl"]:checked`);
+      const selB = block.querySelector(`input[name="${base}Boy"]:checked`);
+      if(!selG || !selB){
+        alert(`Please choose both female and male for: ${prettyTitle(base)} (girls left, boys right)`);
+        return;
+      }
+      votes[base + "Girl"] = selG.value;
+      votes[base + "Boy"] = selB.value;
     }
+  }
 
-    await set(ref(db,"votes/"+voterID),{
-        voterID,
-        name:`${fname} ${mname} ${lname}`,
-        class:classSelect,
-        gender,
-        votes,
-        timestamp:new Date().toISOString()
-    });
+  // check double vote
+  const voterSnap = await get(ref(db, "voters/" + voterID));
+  if(voterSnap.exists() && voterSnap.val().hasVoted){
+    alert("You have already voted. Duplicate voting not allowed.");
+    return;
+  }
 
-    await update(ref(db,"voters/"+voterID),{ hasVoted:true });
+  // Save votes
+  const voteObj = {
+    voterID,
+    name: `${fname} ${mname} ${lname}`.trim(),
+    class: classSelect,
+    gender,
+    votes,
+    timestamp: new Date().toISOString()
+  };
 
-    showReceipt(votes);
-};
+  try{
+    await set(ref(db, "votes/" + voterID), voteObj);
+    await update(ref(db, "voters/" + voterID), { hasVoted: true });
+  }catch(err){
+    alert("Failed to save your vote: " + (err.message||err));
+    return;
+  }
 
-/* ==== RECEIPT ==== */
-function showReceipt(v){
-    let out = `
-    <h2 style="color:forestgreen;text-align:center;">🧾 UKSS Voting Receipt</h2>
-    <p><b>Name:</b> ${fname} ${mname} ${lname}</p>
-    <p><b>Class:</b> ${classSelect}</p>
-    <p><b>Gender:</b> ${gender}</p>
-    <p><b>Date:</b> ${new Date().toLocaleString()}</p>
-    <h3>Your Votes:</h3><ul>`;
+  showReceipt(voteObj);
+});
 
-    for(const [k,val] of Object.entries(v)){
-        out+=`<li><b>${formatTitle(k)}:</b> ${val}</li>`;
-    }
+/* ============== Refresh button ============== */
+document.getElementById("refreshBtn").addEventListener("click", async () => {
+  // brief refresh: re-read DB once (onValue already streams, but do quick read)
+  const snap = await get(candidatesRef);
+  renderCandidates(snap.val() || {});
+  alert("Candidates refreshed.");
+});
 
-    out+=`</ul>
-    <button onclick="window.print()">Print Receipt</button>
-    <button onclick="location.href='index.html'">Return Home</button>`;
-
-    document.getElementById("receipt").innerHTML=out;
-    document.getElementById("receipt").style.display="block";
-    document.querySelector("button").style.display="none";
+/* ============== Show receipt ============== */
+function showReceipt(voteObj){
+  const receipt = document.getElementById("receipt");
+  const v = voteObj.votes || {};
+  let html = `<h2 style="color:var(--accent); text-align:center">🧾 Voting Receipt</h2>`;
+  html += `<p><b>Name:</b> ${voteObj.name}</p>`;
+  html += `<p><b>Class:</b> ${voteObj.class}</p>`;
+  html += `<p><b>Gender:</b> ${voteObj.gender}</p>`;
+  html += `<p><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</p>`;
+  html += `<hr><h3>Your Choices</h3><ul>`;
+  for(const [k,val] of Object.entries(v)){
+    // pretty label
+    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
+                  prettyTitle(k.replace(/(Girl|Boy)$/i,""));
+    html += `<li><b>${label} ${/(Girl|Boy)$/.test(k) ? ("("+ (k.match(/(Girl|Boy)$/i)||[])[0] +")") : ""}:</b> ${val}</li>`;
+  }
+  html += `</ul>`;
+  html += `<div style="margin-top:12px"><button onclick="window.print()" class="btn" style="margin-right:8px">Print Receipt</button><button onclick="location.href='index.html'" class="btn secondary">Return Home</button></div>`;
+  receipt.innerHTML = html;
+  receipt.style.display = "block";
+  // hide submit to avoid re-submission
+  document.getElementById("submitBtn").style.display = "none";
 }
+
+/* ======= Convenience: initial small sanity check ======= */
+// If DB has no candidates, user sees message via onValue handler above.
+
 </script>
-</head>
-
-<body>
-<div class="container">
-<h1>🗳️ UKSS — Student Voting</h1>
-<p style="text-align:center;color:#388e3c;font-weight:bold;">
-Choose your leaders wisely.
-</p>
-
-<div id="positionsArea">Loading candidates...</div>
-
-<button onclick="submitVote()">SUBMIT YOUR VOTE</button>
-<div id="receipt"></div>
-</div>
 </body>
 </html>
