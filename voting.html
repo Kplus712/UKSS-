@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UKSS Voting Page</title>
 
-<!-- ==== STYLES ==== -->
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -13,23 +12,17 @@ body {
     margin:0;
     padding:20px;
 }
-
 .container {
     max-width: 1000px;
-    margin: auto;
+    margin:auto;
     background:white;
     padding:20px 25px;
     border-radius:12px;
     border:5px solid forestgreen;
     box-shadow:0 2px 8px rgba(0,0,0,0.15);
 }
-
-h1 {
-    text-align:center;
-    color:forestgreen;
-    margin-bottom:5px;
-}
-.section-title {
+h1 { text-align:center;color:forestgreen;margin-bottom:5px; }
+.section-title{
     color:#1b5e20;
     margin-top:30px;
     margin-bottom:15px;
@@ -37,16 +30,8 @@ h1 {
     border-left:6px solid forestgreen;
     padding-left:10px;
 }
-
-.landscape {
-    display:flex;
-    justify-content:space-between;
-    flex-wrap:wrap;
-    gap:18px;
-    width:100%;
-}
-
-.candidate-box {
+.landscape{ display:flex;flex-wrap:wrap;gap:18px;width:100%; }
+.candidate-box{
     width:48%;
     background:#e8f5e9;
     padding:12px;
@@ -56,61 +41,35 @@ h1 {
     align-items:center;
     border:2px solid #c8e6c9;
 }
-
-.candidate-box img {
-    width:110px;
-    height:110px;
-    border-radius:8px;
-    object-fit:cover;
-    border:3px solid forestgreen;
+.candidate-box img{
+    width:110px;height:110px;border-radius:8px;
+    object-fit:cover;border:3px solid forestgreen;
 }
-
-.candidate-info {
-    flex:1;
+button{
+    width:100%;padding:12px;font-size:18px;
+    border:none;background:forestgreen;
+    color:white;border-radius:10px;margin-top:30px;
 }
-
-.candidate-info h3 {
-    margin:5px 0;
-    color:#1b5e20;
-    font-size:18px;
-}
-
-.vote-radio {
-    margin-top:6px;
-}
-
-button {
-    width:100%;
-    padding:12px;
-    font-size:18px;
-    border:none;
-    background:forestgreen;
-    color:white;
-    border-radius:10px;
-    cursor:pointer;
-    margin-top:30px;
-}
-button:hover { background:darkgreen; }
-
-#receipt {
-    display:none;
-    background:white;
-    border-radius:10px;
-    padding:20px;
-    margin-top:25px;
-    border-left:6px solid forestgreen;
+#receipt{
+    display:none;background:white;border-radius:10px;
+    padding:20px;margin-top:25px;border-left:6px solid forestgreen;
 }
 </style>
 
-<!-- ==== FIREBASE SDK ==== -->
+<!-- FIXED FIREBASE SDK -->
 <script type="module">
+import { initializeApp } 
+    from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 
-/* FIREBASE APP CONFIG */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { 
-    getDatabase, ref, get, set, update, onValue 
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    getDatabase, ref, get, set, onValue, update 
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
+import { 
+    getStorage, ref as sRef, getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+
+/* ---- Firebase Config ---- */
 const firebaseConfig = {
     apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
     authDomain: "ukss-voting-system.firebaseapp.com",
@@ -122,9 +81,10 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db  = getDatabase(app);
+const storage = getStorage(app);
 
-/* VOTER DATA */
+/* ==== VOTER SESSION ==== */
 const voterID = localStorage.getItem("voterID");
 const fname   = localStorage.getItem("firstName");
 const mname   = localStorage.getItem("middleName");
@@ -132,12 +92,12 @@ const lname   = localStorage.getItem("lastName");
 const classSelect = localStorage.getItem("classSelect");
 const gender  = localStorage.getItem("gender");
 
-if (!voterID){
-    alert("You are not registered. Returning...");
+if(!voterID){
+    alert("You are not registered. Redirecting...");
     location.href = "index.html";
 }
 
-/* POSITIONS RULE */
+/* ==== POSITION GROUPS ==== */
 const POSITION_GROUPS = {
     headBoy: 1,
     headGirl: 1,
@@ -161,10 +121,10 @@ const POSITION_GROUPS = {
     disciplineGirl: 1
 };
 
-/* RENDER CANDIDATES */
+/* ==== LOAD & RENDER CANDIDATES ==== */
 const posArea = document.getElementById("positionsArea");
 
-onValue(ref(db, "candidates"), (snap)=>{
+onValue(ref(db,"candidates"), snap=>{
     const data = snap.val();
     if(!data){
         posArea.innerHTML = "No candidates registered.";
@@ -172,28 +132,23 @@ onValue(ref(db, "candidates"), (snap)=>{
     }
 
     const groups = {};
-    Object.entries(data).forEach(([id, c])=>{
-        if(!groups[c.position]) groups[c.position] = [];
-        groups[c.position].push({...c, id});
+    Object.entries(data).forEach(([id,c])=>{
+        if(!groups[c.position]) groups[c.position]=[];
+        groups[c.position].push({...c,id});
     });
 
-    let html = "";
-    for(const [pos, list] of Object.entries(groups)){
+    let html="";
+    for(const [pos,list] of Object.entries(groups)){
         html += `<h2 class='section-title'>${formatTitle(pos)}</h2>`;
         html += `<div class='landscape'>`;
 
         list.forEach(c=>{
-            html += `
+            html+=`
             <div class="candidate-box">
                 <img src="${c.photoURL}">
-                <div class="candidate-info">
-                    <h3>${c.firstName} ${c.middleName} ${c.lastName}</h3>
-                    <div class="vote-radio">
-                        <label>
-                            <input type="radio" name="${pos}" value="${c.firstName} ${c.middleName} ${c.lastName}">
-                            Vote
-                        </label>
-                    </div>
+                <div>
+                   <h3>${c.firstName} ${c.middleName} ${c.lastName}</h3>
+                   <label><input type="radio" name="${pos}" value="${c.firstName} ${c.middleName} ${c.lastName}"> Vote</label>
                 </div>
             </div>`;
         });
@@ -201,71 +156,87 @@ onValue(ref(db, "candidates"), (snap)=>{
         html += `</div>`;
     }
 
-    posArea.innerHTML = html;
+    posArea.innerHTML=html;
 });
 
-/* Format Title */
-function formatTitle(k){
-    return k.replace(/([A-Z])/g," $1").toUpperCase();
+function formatTitle(t){
+    return t
+      .replace(/([A-Z])/g," $1")
+      .replace(/Boy/,"(Boy)")
+      .replace(/Girl/,"(Girl)")
+      .trim()
+      .toUpperCase();
 }
 
-/* SUBMIT VOTE */
+/* ==== SUBMIT VOTE ==== */
 window.submitVote = async function(){
-    const votes = {};
+    const votes={};
 
     for(const pos of Object.keys(POSITION_GROUPS)){
-        const sel = document.querySelector(`input[name="${pos}"]:checked`);
-        if(!sel){
-            alert(`Please vote for ${formatTitle(pos)}`);
+        const chosen = document.querySelector(`input[name="${pos}"]:checked`);
+        if(!chosen){
+            alert(`Please vote for: ${formatTitle(pos)}`);
             return;
         }
-        votes[pos] = sel.value;
+        votes[pos] = chosen.value;
     }
 
-    const snap = await get(ref(db, "voters/"+voterID));
+    const snap = await get(ref(db,"voters/"+voterID));
     if(snap.exists() && snap.val().hasVoted){
         alert("You already voted!");
         return;
     }
 
-    await set(ref(db, "votes/"+voterID), {
+    await set(ref(db,"votes/"+voterID),{
         voterID,
-        name: `${fname} ${mname} ${lname}`,
-        class: classSelect,
+        name:`${fname} ${mname} ${lname}`,
+        class:classSelect,
         gender,
         votes,
-        timestamp: new Date().toISOString()
+        timestamp:new Date().toISOString()
     });
 
-    await update(ref(db, "voters/"+voterID), { hasVoted:true });
+    await update(ref(db,"voters/"+voterID),{ hasVoted:true });
 
     showReceipt(votes);
 };
 
-/* RECEIPT */
-function showReceipt(votes){
+/* ==== RECEIPT ==== */
+function showReceipt(v){
     let out = `
     <h2 style="color:forestgreen;text-align:center;">🧾 UKSS Voting Receipt</h2>
     <p><b>Name:</b> ${fname} ${mname} ${lname}</p>
     <p><b>Class:</b> ${classSelect}</p>
     <p><b>Gender:</b> ${gender}</p>
     <p><b>Date:</b> ${new Date().toLocaleString()}</p>
-    <hr>
-    <h3>Your Votes:</h3>
-    <ul>`;
+    <h3>Your Votes:</h3><ul>`;
 
-    for(const [pos,val] of Object.entries(votes)){
-        out += `<li><b>${formatTitle(pos)}</b>: ${val}</li>`;
+    for(const [k,val] of Object.entries(v)){
+        out+=`<li><b>${formatTitle(k)}:</b> ${val}</li>`;
     }
 
-    out += `</ul>
-    <button onclick="window.print()">Print</button>
-    <button onclick="location.href='index.html'">Home</button>`;
+    out+=`</ul>
+    <button onclick="window.print()">Print Receipt</button>
+    <button onclick="location.href='index.html'">Return Home</button>`;
 
-    document.getElementById("receipt").innerHTML = out;
+    document.getElementById("receipt").innerHTML=out;
     document.getElementById("receipt").style.display="block";
+    document.querySelector("button").style.display="none";
 }
 </script>
+</head>
 
+<body>
+<div class="container">
+<h1>🗳️ UKSS — Student Voting</h1>
+<p style="text-align:center;color:#388e3c;font-weight:bold;">
+Choose your leaders wisely.
+</p>
+
+<div id="positionsArea">Loading candidates...</div>
+
+<button onclick="submitVote()">SUBMIT YOUR VOTE</button>
+<div id="receipt"></div>
+</div>
 </body>
 </html>
