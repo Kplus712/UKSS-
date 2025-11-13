@@ -1,267 +1,339 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Voting Page - UKSS</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UKSS Voting Page</title>
 
-  <style>
-    /* Countdown */
-    #countdown {
-      background: #e8f5e9;
-      color: forestgreen;
-      font-weight: bold;
-      padding: 12px;
-      border-radius: 10px;
-      width: 80%;
-      max-width: 400px;
-      margin: 10px auto;
-      text-align: center;
-      font-size: 18px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
+<!-- ==== STYLES ==== -->
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background:#f4fff4;
+    margin:0;
+    padding:20px;
+}
 
-    /* Receipt Style */
-    #receipt {
-      display: none;
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      width: 80%;
-      max-width: 600px;
-      margin: 40px auto;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      text-align: left;
-      line-height: 1.6;
-      color: #333;
-    }
-    #receipt h2 { color: forestgreen; text-align: center; }
-    #receipt ul { list-style: none; padding: 0; }
-    #receipt li::before { content: "✔️ "; color: forestgreen; }
-    .receipt-buttons { text-align: center; margin-top: 20px; }
-    .receipt-buttons button {
-      background: forestgreen;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      margin: 5px;
-      cursor: pointer;
-    }
-    .receipt-buttons button:hover { background: darkgreen; }
-  </style>
+.container {
+    max-width: 1000px;
+    margin: auto;
+    background:white;
+    padding:20px 25px;
+    border-radius:12px;
+    border:5px solid forestgreen;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+h1 {
+    text-align:center;
+    color:forestgreen;
+    margin-bottom:5px;
+}
+.section-title {
+    color:#1b5e20;
+    margin-top:30px;
+    margin-bottom:15px;
+    font-size:22px;
+    border-left:6px solid forestgreen;
+    padding-left:10px;
+}
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
-      authDomain: "ukss-voting-system.firebaseapp.com",
-      databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
-      projectId: "ukss-voting-system",
-      storageBucket: "ukss-voting-system.firebasestorage.app",
-      messagingSenderId: "525528255065",
-      appId: "1:525528255065:web:97c4e55d2984acc718bf48",
-      measurementId: "G-14ZV9E3X7C"
-    };
+.landscape {
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:18px;
+    width:100%;
+}
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+.candidate-box {
+    width:48%;
+    background:#e8f5e9;
+    padding:12px;
+    border-radius:10px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    border:2px solid #c8e6c9;
+}
 
-    window.db = db;
-    window.ref = ref;
-    window.get = get;
-    window.set = set;
-    window.update = update;
-  </script>
+.candidate-box img {
+    width:110px;
+    height:110px;
+    border-radius:8px;
+    object-fit:cover;
+    border:3px solid forestgreen;
+}
+
+.candidate-info {
+    flex:1;
+}
+
+.candidate-info h3 {
+    margin:5px 0;
+    color:#1b5e20;
+    font-size:18px;
+}
+
+.vote-radio {
+    margin-top:6px;
+}
+
+button {
+    width:100%;
+    padding:12px;
+    font-size:18px;
+    border:none;
+    background:forestgreen;
+    color:white;
+    border-radius:10px;
+    cursor:pointer;
+    margin-top:30px;
+}
+button:hover { background:darkgreen; }
+
+#receipt {
+    display:none;
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    margin-top:25px;
+    border-left:6px solid forestgreen;
+}
+</style>
+
+<!-- ==== FIREBASE SDK ==== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, onValue }
+from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+import {
+    getStorage, ref as sRef, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
+
+/* ---- Firebase Config ---- */
+const firebaseConfig = {
+    apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+    authDomain: "ukss-voting-system.firebaseapp.com",
+    databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+    projectId: "ukss-voting-system",
+    storageBucket: "ukss-voting-system.appspot.com",
+    messagingSenderId: "525528255065",
+    appId: "1:525528255065:web:97c4e55d2984acc718bf48"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const storage = getStorage(app);
+
+window.db = db;
+window.ref = ref;
+window.get = get;
+window.set = set;
+window.update = update;
+window.onValue = onValue;
+window.getDownloadURL = getDownloadURL;
+window.sRef = sRef;
+</script>
 </head>
 
 <body>
-  <div class="container">
-    <h1>🗳️ Vote for Your Leaders</h1>
+<div class="container">
+<h1>🗳️ UKSS — Student Voting</h1>
+<p style="text-align:center;color:#388e3c;font-weight:bold;">
+Choose your leaders wisely.
+</p>
 
-    <!-- Countdown Timer -->
-    <div id="countdown">Voting ends in: <span id="timer">Loading...</span></div>
+<!-- ============================ -->
+<!--   AUTO GENERATED POSITIONS   -->
+<!-- ============================ -->
+<div id="positionsArea">Loading candidates...</div>
 
-    <!-- === Voting Form === -->
-    <form id="voteForm">
-      <h2>Head Boy & Head Girl</h2>
-      <div class="landscape">
-        <div class="candidate">
-          <img src="images/headboy1.jpg" alt="John Mwasiti">
-          <div class="info">
-            <h3>John Mwasiti</h3>
-            <label><input type="radio" name="headBoy" value="John Mwasiti"> Vote</label>
-          </div>
-        </div>
-        <div class="candidate">
-          <img src="images/headboy2.jpg" alt="Peter Mwenda">
-          <div class="info">
-            <h3>Peter Mwenda</h3>
-            <label><input type="radio" name="headBoy" value="Peter Mwenda"> Vote</label>
-          </div>
-        </div>
-        <div class="candidate">
-          <img src="images/headgirl1.jpg" alt="Aisha Komba">
-          <div class="info">
-            <h3>Aisha Komba</h3>
-            <label><input type="radio" name="headGirl" value="Aisha Komba"> Vote</label>
-          </div>
-        </div>
-        <div class="candidate">
-          <img src="images/headgirl2.jpg" alt="Neema Lusekelo">
-          <div class="info">
-            <h3>Neema Lusekelo</h3>
-            <label><input type="radio" name="headGirl" value="Neema Lusekelo"> Vote</label>
-          </div>
-        </div>
-      </div>
+<button onclick="submitVote()">SUBMIT YOUR VOTE</button>
 
-      <h2>General Secretary</h2>
-      <div class="landscape">
-        <div class="candidate">
-          <img src="images/sec_male.jpg" alt="David Mwakalinga">
-          <div class="info">
-            <h3>David Mwakalinga</h3>
-            <label><input type="radio" name="generalSec" value="David Mwakalinga"> Vote</label>
-          </div>
-        </div>
-        <div class="candidate">
-          <img src="images/sec_female.jpg" alt="Maria Andrew">
-          <div class="info">
-            <h3>Maria Andrew</h3>
-            <label><input type="radio" name="generalSec" value="Maria Andrew"> Vote</label>
-          </div>
-        </div>
-      </div>
+<!-- RECEIPT -->
+<div id="receipt"></div>
+</div>
 
-      <h2>Discipline Prefect</h2>
-      <div class="landscape">
-        <div class="candidate">
-          <img src="images/discipline_male.jpg" alt="Jonas Mollel">
-          <div class="info">
-            <h3>Jonas Mollel</h3>
-            <label><input type="radio" name="discipline" value="Jonas Mollel"> Vote</label>
-          </div>
-        </div>
-        <div class="candidate">
-          <img src="images/discipline_female.jpg" alt="Grace Mwita">
-          <div class="info">
-            <h3>Grace Mwita</h3>
-            <label><input type="radio" name="discipline" value="Grace Mwita"> Vote</label>
-          </div>
-        </div>
-      </div>
+<!-- ============================ -->
+<!--           SCRIPT             -->
+<!-- ============================ -->
+<script type="module">
 
-      <button type="submit" id="submitVote">Submit Vote</button>
-    </form>
-  </div>
+/* ========== VOTER SESSION ========== */
+const voterID = localStorage.getItem("voterID");
+const fname   = localStorage.getItem("firstName");
+const mname   = localStorage.getItem("middleName");
+const lname   = localStorage.getItem("lastName");
+const classSelect = localStorage.getItem("classSelect");
+const gender = localStorage.getItem("gender");
 
-  <!-- === RECEIPT DISPLAY === -->
-  <div id="receipt"></div>
+if (!voterID) {
+    alert("You are not registered. Returning to home...");
+    location.href = "index.html";
+}
 
-  <script type="module">
-    import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-    import { db } from "./firebase-config.js";
+/* ====== POSITION RULES ====== */
+const POSITION_GROUPS = {
+    headBoy:        { gender:"Male",   select:1 },
+    headGirl:       { gender:"Female", select:1 },
 
-    const voterID = localStorage.getItem("voterID");
-    const firstName = localStorage.getItem("firstName");
-    const middleName = localStorage.getItem("middleName");
-    const lastName = localStorage.getItem("lastName");
-    const studentClass = localStorage.getItem("classSelect");
-    const gender = localStorage.getItem("gender");
+    generalSecretary: { gender:"Any", select:1 },
 
-    const form = document.getElementById("voteForm");
-    const receiptDiv = document.getElementById("receipt");
-    const timerDisplay = document.getElementById("timer");
+    sportsBoy:      { gender:"Male",   select:1 },
+    sportsGirl:     { gender:"Female", select:1 },
 
-    // 🕒 Countdown Setup (set your voting end time here)
-    const endTime = new Date().getTime() + (10 * 60 * 1000); // example: 10 minutes from now
-    const countdown = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = endTime - now;
+    foodBoy:        { gender:"Male",   select:1 },
+    foodGirl:       { gender:"Female", select:1 },
 
-      if (distance < 0) {
-        clearInterval(countdown);
-        timerDisplay.textContent = "Voting period has ended.";
-        form.style.display = "none";
-        return;
-      }
+    environmentBoy: { gender:"Male",   select:1 },
+    environmentGirl:{ gender:"Female", select:1 },
 
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-      timerDisplay.textContent = `${minutes}m ${seconds}s`;
-    }, 1000);
+    healthBoy:      { gender:"Male",   select:1 },
+    healthGirl:     { gender:"Female", select:1 },
 
-    // 🗳️ Submit Vote
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    maintenanceBoy: { gender:"Male",   select:1 },
+    maintenanceGirl:{ gender:"Female", select:1 },
 
-      if (new Date().getTime() > endTime) {
-        alert("Voting time has ended!");
-        return;
-      }
+    storeBoy:       { gender:"Male",   select:1 },
+    storeGirl:      { gender:"Female", select:1 },
 
-      const voterRef = ref(db, "voters/" + voterID);
-      const snapshot = await get(voterRef);
-      if (snapshot.exists() && snapshot.val().hasVoted) {
-        alert("⚠️ You have already voted!");
-        return;
-      }
+    academicBoy:    { gender:"Male",   select:1 },
+    academicGirl:   { gender:"Female", select:1 },
 
-      const votes = {};
-      ["headBoy", "headGirl", "generalSec", "discipline"].forEach((pos) => {
-        const selected = document.querySelector(`input[name="${pos}"]:checked`);
-        if (selected) votes[pos] = selected.value;
-      });
+    disciplineBoy:  { gender:"Male",   select:1 },
+    disciplineGirl: { gender:"Female", select:1 }
+};
 
-      if (Object.keys(votes).length < 4) {
-        alert("⚠️ Please complete all sections!");
-        return;
-      }
+/* ====== Load all candidates live ====== */
+import { db, ref, onValue } from "./firebase-config.js";
 
-      await set(ref(db, "votes/" + voterID), {
-        voterID,
-        name: `${firstName} ${middleName} ${lastName}`,
-        gender,
-        class: studentClass,
-        votes,
-        timestamp: new Date().toISOString(),
-      });
+const posArea = document.getElementById("positionsArea");
 
-      await update(ref(db, "voters/" + voterID), { hasVoted: true });
+onValue(ref(db, "candidates"), async (snap)=>{
+    const data = snap.val();
+    if (!data){ posArea.innerHTML="No candidates registered."; return; }
 
-      const title = gender === "Male" ? "MR" : "MRS";
-      const timestamp = new Date().toLocaleString();
-
-      // Generate receipt HTML
-      let voteList = "";
-      for (let [pos, candidate] of Object.entries(votes)) {
-        voteList += `<li><b>${pos}:</b> ${candidate}</li>`;
-      }
-
-      receiptDiv.innerHTML = `
-        <h2>🧾 UKSS VOTING RECEIPT</h2>
-        <p><b>Name:</b> ${title} ${firstName} ${middleName} ${lastName}</p>
-        <p><b>Class:</b> ${studentClass}</p>
-        <p><b>Gender:</b> ${gender}</p>
-        <p><b>Date & Time:</b> ${timestamp}</p>
-        <p><b>Your Votes:</b></p>
-        <ul>${voteList}</ul>
-        <p style="color:green"><b>${title} ${firstName.toUpperCase()}, your vote has been recorded successfully!</b></p>
-        <div class="receipt-buttons">
-          <button onclick="window.print()">🖨️ Print Receipt</button>
-          <button onclick="window.location.href='index.html'">⬅️ Return Home</button>
-        </div>
-      `;
-
-      // Hide form, show receipt
-      form.style.display = "none";
-      receiptDiv.style.display = "block";
+    // group by position
+    const groups = {};
+    Object.entries(data).forEach(([id, c])=>{
+        if(!groups[c.position]) groups[c.position] = [];
+        groups[c.position].push({ id, ...c });
     });
-  </script>
+
+    // build UI
+    let html = "";
+    for(const [pos, candList] of Object.entries(groups)){
+        html += `<h2 class="section-title">${formatTitle(pos)}</h2>`;
+        html += `<div class="landscape">`;
+
+        candList.sort((a,b)=> a.gender.localeCompare(b.gender)); // girl left, boy right
+
+        for(const c of candList){
+            html += `
+                <div class="candidate-box">
+                    <img src="${c.photoURL}">
+                    <div class="candidate-info">
+                        <h3>${c.firstName} ${c.middleName} ${c.lastName}</h3>
+                        <div class="vote-radio">
+                            <label>
+                                <input type="radio" name="${pos}" value="${c.firstName} ${c.middleName} ${c.lastName}">
+                                Vote
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `</div>`;
+    }
+
+    posArea.innerHTML = html;
+});
+
+/* ====== Format Title ====== */
+function formatTitle(key){
+    return key
+        .replace(/Boy/g," (Boy)")
+        .replace(/Girl/g," (Girl)")
+        .replace(/generalSecretary/gi,"General Secretary")
+        .replace(/([A-Z])/g," $1")
+        .replace(/^\s/,"")
+        .toUpperCase();
+}
+
+/* ========== SUBMIT VOTE ========== */
+window.submitVote = async function(){
+    const voteData = {};
+    let allGood = true;
+
+    for(const [pos, rule] of Object.entries(POSITION_GROUPS)){
+        const selected = document.querySelector(`input[name="${pos}"]:checked`);
+        if(!selected){
+            alert(`Please vote for: ${formatTitle(pos)}`);
+            allGood = false;
+            break;
+        }
+        voteData[pos] = selected.value;
+    }
+
+    if(!allGood) return;
+
+    // check double vote
+    const snap = await get(ref(db, "voters/" + voterID));
+    if(snap.exists() && snap.val().hasVoted){
+        alert("You already voted!");
+        return;
+    }
+
+    // save vote
+    await set(ref(db, "votes/" + voterID), {
+        voterID,
+        name: `${fname} ${mname} ${lname}`,
+        class: classSelect,
+        gender,
+        votes: voteData,
+        timestamp: new Date().toISOString()
+    });
+
+    await update(ref(db, "voters/" + voterID), { hasVoted: true });
+
+    // show receipt
+    showReceipt(voteData);
+};
+
+
+/* ========== RECEIPT ========== */
+function showReceipt(votes){
+    let out = `
+        <h2 style="color:forestgreen;text-align:center;">🧾 UKSS Voting Receipt</h2>
+        <p><b>Name:</b> ${fname} ${mname} ${lname}</p>
+        <p><b>Class:</b> ${classSelect}</p>
+        <p><b>Gender:</b> ${gender}</p>
+        <p><b>Date:</b> ${new Date().toLocaleString()}</p>
+        <hr>
+        <h3>Your Votes:</h3>
+        <ul>
+    `;
+
+    for(const [pos, value] of Object.entries(votes)){
+        out += `<li><b>${formatTitle(pos)}:</b> ${value}</li>`;
+    }
+
+    out += `
+        </ul>
+        <p style="color:green;"><b>Your vote has been recorded successfully!</b></p>
+        <button onclick="window.print()">Print Receipt</button>
+        <button onclick="location.href='index.html'">Return Home</button>
+    `;
+
+    document.getElementById("receipt").innerHTML = out;
+    document.getElementById("receipt").style.display = "block";
+    document.querySelector("button").style.display="none";
+}
+</script>
+
 </body>
 </html>
