@@ -965,19 +965,7 @@ registeredModal.addEventListener("click", (e)=>{ if(e.target === registeredModal
 auditModal.addEventListener("click", (e)=>{ if(e.target === auditModal) closeAuditModal(); });
 confirmModal.addEventListener("click", (e)=>{ if(e.target === confirmModal) closeConfirm(); });
 
-import { ref, remove } 
-from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-document.getElementById("resetVotersBtn").addEventListener("click", async () => {
-    if (confirm("⚠️ Are you sure you want to delete ALL registered voters? This action cannot be undone!")) {
-        try {
-            await remove(ref(db, "voters"));
-            alert("✔ All registered voters have been successfully deleted!");
-        } catch (error) {
-            alert("❌ Error deleting voters: " + error);
-        }
-    }
-});
 </script>
 </body>
 </html>
