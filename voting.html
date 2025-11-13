@@ -70,98 +70,14 @@
   .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
   #receipt{ display:none; margin-top:18px; background:white; border-left:6px solid var(--accent); padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
 
-  /* ========== EFD-style popup (NEW) ========== */
-  .efd-popup {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 230px;             /* approx EFD size */
-    max-width: 90%;
-    background: #fff;
-    border-radius: 6px;
-    box-shadow: 0 8px 36px rgba(0,0,0,0.25);
-    z-index: 9999;
-    font-family: "Courier New", Courier, monospace;
-    display: none;
-    flex-direction: column;
-    padding: 10px;
-    border-left: 6px solid #111;
-    transform-origin: top right;
-    animation: slideIn .18s ease;
+  /* responsive */
+  @media (max-width:900px){
+    .landscape-row{ flex-direction:column; }
+    .column{ width:100%; }
+    .center-col{ display:none; }
   }
-
-  @keyframes slideIn {
-    from { transform: translateY(-8px) scale(.98); opacity:0 }
-    to   { transform: translateY(0) scale(1); opacity:1 }
-  }
-
-  .efd-header {
-    display:flex; justify-content:space-between; align-items:center;
-    margin-bottom:8px;
-  }
-  .efd-title { font-size:12px; font-weight:700; color:#111; letter-spacing:0.6px; }
-  .efd-controls { display:flex; gap:6px; align-items:center; }
-
-  .efd-controls button {
-    background: transparent;
-    border: none;
-    cursor:pointer;
-    font-weight:700;
-    color:#2e7d32;
-    padding:4px 6px;
-    border-radius:4px;
-  }
-
-  .efd-body {
-    font-size:11px;
-    color:#111;
-    line-height:1.1;
-    padding:6px 0;
-  }
-
-  .efd-divider {
-    border-top: 1px dashed #444;
-    margin:8px 0;
-  }
-
-  .efd-item { display:flex; justify-content:space-between; font-size:11px; margin:6px 0; }
-  .efd-small { font-size:10px; color:#444; }
-
-  .efd-qr {
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-top:8px;
-  }
-  .efd-qr img { width:140px; height:140px; object-fit:contain; }
-
-  .efd-actions {
-    margin-top:8px;
-    display:flex;
-    gap:6px;
-  }
-  .efd-actions button {
-    flex:1;
-    padding:8px;
-    border-radius:6px;
-    border:none;
-    cursor:pointer;
-    font-weight:800;
-  }
-  .print-btn { background:#1b5e20; color:white; }
-  .close-btn { background:#eee; color:#111; }
-
-  /* Hide popup for small screens by default? we'll keep it visible when used */
-  @media (max-width:520px){
-    .efd-popup { right:10px; top:10px; width:86vw; }
-    .efd-qr img { width:110px; height:110px; }
-  }
-
-  /* Print rules: when printing from the print button, open a print window (we don't rely on page CSS). */
 </style>
 </head>
-
 <body>
   <div class="container">
     <h1>🗳️ UKSS Student Voting</h1>
@@ -176,32 +92,6 @@
     </div>
 
     <div id="receipt"></div>
-  </div>
-
-  <!-- EFD-style popup (added) -->
-  <div id="efdPopup" class="efd-popup" aria-hidden="true" role="dialog" aria-label="Voting receipt">
-    <div class="efd-header">
-      <div class="efd-title">UKSS — RECEIPT</div>
-      <div class="efd-controls">
-        <button id="efdCloseBtn" title="Close">✖</button>
-      </div>
-    </div>
-
-    <div class="efd-body" id="efdBody">
-      <!-- content filled dynamically -->
-      <div class="efd-small">Processing...</div>
-    </div>
-
-    <div class="efd-divider" role="separator"></div>
-
-    <div class="efd-qr" id="efdQrWrap">
-      <!-- QR image inserted here -->
-    </div>
-
-    <div class="efd-actions">
-      <button id="printReceiptBtn" class="print-btn">PRINT</button>
-      <button id="closeReceiptBtn" class="close-btn">CLOSE</button>
-    </div>
   </div>
 
 <script type="module">
@@ -237,9 +127,12 @@ if(!voterID){
 
 /* ============== Helper: placeholder SVG dataURI ============== */
 function placeholderDataUrl(gender){
+  // simple circular SVG silhouette
   const isMale = String(gender||"").toLowerCase().startsWith("m");
   const bg = isMale ? "#dff0d9" : "#f1efe5";
   const color = isMale ? "#2e7d32" : "#4a7a4a";
+  const face = isMale ? "M50 30 a14 14 0 1 0 0.0001 0" : "M50 30 a14 14 0 1 0 0.0001 0";
+  // minimal SVG
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 100 100'>
     <rect width='100' height='100' rx='12' fill='${bg}'/>
     <circle cx='50' cy='32' r='14' fill='${color}' fill-opacity='0.18'/>
@@ -252,6 +145,7 @@ function placeholderDataUrl(gender){
 
 /* ============== Utility: text prettify for position titles ============== */
 function prettyTitle(posKey){
+  // Examples: maintenance -> Maintenance Prefect, head -> Head Prefect etc
   const map = {
     head: "Head Prefect",
     generalSecretary: "General Secretary",
@@ -264,18 +158,22 @@ function prettyTitle(posKey){
     academic: "Academic Prefect",
     discipline: "Discipline Prefect"
   };
+  // normalize: remove suffix Boy/Girl
   const base = posKey.replace(/(Boy|Girl)$/i, "");
   return map[base] || base.replace(/([A-Z])/g," $1").trim();
 }
 
 /* ============== Fetch & Render candidates ============== */
 const positionsArea = document.getElementById("positionsArea");
+
 let latestCandidates = {}; // snapshot cache
 
 function groupCandidatesByBase(candidatesObj){
-  const groups = {};
+  // candidatesObj: { id: {firstName, lastName, position, gender, photoURL}, ... }
+  const groups = {}; // base -> {girls:[], boys:[], rawPositions:set}
   Object.entries(candidatesObj).forEach(([id, c])=>{
     const pos = c.position || "";
+    // derive base: remove trailing Boy/Girl if present; special-case generalSecretary naming
     let base = pos;
     if(/Boy$/i.test(pos) || /Girl$/i.test(pos)){
       base = pos.replace(/(Boy|Girl)$/i, "");
@@ -290,6 +188,7 @@ function groupCandidatesByBase(candidatesObj){
     if(/female|girl|f/i.test(g) || /Girl$/i.test(pos)) groups[base].girls.push(candidate);
     else groups[base].boys.push(candidate);
   });
+
   return groups;
 }
 
@@ -314,9 +213,11 @@ function renderCandidates(snapshotObj){
   latestCandidates = snapshotObj || {};
   const groups = groupCandidatesByBase(snapshotObj || {});
 
+  // We'll render positions in a logical order (head first, generalSecretary, others)
   const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
   const presentBases = Object.keys(groups);
 
+  // order: intersection of naturalOrder + others (append remaining)
   const ordered = [];
   naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
   presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
@@ -325,36 +226,43 @@ function renderCandidates(snapshotObj){
   for(const base of ordered){
     const grp = groups[base];
     if(!grp) continue;
+    // Title
     out += `<div class="position-block" data-base="${base}">`;
     out += `<div class="position-title">${prettyTitle(base)}</div>`;
 
+    // Special case: generalSecretary -> allow single radio name across boys & girls
     if(base === "generalSecretary"){
+      // create a horizontal pair of candidates (girls left, boys right), but same radio name "generalSecretary"
       out += `<div class="landscape-row">`;
+      // left column (girls)
       out += `<div class="column">`;
       if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
       grp.girls.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
-      out += `</div>`;
+      out += `</div>`; // end left
       out += `<div class="center-col">VS</div>`;
       out += `<div class="column">`;
       if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
       grp.boys.forEach(c => out += buildCandidateCardHTML(c, "generalSecretary"));
-      out += `</div>`;
-      out += `</div>`;
+      out += `</div>`; // end right
+      out += `</div>`; // end landscape-row
     } else {
+      // For other positions, we render left = girls with radio name base + "Girl", right = boys with radio name base + "Boy".
       out += `<div class="landscape-row">`;
+      // left column (girls)
       out += `<div class="column">`;
       if(grp.girls.length === 0) out += `<div style="color:#556; font-style:italic">No female candidates</div>`;
       grp.girls.forEach(c => out += buildCandidateCardHTML(c, base + "Girl"));
       out += `</div>`;
       out += `<div class="center-col"></div>`;
+      // right column (boys)
       out += `<div class="column">`;
       if(grp.boys.length === 0) out += `<div style="color:#556; font-style:italic">No male candidates</div>`;
       grp.boys.forEach(c => out += buildCandidateCardHTML(c, base + "Boy"));
       out += `</div>`;
-      out += `</div>`;
+      out += `</div>`; // end landscape-row
     }
 
-    out += `</div>`;
+    out += `</div>`; // end position-block
   }
 
   positionsArea.innerHTML = out;
@@ -373,6 +281,8 @@ onValue(candidatesRef, snap => {
 
 /* ============== Voting submission logic ============== */
 document.getElementById("submitBtn").addEventListener("click", async () => {
+  // Build expected groups from the currently rendered DOM
+  // We'll check for generalSecretary (single) and for other bases require separate female+male selections
   const groups = document.querySelectorAll(".position-block");
   const votes = {};
   for(const block of groups){
@@ -397,12 +307,14 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     }
   }
 
+  // check double vote
   const voterSnap = await get(ref(db, "voters/" + voterID));
   if(voterSnap.exists() && voterSnap.val().hasVoted){
     alert("You have already voted. Duplicate voting not allowed.");
     return;
   }
 
+  // Save votes
   const voteObj = {
     voterID,
     name: `${fname} ${mname} ${lname}`.trim(),
@@ -420,116 +332,19 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     return;
   }
 
-  // show popup EFD-style receipt (new)
-  showEfdPopup(voteObj);
+  showReceipt(voteObj);
 });
 
 /* ============== Refresh button ============== */
 document.getElementById("refreshBtn").addEventListener("click", async () => {
+  // brief refresh: re-read DB once (onValue already streams, but do quick read)
   const snap = await get(candidatesRef);
   renderCandidates(snap.val() || {});
   alert("Candidates refreshed.");
 });
 
-/* ============== EFD popup logic (NEW) ============== */
-const efdPopup = document.getElementById("efdPopup");
-const efdBody = document.getElementById("efdBody");
-const efdQrWrap = document.getElementById("efdQrWrap");
-const printReceiptBtn = document.getElementById("printReceiptBtn");
-const closeReceiptBtn = document.getElementById("closeReceiptBtn");
-const efdCloseBtn = document.getElementById("efdCloseBtn");
-
-function safeShortName(name){
-  return (String(name || "").split(" ").slice(0,2).join(" ")).toUpperCase();
-}
-
-function buildEfdHtml(voteObj){
-  // Build a compact EFD-like textual receipt
-  const v = voteObj.votes || {};
-  const fullname = voteObj.name || "";
-  const header = `<div style="text-align:center;font-weight:800;margin-bottom:6px">UKSS — VOTING RECEIPT</div>`;
-  const meta = `<div class="efd-small">ID: ${voteObj.voterID || ''}</div>
-                <div class="efd-small">${new Date(voteObj.timestamp).toLocaleString()}</div>`;
-  // choices: show compressed lines
-  let choicesHtml = "";
-  for(const [k, val] of Object.entries(v)){
-    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
-                  prettyTitle(k.replace(/(Girl|Boy)$/i,""));
-    const suffix = (/(Girl|Boy)$/.test(k)) ? ` (${k.match(/(Girl|Boy)$/i)[0]})` : "";
-    choicesHtml += `<div class="efd-item"><div style="max-width:60%">${label}${suffix}</div><div style="text-align:right">${val}</div></div>`;
-  }
-  const footer = `<div class="efd-divider"></div><div style="text-align:center;font-size:11px" class="efd-small">Thank you for voting</div>`;
-
-  return header + meta + "<div class='efd-divider'></div>" + choicesHtml + footer;
-}
-
-function generateQrDataUrl(payload){
-  // Use Google's Chart API to obtain a QR image (quick, no library). We only construct the URL as img src.
-  // payload should be reasonably small; we'll use encodeURIComponent.
-  const json = JSON.stringify(payload);
-  const encoded = encodeURIComponent(json);
-  // size 200x200 (fits in popup)
-  const url = `https://chart.googleapis.com/chart?cht=qr&chs=200x200&chl=${encoded}`;
-  return url;
-}
-
-function showEfdPopup(voteObj){
-  // Fill content
-  efdBody.innerHTML = buildEfdHtml(voteObj);
-
-  // Build QR - put vote object (not including heavy data) into QR so scanning yields the vote summary
-  const qrPayload = {
-    id: voteObj.voterID,
-    name: voteObj.name,
-    class: voteObj.class,
-    timestamp: voteObj.timestamp,
-    votes: voteObj.votes
-  };
-  const qrUrl = generateQrDataUrl(qrPayload);
-  efdQrWrap.innerHTML = `<img alt="QR code" src="${qrUrl}" />`;
-
-  // show popup
-  efdPopup.style.display = "flex";
-  efdPopup.setAttribute("aria-hidden","false");
-
-  // attach handlers (print/close)
-  // Print: open small print window containing the EFD markup (preserve monospace look)
-  printReceiptBtn.onclick = () => {
-    const printHtml = `
-      <!doctype html><html><head><meta charset="utf-8"><title>Receipt</title>
-      <style>
-        body{font-family: "Courier New", Courier, monospace; padding:10px; color:#111;}
-        .box{width:240px; margin:auto; border-left:6px solid #111; padding:8px;}
-        .small{font-size:12px;}
-        .item{display:flex; justify-content:space-between; margin:6px 0; font-size:12px;}
-        img{display:block; margin:8px auto; width:140px; height:140px;}
-        hr{border-top:1px dashed #333;}
-      </style>
-      </head><body><div class="box">
-      ${buildEfdHtml(voteObj)}
-      <div style="margin-top:8px"><img src="${qrUrl}" alt="QR"></div>
-      </div>
-      <script>window.onload=function(){ setTimeout(()=>{ window.print(); },120); }</script>
-      </body></html>`;
-    const w = window.open("", "_blank", "width=360,height=640,menubar=no,toolbar=no,location=no");
-    if(!w) { alert("Popup blocked — allow popups to print receipt."); return; }
-    w.document.open();
-    w.document.write(printHtml);
-    w.document.close();
-  };
-
-  closeReceiptBtn.onclick = () => {
-    efdPopup.style.display = "none";
-    efdPopup.setAttribute("aria-hidden","true");
-    // restore submit button so user can't re-submit accidentally? keep submit hidden below
-    // We intentionally DON'T change DB or votes here.
-  };
-
-  efdCloseBtn.onclick = closeReceiptBtn;
-}
-
-/* ============== For compatibility: keep original showReceipt (page receipt area) if needed ============== */
-function showReceiptInline(voteObj){
+/* ============== Show receipt ============== */
+function showReceipt(voteObj){
   const receipt = document.getElementById("receipt");
   const v = voteObj.votes || {};
   let html = `<h2 style="color:var(--accent); text-align:center">🧾 Voting Receipt</h2>`;
@@ -539,6 +354,7 @@ function showReceiptInline(voteObj){
   html += `<p><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</p>`;
   html += `<hr><h3>Your Choices</h3><ul>`;
   for(const [k,val] of Object.entries(v)){
+    // pretty label
     const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
                   prettyTitle(k.replace(/(Girl|Boy)$/i,""));
     html += `<li><b>${label} ${/(Girl|Boy)$/.test(k) ? ("("+ (k.match(/(Girl|Boy)$/i)||[])[0] +")") : ""}:</b> ${val}</li>`;
@@ -547,12 +363,12 @@ function showReceiptInline(voteObj){
   html += `<div style="margin-top:12px"><button onclick="window.print()" class="btn" style="margin-right:8px">Print Receipt</button><button onclick="location.href='index.html'" class="btn secondary">Return Home</button></div>`;
   receipt.innerHTML = html;
   receipt.style.display = "block";
+  // hide submit to avoid re-submission
   document.getElementById("submitBtn").style.display = "none";
 }
 
-/* ========================================= */
-/* Keep window/global safe: do not alter DB logic elsewhere. */
-/* ========================================= */
+/* ======= Convenience: initial small sanity check ======= */
+// If DB has no candidates, user sees message via onValue handler above.
 
 </script>
 </body>
