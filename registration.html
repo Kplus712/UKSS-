@@ -13,10 +13,10 @@
         padding:20px;
     }
     .container{
-        max-width:800px;
+        max-width:900px;
         margin:20px auto;
         background:white;
-        padding:20px;
+        padding:22px;
         border-radius:12px;
         box-shadow:0 0 14px rgba(0,0,0,0.15);
         border:5px solid #2e7d32;
@@ -58,8 +58,46 @@
         border:3px solid #2e7d32;
         display:none;
     }
+    .table-wrap{
+        margin-top:25px;
+        background:#ffffff;
+        border-radius:12px;
+        padding:12px;
+        border:2px solid #2e7d32;
+        box-shadow:0 0 10px rgba(0,0,0,0.10);
+    }
+    table{
+        width:100%;
+        border-collapse:collapse;
+    }
+    th,td{
+        border:1px solid #ddd;
+        padding:8px;
+        font-size:14px;
+    }
+    th{
+        background:#2e7d32;
+        color:white;
+    }
+    .edit-btn{
+        background:#0277bd;
+        padding:6px 10px;
+        border-radius:6px;
+        color:white;
+        border:none;
+        cursor:pointer;
+    }
+    .delete-btn{
+        background:#c62828;
+        padding:6px 10px;
+        border-radius:6px;
+        color:white;
+        border:none;
+        cursor:pointer;
+    }
 </style>
 </head>
+
 <body>
 
 <div class="container">
@@ -69,7 +107,12 @@
     <input type="password" id="adminPass" placeholder="Enter admin password to unlock form">
     <button onclick="unlockForm()" class="btn" style="background:#388e3c;">UNLOCK</button>
 
+    <!-- FORM AREA -->
     <div id="formArea" style="display:none; margin-top:20px;">
+        
+        <input type="hidden" id="editMode" value="none">
+        <input type="hidden" id="editID">
+
         <label>First Name</label>
         <input type="text" id="firstName">
 
@@ -110,8 +153,8 @@
             </optgroup>
 
             <optgroup label="Sports & Games">
-                <option value="sportsBoy1">Sports & Games (Male)</option>
-                <option value="sportsGirl1">Sports & Games (Female)</option>
+                <option value="sportsBoy">Sports & Games (Male)</option>
+                <option value="sportsGirl">Sports & Games (Female)</option>
             </optgroup>
 
             <optgroup label="Food Prefect">
@@ -154,18 +197,35 @@
         <label>Upload Candidate Picture</label>
         <input type="file" id="photo" accept="image/*">
 
-        <div class="preview">
-            <img id="previewImg">
-        </div>
+        <div class="preview"><img id="previewImg"></div>
 
-        <button class="btn" onclick="registerCandidate()">REGISTER CANDIDATE</button>
+        <button class="btn" onclick="saveCandidate()">SAVE CANDIDATE</button>
     </div>
+
+    <!-- CANDIDATE LIST -->
+    <div class="table-wrap">
+        <h3 style="text-align:center; color:#2e7d32;">Registered Candidates</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Class</th>
+                    <th>Position</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="candidateTable"></tbody>
+        </table>
+    </div>
+
 </div>
 
 <!-- Firebase -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase, ref, set, update, remove, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
     import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
         from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
 
@@ -183,13 +243,12 @@
     const db = getDatabase(app);
     const storage = getStorage(app);
 
+    // unlock form
     window.unlockForm = function(){
         const pass = document.getElementById("adminPass").value;
         if(pass === "ukss2025"){
             document.getElementById("formArea").style.display = "block";
-        } else {
-            alert("Incorrect Admin Password!");
-        }
+        } else { alert("Incorrect Admin Password!"); }
     };
 
     // preview image
@@ -198,44 +257,99 @@
         if(file){
             const reader = new FileReader();
             reader.onload = e => {
-                const img = document.getElementById("previewImg");
-                img.src = e.target.result;
-                img.style.display = "block";
+                document.getElementById("previewImg").src = e.target.result;
+                document.getElementById("previewImg").style.display = "block";
             };
             reader.readAsDataURL(file);
         }
     });
 
-    window.registerCandidate = async function(){
-        const first = document.getElementById("firstName").value.trim();
-        const middle = document.getElementById("middleName").value.trim();
-        const last = document.getElementById("lastName").value.trim();
-        const gender = document.getElementById("gender").value;
-        const classSelect = document.getElementById("classSelect").value;
-        const position = document.getElementById("position").value;
-        const photoFile = document.getElementById("photo").files[0];
+    // LOAD ALL CANDIDATES
+    const table = document.getElementById("candidateTable");
+    onValue(ref(db, "candidates"), snap => {
+        table.innerHTML = "";
+        if(!snap.exists()) return;
 
-        if(!first || !last || !gender || !classSelect || !position || !photoFile){
-            alert("Fill all fields including picture!");
+        const data = snap.val();
+        Object.entries(data).forEach(([id, info]) => {
+            const tr = document.createElement("tr");
+
+            tr.innerHTML = `
+                <td><img src="${info.photoURL}" style="width:60px;height:60px;border-radius:8px;border:2px solid #2e7d32;"></td>
+                <td>${info.firstName} ${info.middleName} ${info.lastName}</td>
+                <td>${info.gender}</td>
+                <td>${info.classSelect}</td>
+                <td>${info.position}</td>
+                <td>
+                    <button class="edit-btn" onclick="editCandidate('${id}')">Edit</button>
+                    <button class="delete-btn" onclick="deleteCandidate('${id}')">Delete</button>
+                </td>
+            `;
+
+            table.appendChild(tr);
+        });
+    });
+
+    // EDIT CANDIDATE
+    window.editCandidate = function(id){
+        document.getElementById("editMode").value = "edit";
+        document.getElementById("editID").value = id;
+
+        onValue(ref(db, "candidates/" + id), snap => {
+            const d = snap.val();
+            document.getElementById("firstName").value = d.firstName;
+            document.getElementById("middleName").value = d.middleName;
+            document.getElementById("lastName").value = d.lastName;
+            document.getElementById("gender").value = d.gender;
+            document.getElementById("classSelect").value = d.classSelect;
+            document.getElementById("position").value = d.position;
+
+            document.getElementById("previewImg").src = d.photoURL;
+            document.getElementById("previewImg").style.display = "block";
+        });
+    }
+
+    // DELETE
+    window.deleteCandidate = async function(id){
+        if(confirm("Delete this candidate?")){
+            await remove(ref(db, "candidates/" + id));
+            alert("Candidate removed.");
+        }
+    }
+
+    // SAVE / UPDATE
+    window.saveCandidate = async function(){
+        const first = firstName.value.trim();
+        const middle = middleName.value.trim();
+        const last = lastName.value.trim();
+        const gender = gender.value;
+        const classSelect = classSelect.value;
+        const position = position.value;
+        const file = photo.files[0];
+
+        if(!first || !last || !gender || !classSelect || !position){
+            alert("Fill all fields!");
             return;
         }
 
-        const candidateID = (first + "_" + last + "_" + position).toLowerCase().replace(/\s+/g, "_");
+        let candidateID = "";
+        const mode = document.getElementById("editMode").value;
 
-        // check if candidate exists
-        const dbRef = ref(db);
-        const snap = await get(child(dbRef, "candidates/" + candidateID));
-        if(snap.exists()){
-            alert("Candidate already registered for this position!");
-            return;
+        if(mode === "edit"){
+            candidateID = document.getElementById("editID").value;
+        } else {
+            candidateID = (first + "_" + last + "_" + position).toLowerCase().replace(/\s+/g, "_");
         }
 
-        // upload photo
-        const storageRef = sRef(storage, "candidates/" + candidateID + ".jpg");
-        await uploadBytes(storageRef, photoFile);
-        const photoURL = await getDownloadURL(storageRef);
+        let photoURL = "";
+        if(file){
+            const storageRef = sRef(storage, "candidates/" + candidateID + ".jpg");
+            await uploadBytes(storageRef, file);
+            photoURL = await getDownloadURL(storageRef);
+        } else {
+            const snap = await getDatabase(app);
+        }
 
-        // save to database
         await set(ref(db, "candidates/" + candidateID), {
             firstName:first,
             middleName:middle,
@@ -243,12 +357,13 @@
             gender,
             classSelect,
             position,
-            photoURL
+            photoURL: photoURL || document.getElementById("previewImg").src
         });
 
-        alert("Candidate registered successfully!");
+        alert("Candidate saved!");
         location.reload();
     };
+
 </script>
 
 </body>
