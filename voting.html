@@ -3,10 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>UKSS Voting — Official</title>
+<title>UKSS Voting — Official (Offline-ready)</title>
 
 <!-- QR library (small) -->
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<!-- LocalForage (IndexedDB wrapper) for offline queue -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 
 <style>
   :root{
@@ -72,6 +74,9 @@
   .btn{ padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:800; }
   .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
 
+  /* network status indicator */
+  .netStatus { position:fixed; right:18px; top:18px; background:#fff; padding:8px 10px; border-radius:8px; border:2px solid var(--accent); font-weight:700; color:var(--accent); z-index:9999; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+
   /* === RECEIPT MODAL (Centered) === */
   .modal-overlay {
     position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none;
@@ -114,6 +119,8 @@
 </style>
 </head>
 <body>
+  <div class="netStatus" id="netStatus">Network: —</div>
+
   <div class="container">
     <h1>🗳️ UKSS Student Voting</h1>
     <p class="lead">Choose leaders carefully — girls left, boys right. General Secretary: choose one (male or female).</p>
@@ -182,6 +189,36 @@ if(!voterID){
   location.href = "index.html";
 }
 
+/* ============== LocalForage setup (offline queue) ============== */
+localforage.config({
+  name: 'ukss_offline',
+  storeName: 'vote_queue'
+});
+const QUEUE_KEY = 'pending_votes_queue_v1';
+
+/* helper: get queue (array) */
+async function getQueue(){
+  const q = await localforage.getItem(QUEUE_KEY);
+  return Array.isArray(q) ? q : [];
+}
+async function setQueue(arr){ await localforage.setItem(QUEUE_KEY, arr); }
+
+/* add to queue */
+async function enqueueVote(voteObj){
+  const q = await getQueue();
+  q.push(voteObj);
+  await setQueue(q);
+}
+
+/* pop first and return it */
+async function dequeueOne(){
+  const q = await getQueue();
+  if(q.length === 0) return null;
+  const item = q.shift();
+  await setQueue(q);
+  return item;
+}
+
 /* ============== Helper: placeholder SVG dataURI ============== */
 function placeholderDataUrl(gender){
   const isMale = String(gender||"").toLowerCase().startsWith("m");
@@ -217,7 +254,6 @@ function prettyTitle(posKey){
 
 /* ============== Fetch & Render candidates ============== */
 const positionsArea = document.getElementById("positionsArea");
-
 let latestCandidates = {}; // snapshot cache
 
 function groupCandidatesByBase(candidatesObj){
@@ -319,6 +355,51 @@ onValue(candidatesRef, snap => {
   renderCandidates(data);
 });
 
+/* ============== Network status handling & sync loop ============== */
+const netStatusEl = document.getElementById('netStatus');
+function updateNetworkUI(){
+  if(navigator.onLine){
+    netStatusEl.textContent = 'Network: ONLINE';
+    netStatusEl.style.borderColor = '#2e7d32';
+  } else {
+    netStatusEl.textContent = 'Network: OFFLINE (votes queued)';
+    netStatusEl.style.borderColor = '#c62828';
+  }
+}
+window.addEventListener('online', () => { updateNetworkUI(); startSyncLoop(); });
+window.addEventListener('offline', () => { updateNetworkUI(); });
+updateNetworkUI();
+
+/* Sync loop: tries to sync pending votes every 5 seconds when online */
+let syncIntervalId = null;
+function startSyncLoop(){
+  if(syncIntervalId) return;
+  syncIntervalId = setInterval(async () => {
+    if(!navigator.onLine) return;
+    // attempt to flush queue until empty
+    let item = await dequeueOne();
+    while(item){
+      try{
+        // write vote to firebase
+        await set(ref(db, "votes/" + item.voterID), item);
+        // ensure voters flagged on server (best-effort)
+        try { await update(ref(db, "voters/" + item.voterID), { hasVoted: true }); } catch(e){}
+        // next
+        item = await dequeueOne();
+      } catch(err){
+        // push back item to queue front (since set failed)
+        const q = await getQueue();
+        q.unshift(item); // put back
+        await setQueue(q);
+        console.error("Sync failed, will retry:", err);
+        break; // exit while, will retry later
+      }
+    }
+  }, 5000);
+}
+/* start loop if online at load */
+if(navigator.onLine) startSyncLoop();
+
 /* ============== Voting submission logic ============== */
 document.getElementById("submitBtn").addEventListener("click", async () => {
   const groups = document.querySelectorAll(".position-block");
@@ -345,40 +426,70 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     }
   }
 
-  // check double vote
-  const voterSnap = await get(ref(db, "voters/" + voterID));
-  if(voterSnap.exists() && voterSnap.val().hasVoted){
-    alert("You have already voted. Duplicate voting not allowed.");
+  // local prevention of double-vote: check local flag first
+  const localVotedFlag = localStorage.getItem("hasVoted_local_" + voterID);
+  if(localVotedFlag === "true"){
+    alert("You have already voted (local). Duplicate voting not allowed.");
     return;
   }
 
-  // Save votes
+  // server check (best-effort)
+  try {
+    const voterSnap = await get(ref(db, "voters/" + voterID));
+    if(voterSnap.exists() && voterSnap.val().hasVoted){
+      alert("You have already voted (server). Duplicate voting not allowed.");
+      return;
+    }
+  } catch(e){
+    // offline or error -> will handle via queue
+    console.warn("Server check failed (likely offline):", e);
+  }
+
+  // Save votes object
   const voteObj = {
     voterID,
     name: `${fname} ${mname} ${lname}`.trim(),
     class: classSelect,
     gender,
     votes,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    queued: !navigator.onLine // mark queued if offline
   };
 
   try{
-    await set(ref(db, "votes/" + voterID), voteObj);
-    await update(ref(db, "voters/" + voterID), { hasVoted: true });
-  }catch(err){
+    if(navigator.onLine){
+      // try write directly
+      await set(ref(db, "votes/" + voterID), voteObj);
+      await update(ref(db, "voters/" + voterID), { hasVoted: true });
+      localStorage.setItem("hasVoted_local_" + voterID, "true");
+      // show receipt (not queued)
+      openReceiptModal(voteObj, false);
+    } else {
+      // offline: store in queue and mark local voted flag
+      await enqueueVote(voteObj);
+      localStorage.setItem("hasVoted_local_" + voterID, "true");
+      // show receipt with queued indicator
+      openReceiptModal(voteObj, true);
+    }
+  } catch(err){
     alert("Failed to save your vote: " + (err.message||err));
+    console.error(err);
     return;
   }
 
-  // show center popup receipt (modal)
-  openReceiptModal(voteObj);
+  // once vote recorded locally or server-side, hide submit
+  document.getElementById("submitBtn").style.display = 'none';
 });
 
 /* ============== Refresh button ============== */
 document.getElementById("refreshBtn").addEventListener("click", async () => {
-  const snap = await get(candidatesRef);
-  renderCandidates(snap.val() || {});
-  alert("Candidates refreshed.");
+  try {
+    const snap = await get(candidatesRef);
+    renderCandidates(snap.val() || {});
+    alert("Candidates refreshed.");
+  } catch(err){
+    alert("Refresh failed: " + (err.message||err));
+  }
 });
 
 /* ============== RECEIPT MODAL HANDLING ============== */
@@ -390,8 +501,7 @@ const closeReceiptBtn = document.getElementById("closeReceiptBtn");
 const closeReceiptBtn2 = document.getElementById("closeReceiptBtn2");
 const printReceiptBtn = document.getElementById("printReceiptBtn");
 
-function openReceiptModal(voteObj){
-  // build simple EFD-style receipt text (compact)
+function openReceiptModal(voteObj, queued=false){
   const v = voteObj.votes || {};
   let html = "";
   html += `<div style="text-align:center; font-weight:800; font-size:12px;">SCHOOL: UKSS</div>`;
@@ -413,14 +523,24 @@ function openReceiptModal(voteObj){
   });
   html += `</div>`;
   html += `<div style="margin-top:8px; font-size:11px; text-align:center;" class="small">Thank you for voting</div>`;
+  if(queued){
+    html += `<div style="margin-top:6px; text-align:center; color:crimson; font-weight:800;">(OFFLINE — Vote queued, will sync automatically)</div>`;
+  } else {
+    html += `<div style="margin-top:6px; text-align:center; color:green; font-weight:800;">(Vote recorded)</div>`;
+  }
+
+  // attach full JSON printed under small text (hidden visually but encoded in QR)
+  html += `<div style="display:none" id="receiptJSON">${encodeURIComponent(JSON.stringify(voteObj))}</div>`;
 
   receiptContent.innerHTML = html;
 
-  // generate QR with voterID only (option A)
+  // generate FULL JSON QR (encode compact JSON)
   try {
-    const qr = new QRious({
+    // compress by removing spaces for smaller QR
+    const jsonStr = JSON.stringify(voteObj);
+    new QRious({
       element: qrCanvas,
-      value: `VoterID:${voteObj.voterID}`,
+      value: jsonStr,
       size: 140,
       level: "M"
     });
@@ -435,17 +555,11 @@ function openReceiptModal(voteObj){
   // show modal
   modalOverlay.style.display = "flex";
   modalOverlay.setAttribute("aria-hidden", "false");
-
-  // hide submit button to avoid re-submission
-  const sb = document.getElementById("submitBtn");
-  if(sb) sb.style.display = "none";
 }
 
 function closeReceiptModal(){
   modalOverlay.style.display = "none";
   modalOverlay.setAttribute("aria-hidden", "true");
-  // allow submit button again only if needed (but usually we keep it hidden after vote)
-  // document.getElementById("submitBtn").style.display = "";
 }
 
 closeReceiptBtn.addEventListener("click", closeReceiptModal);
@@ -453,7 +567,6 @@ closeReceiptBtn2.addEventListener("click", closeReceiptModal);
 
 // print only the modal content (CSS @media print ensures only modal visible)
 printReceiptBtn.addEventListener("click", () => {
-  // open print dialog; @media print will isolate receipt content
   window.print();
 });
 
@@ -462,6 +575,14 @@ modalOverlay.addEventListener("click", (e) => {
   if(e.target === modalOverlay) closeReceiptModal();
 });
 
+/* ============== Try to keep UI updated for network status (poll) ============== */
+setInterval(updateNetworkUI, 2000);
+
+/* ======= Convenience / initial sanity: try to start sync immediately if online ======= */
+(async () => {
+  if(navigator.onLine) startSyncLoop();
+  updateNetworkUI();
+})();
 </script>
 </body>
 </html>
