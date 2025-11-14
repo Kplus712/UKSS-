@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>UKSS Voting — Official</title>
 
-<!-- QR library (small) -->
-<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
-
 <style>
   :root{
     --green:#1b5e20;
@@ -71,52 +68,59 @@
   .actions{ display:flex; gap:12px; margin-top:22px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
   .btn{ padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:800; }
   .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
+  #receipt{ display:none; margin-top:18px; background:white; border-left:6px solid var(--accent); padding:12px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.04); }
 
-  /* === RECEIPT MODAL (Centered) === */
-  .modal-overlay {
-    position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none;
-    align-items:center; justify-content:center; z-index:9999;
-  }
-  .receipt-modal {
-    width:260px; /* small efd-like width */
+  /* ======================== Receipt POPUP (EFD-style) ======================== */
+  .receipt-popup {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    width: 240px;               /* target ~230px inside padding */
+    max-width: calc(100% - 36px);
     background: #fff;
-    border-radius:8px;
-    padding:10px 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    border: 4px solid #222; /* simulated print border */
-    font-family: "Courier New", Courier, monospace; /* receipt-ish */
-    color:#111;
+    border: 2px solid #222;
+    border-right-width: 6px;
+    border-radius: 6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 12px;
+    color: #111;
+    z-index: 9999;
+    padding: 10px;
+    display: none;
+    transform-origin: top right;
+    animation: fadeInReceipt .25s ease both;
   }
-  .receipt-header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-  .receipt-title { font-weight:900; color:var(--accent); font-size:12px; }
-  .receipt-close { background:crimson; color:#fff; border:none; padding:6px 8px; border-radius:6px; cursor:pointer; font-weight:700; }
-  .receipt-body { font-size:12px; margin-top:8px; line-height:1.15; }
+  @keyframes fadeInReceipt {
+    from { opacity: 0; transform: translateY(-6px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .receipt-header { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; }
+  .receipt-title { font-weight:900; color:#0b6623; font-size:13px; }
+  .receipt-close { background:transparent; border:none; font-weight:900; cursor:pointer; }
+  .receipt-body { border-top:1px dashed #bbb; padding-top:8px; line-height:1.25; }
   .receipt-body .small { font-size:11px; color:#444; }
-  .receipt-qr { display:flex; justify-content:center; margin-top:8px; }
-  .receipt-actions { display:flex; gap:8px; margin-top:10px; justify-content:center; }
-  .receipt-actions button { padding:8px 10px; border-radius:6px; border:none; cursor:pointer; font-weight:800; }
-  .btn-print { background:#2e7d32; color:white; }
-  .btn-close { background:#f0f0f0; color:#222; border:1px solid #ddd; }
+  .receipt-qr { display:flex; justify-content:center; margin:8px 0; }
+  .receipt-actions { display:flex; gap:8px; margin-top:8px; }
+  .receipt-actions button { flex:1; padding:8px; font-size:12px; border-radius:6px; cursor:pointer; }
+  .print-btn { background:#2e7d32; color:#fff; border:none; font-weight:700; }
+  .close-btn-secondary { background:#eee; border:1px solid #ccc; }
 
-  /* when printing, only show modal content */
   @media print {
-    body * { visibility: hidden; }
-    .receipt-modal, .receipt-modal * { visibility: visible; }
-    .receipt-modal { position: absolute; left:0; top:0; width:100%; box-shadow:none; border:none; }
+    .receipt-popup { display:none !important; }
   }
 
   /* responsive */
-  @media (max-width:900px){
-    .landscape-row{ flex-direction:column; }
-    .column{ width:100%; }
-    .center-col{ display:none; }
+  @media (max-width:360px){
+    .receipt-popup { right:8px; left:8px; width:auto; }
   }
+
 </style>
 </head>
 <body>
   <div class="container">
     <h1>🗳️ UKSS Student Voting</h1>
-    <p class="lead">Choose leaders carefully — girls left, boys right. General Secretary: choose one (male or female).</p>
+    <p class="lead">Choose leaders carefully — girls displayed on the left, boys on the right. General Secretary: choose one (male or female).</p>
 
     <!-- positions area will be filled dynamically -->
     <div id="positionsArea">Loading candidates...</div>
@@ -125,37 +129,41 @@
       <button class="btn" id="submitBtn">SUBMIT VOTE</button>
       <button class="btn secondary" id="refreshBtn">Refresh Candidates</button>
     </div>
+
+    <!-- kept for backward compatibility (not used for popup) -->
+    <div id="receipt"></div>
   </div>
 
-  <!-- Receipt Modal -->
-  <div id="modalOverlay" class="modal-overlay" role="dialog" aria-hidden="true">
-    <div class="receipt-modal" id="receiptModal" role="document">
-      <div class="receipt-header">
-        <div class="receipt-title">UKSS — Voting Receipt</div>
-        <button class="receipt-close" id="closeReceiptBtn">✖</button>
-      </div>
+  <!-- ================= Receipt Popup (EFD style) ================= -->
+  <div id="receiptPopup" class="receipt-popup" role="dialog" aria-live="polite" aria-label="Voting receipt">
+    <div class="receipt-header">
+      <div class="receipt-title">UKSS — RECEIPT</div>
+      <button id="closeReceiptBtn" class="receipt-close" aria-label="Close">✖</button>
+    </div>
 
-      <div id="receiptContent" class="receipt-body">
-        <!-- Filled dynamically -->
-      </div>
+    <div class="receipt-body" id="receiptPopupBody">
+      <!-- populated dynamically -->
+      <div class="small" id="r-school">UKSS — Student Election</div>
+      <div id="r-name" style="font-weight:800; margin-top:6px;"></div>
+      <div id="r-meta" class="small" style="margin-top:6px;"></div>
 
-      <div class="receipt-qr">
-        <canvas id="receiptQR" width="140" height="140" aria-hidden="false"></canvas>
-      </div>
+      <div style="margin-top:8px; font-weight:700;">Choices:</div>
+      <div id="r-choices" style="font-size:12px; margin-top:6px;"></div>
+
+      <div class="receipt-qr" id="r-qr"><img alt="QR" id="r-qr-img" width="96" height="96"></div>
 
       <div class="receipt-actions">
-        <button class="btn-print" id="printReceiptBtn">PRINT</button>
-        <button class="btn-close" id="closeReceiptBtn2">CLOSE</button>
+        <button class="print-btn" id="printReceiptBtn">PRINT</button>
+        <button class="close-btn-secondary" id="dismissPopupBtn">CLOSE</button>
       </div>
     </div>
   </div>
 
 <script type="module">
-/* ================= Configuration ================= */
+/* ================= Configuration (leave your firebase links intact) ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-/* --- Firebase config (unchanged) --- */
 const firebaseConfig = {
   apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
   authDomain: "ukss-voting-system.firebaseapp.com",
@@ -182,7 +190,8 @@ if(!voterID){
   location.href = "index.html";
 }
 
-/* ============== Helper: placeholder SVG dataURI ============== */
+/* ============== Helper & UI pieces (kept same behavior as your previous code) ============== */
+
 function placeholderDataUrl(gender){
   const isMale = String(gender||"").toLowerCase().startsWith("m");
   const bg = isMale ? "#dff0d9" : "#f1efe5";
@@ -197,7 +206,6 @@ function placeholderDataUrl(gender){
   return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
 }
 
-/* ============== Utility: text prettify for position titles ============== */
 function prettyTitle(posKey){
   const map = {
     head: "Head Prefect",
@@ -215,10 +223,9 @@ function prettyTitle(posKey){
   return map[base] || base.replace(/([A-Z])/g," $1").trim();
 }
 
-/* ============== Fetch & Render candidates ============== */
+/* ============== Render candidates (unchanged behavior) ============== */
 const positionsArea = document.getElementById("positionsArea");
-
-let latestCandidates = {}; // snapshot cache
+let latestCandidates = {};
 
 function groupCandidatesByBase(candidatesObj){
   const groups = {};
@@ -232,13 +239,11 @@ function groupCandidatesByBase(candidatesObj){
     }
     if(!groups[base]) groups[base] = { girls:[], boys:[], rawPositions: new Set() };
     groups[base].rawPositions.add(pos);
-
     const candidate = { id, ...c };
     const g = (c.gender||"").toLowerCase();
     if(/female|girl|f/i.test(g) || /Girl$/i.test(pos)) groups[base].girls.push(candidate);
     else groups[base].boys.push(candidate);
   });
-
   return groups;
 }
 
@@ -262,7 +267,6 @@ function buildCandidateCardHTML(c, radioName){
 function renderCandidates(snapshotObj){
   latestCandidates = snapshotObj || {};
   const groups = groupCandidatesByBase(snapshotObj || {});
-
   const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
   const presentBases = Object.keys(groups);
   const ordered = [];
@@ -275,7 +279,6 @@ function renderCandidates(snapshotObj){
     if(!grp) continue;
     out += `<div class="position-block" data-base="${base}">`;
     out += `<div class="position-title">${prettyTitle(base)}</div>`;
-
     if(base === "generalSecretary"){
       out += `<div class="landscape-row">`;
       out += `<div class="column">`;
@@ -301,14 +304,12 @@ function renderCandidates(snapshotObj){
       out += `</div>`;
       out += `</div>`;
     }
-
     out += `</div>`;
   }
-
   positionsArea.innerHTML = out;
 }
 
-/* ============== Live listener ============== */
+/* live listener (unchanged) */
 const candidatesRef = ref(db, "candidates");
 onValue(candidatesRef, snap => {
   const data = snap.val();
@@ -319,7 +320,7 @@ onValue(candidatesRef, snap => {
   renderCandidates(data);
 });
 
-/* ============== Voting submission logic ============== */
+/* ============== Voting submission logic (unchanged) ============== */
 document.getElementById("submitBtn").addEventListener("click", async () => {
   const groups = document.querySelectorAll(".position-block");
   const votes = {};
@@ -345,14 +346,14 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     }
   }
 
-  // check double vote
+  // check double vote (unchanged)
   const voterSnap = await get(ref(db, "voters/" + voterID));
   if(voterSnap.exists() && voterSnap.val().hasVoted){
     alert("You have already voted. Duplicate voting not allowed.");
     return;
   }
 
-  // Save votes
+  // Save votes (unchanged)
   const voteObj = {
     voterID,
     name: `${fname} ${mname} ${lname}`.trim(),
@@ -370,97 +371,140 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     return;
   }
 
-  // show center popup receipt (modal)
-  openReceiptModal(voteObj);
+  // Show both the old receipt element (kept for backward compat) AND the new popup
+  showReceipt(voteObj);      // existing inline receipt (kept)
+  showReceiptPopup(voteObj); // NEW popup (EFD style) - non destructive
 });
 
-/* ============== Refresh button ============== */
+/* Refresh */
 document.getElementById("refreshBtn").addEventListener("click", async () => {
   const snap = await get(candidatesRef);
   renderCandidates(snap.val() || {});
   alert("Candidates refreshed.");
 });
 
-/* ============== RECEIPT MODAL HANDLING ============== */
-const modalOverlay = document.getElementById("modalOverlay");
-const receiptModal = document.getElementById("receiptModal");
-const receiptContent = document.getElementById("receiptContent");
-const qrCanvas = document.getElementById("receiptQR");
-const closeReceiptBtn = document.getElementById("closeReceiptBtn");
-const closeReceiptBtn2 = document.getElementById("closeReceiptBtn2");
-const printReceiptBtn = document.getElementById("printReceiptBtn");
-
-function openReceiptModal(voteObj){
-  // build simple EFD-style receipt text (compact)
+/* ============== ORIGINAL showReceipt (kept; small change to not hide popup logic) ============== */
+function showReceipt(voteObj){
+  const receipt = document.getElementById("receipt");
   const v = voteObj.votes || {};
-  let html = "";
-  html += `<div style="text-align:center; font-weight:800; font-size:12px;">SCHOOL: UKSS</div>`;
-  html += `<div style="text-align:center; font-size:11px; margin-top:6px;">VOTING RECEIPT</div>`;
-  html += `<div style="margin-top:8px; font-size:12px;">`;
-  html += `<div><b>ID:</b> ${voteObj.voterID}</div>`;
-  html += `<div><b>Name:</b> ${voteObj.name}</div>`;
-  html += `<div><b>Class:</b> ${voteObj.class}</div>`;
-  html += `<div><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</div>`;
-  html += `</div>`;
-  html += `<hr style="border:none;border-top:1px dashed #ccc;margin:8px 0;">`;
-  html += `<div style="font-size:12px;"><b>Your choices:</b></div>`;
-  html += `<div style="font-size:11px; margin-top:6px;">`;
-  Object.entries(v).forEach(([k,val])=>{
+  let html = `<h2 style="color:var(--accent); text-align:center">🧾 Voting Receipt</h2>`;
+  html += `<p><b>Name:</b> ${voteObj.name}</p>`;
+  html += `<p><b>Class:</b> ${voteObj.class}</p>`;
+  html += `<p><b>Gender:</b> ${voteObj.gender}</p>`;
+  html += `<p><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</p>`;
+  html += `<hr><h3>Your Choices</h3><ul>`;
+  for(const [k,val] of Object.entries(v)){
     const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
                   prettyTitle(k.replace(/(Girl|Boy)$/i,""));
-    const suffix = (/(Girl|Boy)$/i.test(k)) ? ` (${k.match(/(Girl|Boy)$/i)[0]})` : "";
-    html += `<div>${label}${suffix}: ${val}</div>`;
-  });
-  html += `</div>`;
-  html += `<div style="margin-top:8px; font-size:11px; text-align:center;" class="small">Thank you for voting</div>`;
-
-  receiptContent.innerHTML = html;
-
-  // generate QR with voterID only (option A)
-  try {
-    const qr = new QRious({
-      element: qrCanvas,
-      value: `VoterID:${voteObj.voterID}`,
-      size: 140,
-      level: "M"
-    });
-  } catch(e){
-    // fallback: draw text if QR lib fails
-    const ctx = qrCanvas.getContext('2d');
-    ctx.clearRect(0,0, qrCanvas.width, qrCanvas.height);
-    ctx.font = "12px monospace";
-    ctx.fillText(voteObj.voterID, 10, 20);
+    html += `<li><b>${label} ${/(Girl|Boy)$/.test(k) ? ("("+ (k.match(/(Girl|Boy)$/i)||[])[0] +")") : ""}:</b> ${val}</li>`;
   }
-
-  // show modal
-  modalOverlay.style.display = "flex";
-  modalOverlay.setAttribute("aria-hidden", "false");
-
-  // hide submit button to avoid re-submission
-  const sb = document.getElementById("submitBtn");
-  if(sb) sb.style.display = "none";
+  html += `</ul>`;
+  html += `<div style="margin-top:12px"><button onclick="window.print()" class="btn" style="margin-right:8px">Print Receipt</button><button onclick="location.href='index.html'" class="btn secondary">Return Home</button></div>`;
+  receipt.innerHTML = html;
+  receipt.style.display = "block";
+  document.getElementById("submitBtn").style.display = "none";
 }
 
-function closeReceiptModal(){
-  modalOverlay.style.display = "none";
-  modalOverlay.setAttribute("aria-hidden", "true");
-  // allow submit button again only if needed (but usually we keep it hidden after vote)
-  // document.getElementById("submitBtn").style.display = "";
+/* ================= NEW: Popup receipt functions (EFD-style) ================= */
+
+/**
+ * Build QR code image URL using Google Chart API for quick QR generation.
+ * (This does an image request to Google - safe & lightweight).
+ */
+function buildQrDataUrl(text, size=200){
+  const enc = encodeURIComponent(String(text || ""));
+  // size param like 200x200
+  return `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${enc}&chld=L|1`;
 }
 
-closeReceiptBtn.addEventListener("click", closeReceiptModal);
-closeReceiptBtn2.addEventListener("click", closeReceiptModal);
+const popupEl = document.getElementById("receiptPopup");
+const popupName = document.getElementById("r-name");
+const popupMeta = document.getElementById("r-meta");
+const popupChoices = document.getElementById("r-choices");
+const popupQrImg = document.getElementById("r-qr-img");
+const closeReceiptBtn = document.getElementById("closeReceiptBtn");
+const dismissPopupBtn = document.getElementById("dismissPopupBtn");
+const printReceiptBtn = document.getElementById("printReceiptBtn");
 
-// print only the modal content (CSS @media print ensures only modal visible)
+closeReceiptBtn.addEventListener("click", hideReceiptPopup);
+dismissPopupBtn.addEventListener("click", hideReceiptPopup);
+
+/* Print: open new window containing the receipt HTML (EFD style) so it prints nicely like a slip */
 printReceiptBtn.addEventListener("click", () => {
-  // open print dialog; @media print will isolate receipt content
-  window.print();
+  if(!popupEl.dataset.html) return;
+  const content = popupEl.dataset.html;
+  const w = window.open("", "_blank", "width=400,height=600");
+  if(!w) { alert("Pop-up blocked. Please allow pop-ups to print."); return; }
+  w.document.open();
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Print Receipt</title>
+    <style>
+      body{ font-family: "Courier New", Courier, monospace; font-size:12px; padding:10px; }
+      .slip{ width:230px; border-right:6px solid #222; padding-right:6px; }
+      h2{ text-align:center; font-size:14px; color:#0b6623; margin:6px 0;}
+      .small{font-size:11px;color:#333}
+      ul{ padding-left:14px; }
+    </style>
+  </head><body><div class="slip">${content}</div></body></html>`);
+  w.document.close();
+  // wait briefly for images (QR) to load
+  setTimeout(()=>{ try { w.print(); w.close(); } catch(e){ /* ignore */ } }, 700);
 });
 
-/* Accessibility: close modal when clicking outside modal content */
-modalOverlay.addEventListener("click", (e) => {
-  if(e.target === modalOverlay) closeReceiptModal();
-});
+/* Show popup (non-destructive) */
+function showReceiptPopup(voteObj){
+  // Build popup text
+  const fullname = voteObj.name || `${fname} ${mname} ${lname}`.trim();
+  popupName.textContent = fullname;
+  popupMeta.innerHTML = `<span class="small">Class: ${voteObj.class || classSelect}</span><br><span class="small">Gender: ${voteObj.gender || gender}</span><br><span class="small">Time: ${new Date(voteObj.timestamp).toLocaleString()}</span>`;
+
+  // choices list small
+  const v = voteObj.votes || {};
+  let choicesHtml = "<ul style='margin:6px 0;padding-left:14px;line-height:1.2;font-size:12px'>";
+  for(const [k,val] of Object.entries(v)){
+    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
+                  prettyTitle(k.replace(/(Girl|Boy)$/i,""));
+    choicesHtml += `<li><b style="font-weight:700">${label}:</b> ${val}</li>`;
+  }
+  choicesHtml += "</ul>";
+  popupChoices.innerHTML = choicesHtml;
+
+  // QR: include minimal data: voterID + timestamp + name (safe)
+  const qrPayload = JSON.stringify({ voterID: voteObj.voterID, name: fullname, ts: voteObj.timestamp });
+  const qrUrl = buildQrDataUrl(qrPayload, 200);
+  popupQrImg.src = qrUrl;
+
+  // snapshot html used for printing later:
+  const printableContent = `
+    <h2>UKSS — RECEIPT</h2>
+    <div><b>${fullname}</b></div>
+    <div class="small">Class: ${voteObj.class || classSelect}</div>
+    <div class="small">Gender: ${voteObj.gender || gender}</div>
+    <div class="small">Time: ${new Date(voteObj.timestamp).toLocaleString()}</div>
+    <hr>
+    <div><b>Choices:</b></div>
+    ${choicesHtml}
+    <div style="text-align:center;margin-top:8px"><img src="${qrUrl}" width="120" height="120" alt="QR"></div>
+    <div class="small" style="margin-top:6px;text-align:center">Thank you for voting</div>
+  `;
+  // store on element for print button to use
+  popupEl.dataset.html = printableContent;
+
+  // show popup with animation (fade-in controlled via CSS)
+  popupEl.style.display = "block";
+  // ensure it is focused for accessibility
+  popupEl.setAttribute("tabindex","-1");
+  popupEl.focus();
+
+  // (optional) Auto-hide after X seconds? Not requested — keep until user closes
+}
+
+/* Hide popup */
+function hideReceiptPopup(){
+  popupEl.style.display = "none";
+  // (do not reset popupEl.dataset.html) — keep it for print if reopened during same session
+}
+
+/* ======= END popup code ======= */
 
 </script>
 </body>
