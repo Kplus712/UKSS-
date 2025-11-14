@@ -148,48 +148,48 @@
             </optgroup>
 
             <optgroup label="General Secretary">
-                <option value="generalSecretary">General Secretary (Male)</option>
-                <option value="generalSecretary">General Secretary (Female)</option>
+                <option value="generalSecretaryBoy">General Secretary (Male)</option>
+                <option value="generalSecretaryGirl">General Secretary (Female)</option>
             </optgroup>
 
             <optgroup label="Sports & Games">
-                <option value="sports prefect">Sports & Games (Male)</option>
-                <option value="sports prefect">Sports & Games (Female)</option>
+                <option value="sportsBoy">Sports & Games (Male)</option>
+                <option value="sportsGirl">Sports & Games (Female)</option>
             </optgroup>
 
             <optgroup label="Food Prefect">
-                <option value="food prefect">Food Prefect (Male)</option>
-                <option value="food prefect">Food Prefect (Female)</option>
+                <option value="foodBoy">Food Prefect (Male)</option>
+                <option value="foodGirl">Food Prefect (Female)</option>
             </optgroup>
 
             <optgroup label="Environmental">
-                <option value="environment prefect">Environmental (Male)</option>
-                <option value="environment prefect">Environmental (Female)</option>
+                <option value="environmentBoy">Environmental (Male)</option>
+                <option value="environmentGirl">Environmental (Female)</option>
             </optgroup>
 
             <optgroup label="Health">
-                <option value="health prefect">Health (Male)</option>
-                <option value="health prefect">Health (Female)</option>
+                <option value="healthBoy">Health (Male)</option>
+                <option value="healthGirl">Health (Female)</option>
             </optgroup>
 
             <optgroup label="Maintenance">
-                <option value="maintenance prefect">Maintenance (Male)</option>
-                <option value="maintenance prefect">Maintenance (Female)</option>
+                <option value="maintenanceBoy">Maintenance (Male)</option>
+                <option value="maintenanceGirl">Maintenance (Female)</option>
             </optgroup>
 
             <optgroup label="Store Keeper">
-                <option value="store prefect">Store Keeper (Male)</option>
-                <option value="store prefect">Store Keeper (Female)</option>
+                <option value="storeBoy">Store Keeper (Male)</option>
+                <option value="storeGirl">Store Keeper (Female)</option>
             </optgroup>
 
             <optgroup label="Academic">
-                <option value="academic prefect">Academic (Male)</option>
-                <option value="academic prefect">Academic (Female)</option>
+                <option value="academicBoy">Academic (Male)</option>
+                <option value="academicGirl">Academic (Female)</option>
             </optgroup>
 
             <optgroup label="Discipline">
-                <option value="discipline prefect">Discipline (Male)</option>
-                <option value="discipline prefect">Discipline (Female)</option>
+                <option value="disciplineBoy">Discipline (Male)</option>
+                <option value="disciplineGirl">Discipline (Female)</option>
             </optgroup>
 
         </select>
@@ -224,20 +224,19 @@
 
 <!-- Firebase -->
 <script type="module">
-    /* ---------------- FIREBASE IMPORTS ------------------- */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, set, update, remove, onValue, get, child } 
+    import { getDatabase, ref, set, update, remove, onValue, get } 
         from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
     import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
         from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
 
-    /* ---------------- CORRECT CONFIG -------------------- */
+    /* 🔥 FIXED STORAGE BUCKET */
     const firebaseConfig = {
         apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
         authDomain: "ukss-voting-system.firebaseapp.com",
         databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
         projectId: "ukss-voting-system",
-        storageBucket: "ukss-voting-system.firebasestorage.app",
+        storageBucket: "ukss-voting-system.appspot.com",
         messagingSenderId: "525528255065",
         appId: "1:525528255065:web:97c4e55d2984acc718bf48"
     };
@@ -246,85 +245,76 @@
     const db = getDatabase(app);
     const storage = getStorage(app);
 
-    /* ----------------- UNLOCK FORM ------------------------ */
+    /* UNLOCK */
     window.unlockForm = function(){
-        const pass = document.getElementById("adminPass").value;
-        if(pass === "ukss2025"){
+        if(document.getElementById("adminPass").value === "ukss2025"){
             document.getElementById("formArea").style.display = "block";
-        } else { 
-            alert("Incorrect Admin Password!"); 
-        }
+        } else alert("Incorrect admin password!");
     };
 
-    /* ---------------- PREVIEW IMAGE ----------------------- */
+    /* IMAGE PREVIEW */
     document.getElementById("photo").addEventListener("change", function(){
         const file = this.files[0];
-        if(file){
-            const reader = new FileReader();
-            reader.onload = e => {
-                document.getElementById("previewImg").src = e.target.result;
-                document.getElementById("previewImg").style.display = "block";
-            };
-            reader.readAsDataURL(file);
-        }
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            previewImg.src = e.target.result;
+            previewImg.style.display = "block";
+        };
+        reader.readAsDataURL(file);
     });
 
-    /* ---------------- LOAD CANDIDATES --------------------- */
-    const table = document.getElementById("candidateTable");
-
-    onValue(ref(db, "candidates"), snap => {
-        table.innerHTML = "";
+    /* LOAD CANDIDATES */
+    onValue(ref(db,"candidates"), snap=>{
+        candidateTable.innerHTML="";
         if(!snap.exists()) return;
-
-        Object.entries(snap.val()).forEach(([id, c]) => {
-            table.innerHTML += `
-                <tr>
-                    <td><img src="${c.photoURL}" style="width:60px;height:60px;border-radius:8px;border:2px solid #2e7d32;"></td>
-                    <td>${c.firstName} ${c.middleName} ${c.lastName}</td>
-                    <td>${c.gender}</td>
-                    <td>${c.classSelect}</td>
-                    <td>${c.position}</td>
-                    <td>
-                        <button class="edit-btn" onclick="editCandidate('${id}')">Edit</button>
-                        <button class="delete-btn" onclick="deleteCandidate('${id}')">Delete</button>
-                    </td>
-                </tr>
+        Object.entries(snap.val()).forEach(([id,c])=>{
+            candidateTable.innerHTML+=`
+            <tr>
+                <td><img src="${c.photoURL}" style="width:60px;height:60px;border-radius:8px;border:2px solid #2e7d32;"></td>
+                <td>${c.firstName} ${c.middleName} ${c.lastName}</td>
+                <td>${c.gender}</td>
+                <td>${c.classSelect}</td>
+                <td>${c.position}</td>
+                <td>
+                    <button class="edit-btn" onclick="editCandidate('${id}')">Edit</button>
+                    <button class="delete-btn" onclick="deleteCandidate('${id}')">Delete</button>
+                </td>
+            </tr>
             `;
         });
     });
 
-    /* ---------------- EDIT CANDIDATE ---------------------- */
+    /* EDIT */
     window.editCandidate = async function(id){
-        const snap = await get(ref(db, "candidates/" + id));
+        const snap = await get(ref(db,"candidates/"+id));
         if(!snap.exists()) return;
-
         const c = snap.val();
 
-        document.getElementById("editMode").value = "edit";
-        document.getElementById("editID").value = id;
+        editMode.value="edit";
+        editID.value=id;
 
-        firstName.value = c.firstName;
-        middleName.value = c.middleName;
-        lastName.value = c.lastName;
-        gender.value = c.gender;
-        classSelect.value = c.classSelect;
-        position.value = c.position;
+        firstName.value=c.firstName;
+        middleName.value=c.middleName;
+        lastName.value=c.lastName;
+        gender.value=c.gender;
+        classSelect.value=c.classSelect;
+        position.value=c.position;
 
-        document.getElementById("previewImg").src = c.photoURL;
-        document.getElementById("previewImg").style.display = "block";
+        previewImg.src=c.photoURL;
+        previewImg.style.display="block";
     };
 
-    /* ---------------- DELETE ---------------------- */
+    /* DELETE */
     window.deleteCandidate = async function(id){
         if(confirm("Delete this candidate?")){
-            await remove(ref(db, "candidates/" + id));
-            alert("Candidate removed.");
+            await remove(ref(db,"candidates/"+id));
+            alert("Deleted.");
         }
     };
 
-    /* ---------------- SAVE / UPDATE ---------------------- */
+    /* SAVE */
     window.saveCandidate = async function(){
-
         const first = firstName.value.trim();
         const middle = middleName.value.trim();
         const last = lastName.value.trim();
@@ -334,35 +324,23 @@
         const file = photo.files[0];
 
         if(!first || !last || !gen || !cls || !pos){
-            alert("Fill all fields!");
+            alert("Fill all fields.");
             return;
         }
 
-        let candidateID = "";
-        const mode = document.getElementById("editMode").value;
+        let id = editMode.value==="edit" ? editID.value :
+            (first+"_"+last+"_"+pos).toLowerCase().replace(/\s+/g,"_");
 
-        if(mode === "edit"){
-            candidateID = document.getElementById("editID").value;
-        } else {
-            candidateID = (first + "_" + last + "_" + pos)
-                .toLowerCase()
-                .replace(/\s+/g, "_");
-        }
+        let photoURL = previewImg.src;
 
-        let photoURL = "";
         try{
-
             if(file){
-                const storageRef = sRef(storage, "candidates/" + candidateID + ".jpg");
-                await uploadBytes(storageRef, file);
+                const storageRef = sRef(storage, "candidates/"+id+".jpg");
+                await uploadBytes(storageRef,file);
                 photoURL = await getDownloadURL(storageRef);
-            } else {
-                // keep old image
-                photoURL = document.getElementById("previewImg").src;
             }
 
-            // write to database
-            await set(ref(db, "candidates/" + candidateID), {
+            await set(ref(db,"candidates/"+id),{
                 firstName:first,
                 middleName:middle,
                 lastName:last,
@@ -376,8 +354,7 @@
             location.reload();
 
         }catch(err){
-            alert("ERROR SAVING: " + err.message);
-            console.log(err);
+            alert("Error: "+err.message);
         }
     };
 
