@@ -15,13 +15,14 @@
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
     .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     .modal-content h2 { color: forestgreen; }
+    .status-badge { display:inline-block; padding:6px 10px; border-radius:20px; background:#ffeedd; color:#b55200; font-weight:700; margin-left:10px; font-size:13px; }
   </style>
 </head>
 <body>
 
   <header>
     <h1>🗳️ UMOJA KING'ORI VOTING SYSTEM</h1>
-    <p>Cast your vote wisely – Your choice matters!</p>
+    <p>Cast your vote wisely – Your choice matters! <span id="netStatus" class="status-badge" style="display:none;"></span></p>
   </header>
 
   <!-- === Main Menu Buttons === -->
@@ -53,8 +54,12 @@
       <option value="Female">Female</option>
     </select>
 
-    <button onclick="registerVoter()">Submit Registration</button>
+    <button id="submitRegistrationBtn" onclick="registerVoter()">Submit Registration</button>
     <button onclick="closeRegisterForm()" style="background:gray;">Cancel</button>
+
+    <p id="registerHint" style="color:#666; font-size:13px; margin-top:10px;">
+      Note: If you're offline your registration will be queued and submitted automatically when connection returns.
+    </p>
   </section>
 
   <!-- === Voter Login Modal === -->
@@ -99,10 +104,13 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK and localforage + offline queue -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+  <script src="offline-queue.js"></script>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+    import { getDatabase, ref, get, set, child, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
@@ -118,7 +126,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // === UI Controls ===
+    // UI helpers
     window.openRegisterForm = () => { document.getElementById("registerForm").style.display="block"; document.getElementById("mainMenu").style.display="none"; };
     window.closeRegisterForm = () => { document.getElementById("registerForm").style.display="none"; document.getElementById("mainMenu").style.display="block"; };
     window.openVoterLogin = () => document.getElementById("voterLogin").style.display="flex";
@@ -127,7 +135,26 @@
     window.closeRecovery = () => document.getElementById("recoveryModal").style.display="none";
     window.closePopup = () => document.getElementById("idPopup").style.display="none";
 
-    // === Generate Unique ID ===
+    // Network status badge
+    const netBadge = document.getElementById("netStatus");
+    function updateNetworkBadge(){
+      if(navigator.onLine){
+        netBadge.style.display = "inline-block";
+        netBadge.style.background = "#e6f8ec";
+        netBadge.style.color = "#2e7d32";
+        netBadge.textContent = "ONLINE";
+      } else {
+        netBadge.style.display = "inline-block";
+        netBadge.style.background = "#fff4e6";
+        netBadge.style.color = "#b55200";
+        netBadge.textContent = "OFFLINE (queued tasks will sync)";
+      }
+    }
+    window.addEventListener("online", () => { updateNetworkBadge(); window.syncOfflineQueue && window.syncOfflineQueue(db); });
+    window.addEventListener("offline", updateNetworkBadge);
+    updateNetworkBadge();
+
+    // Generate unique ID (keeps your original logic but uses db)
     async function generateUniqueVoterID(firstName) {
       const randomNum = Math.floor(100 + Math.random() * 900);
       const baseID = firstName.toLowerCase() + randomNum;
@@ -135,7 +162,7 @@
       return snapshot.exists() ? generateUniqueVoterID(firstName) : baseID;
     }
 
-    // === Register New Voter ===
+    // Register New Voter (tries online; on failure uses offline queue)
     window.registerVoter = async function() {
       const firstName = document.getElementById("firstName").value.trim();
       const middleName = document.getElementById("middleName").value.trim();
@@ -145,37 +172,69 @@
 
       if (!firstName || !lastName || !classSelect || !gender) return alert("⚠️ Please fill all fields!");
 
-      const votersRef = child(ref(db), "voters");
-      const votersSnap = await get(votersRef);
-      if (votersSnap.exists()) {
-        const voters = votersSnap.val();
-        const exists = Object.values(voters).find(v =>
-          v.firstName.toLowerCase() === firstName.toLowerCase() &&
-          v.lastName.toLowerCase() === lastName.toLowerCase() &&
-          v.classSelect === classSelect
-        );
-        if (exists) {
-          alert("⚠️ You are already registered! Use your Voter ID to login.");
-          closeRegisterForm();
-          return;
+      // Quick duplicate check when online (best-effort). If offline we skip duplicate check.
+      if (navigator.onLine) {
+        try {
+          const votersSnap = await get(child(ref(db), `voters`));
+          if (votersSnap.exists()) {
+            const voters = votersSnap.val();
+            const exists = Object.values(voters).find(v =>
+              v.firstName.toLowerCase() === firstName.toLowerCase() &&
+              v.lastName.toLowerCase() === lastName.toLowerCase() &&
+              v.classSelect === classSelect
+            );
+            if (exists) {
+              alert("⚠️ You are already registered! Use your Voter ID to login.");
+              closeRegisterForm();
+              return;
+            }
+          }
+        } catch(err){
+          // can't reach DB — proceed to queue
+          console.warn("Could not verify duplicates (will queue):", err);
         }
       }
 
-      const voterID = await generateUniqueVoterID(firstName);
-      await set(ref(db, "voters/" + voterID), { firstName, middleName, lastName, classSelect, gender, hasVoted: false, registeredAt: new Date().toISOString() });
+      // Build payload
+      const payload = {
+        firstName, middleName, lastName, classSelect, gender,
+        hasVoted: false,
+        registeredAt: new Date().toISOString()
+      };
 
-      localStorage.setItem("voterID", voterID);
-      localStorage.setItem("firstName", firstName);
-      localStorage.setItem("lastName", lastName);
-      localStorage.setItem("classSelect", classSelect);
-      localStorage.setItem("gender", gender);
+      // Attempt to write immediately if online
+      if (navigator.onLine) {
+        try {
+          const voterID = await generateUniqueVoterID(firstName);
+          await set(ref(db, "voters/" + voterID), payload);
 
-      document.getElementById("generatedID").textContent = voterID;
-      document.getElementById("idPopup").style.display = "flex";
-      document.getElementById("registerForm").style.display = "none";
+          // store locally & show popup
+          localStorage.setItem("voterID", voterID);
+          localStorage.setItem("firstName", firstName);
+          localStorage.setItem("lastName", lastName);
+          localStorage.setItem("classSelect", classSelect);
+          localStorage.setItem("gender", gender);
+
+          document.getElementById("generatedID").textContent = voterID;
+          document.getElementById("idPopup").style.display = "flex";
+          document.getElementById("registerForm").style.display = "none";
+
+        } catch (err) {
+          console.error("Online save failed, queuing:", err);
+          // fall back to queue
+          await window.enqueueOfflineTask({ type: "register", payload, firstName });
+          alert("Registration queued — will be submitted automatically when connection returns.");
+          closeRegisterForm();
+        }
+      } else {
+        // Offline: queue the registration
+        await window.enqueueOfflineTask({ type: "register", payload, firstName });
+        alert("You're offline — registration queued. It will be submitted automatically when connection returns.");
+        closeRegisterForm();
+      }
     };
 
-    // === Voter ID Recovery ===
+    // Recovery unchanged (but best-effort)
     window.recoverVoterID = async function() {
       const f = document.getElementById("recoverFirstName").value.trim().toLowerCase();
       const l = document.getElementById("recoverLastName").value.trim().toLowerCase();
@@ -183,41 +242,66 @@
 
       if (!f || !l || !c) return alert("⚠️ Please fill all fields!");
 
-      const votersSnap = await get(child(ref(db), "voters"));
-      if (!votersSnap.exists()) return alert("❌ No registered voters yet.");
+      try {
+        const votersSnap = await get(child(ref(db), "voters"));
+        if (!votersSnap.exists()) return alert("❌ No registered voters yet.");
 
-      const voters = votersSnap.val();
-      const found = Object.entries(voters).find(([id, v]) =>
-        v.firstName.toLowerCase() === f && v.lastName.toLowerCase() === l && v.classSelect === c
-      );
+        const voters = votersSnap.val();
+        const found = Object.entries(voters).find(([id, v]) =>
+          v.firstName.toLowerCase() === f && v.lastName.toLowerCase() === l && v.classSelect === c
+        );
 
-      const result = document.getElementById("recoveryResult");
-      if (found) result.innerHTML = `✅ Your Voter ID is: <b style="color:forestgreen">${found[0]}</b>`;
-      else result.innerHTML = "❌ Sorry, no record found!";
+        const result = document.getElementById("recoveryResult");
+        if (found) result.innerHTML = `✅ Your Voter ID is: <b style="color:forestgreen">${found[0]}</b>`;
+        else result.innerHTML = "❌ Sorry, no record found!";
+      } catch(err){
+        alert("Lookup failed. Are you offline? Try again when online.");
+      }
     };
 
-    // === Other Buttons ===
+    // Login unchanged
     window.copyVoterID = () => { navigator.clipboard.writeText(document.getElementById("generatedID").textContent); alert("✅ Voter ID copied!"); };
     window.proceedToVote = () => window.location.href = "voting.html";
     window.loginWithVoterID = async function() {
       const id = document.getElementById("voterIDInput").value.trim().toLowerCase();
       if (!id) return alert("Enter your ID!");
-      const snap = await get(child(ref(db), "voters/" + id));
-      if (!snap.exists()) return alert("❌ Invalid ID!");
-      const data = snap.val();
-      if (data.hasVoted) return alert("⚠️ You already voted!");
-      localStorage.setItem("voterID", id);
-      localStorage.setItem("firstName", data.firstName);
-      localStorage.setItem("classSelect", data.classSelect);
-      localStorage.setItem("gender", data.gender);
-      alert(`✅ Welcome ${data.firstName}! Redirecting...`);
-      window.location.href = "voting.html";
+      try {
+        const snap = await get(child(ref(db), "voters/" + id));
+        if (!snap.exists()) return alert("❌ Invalid ID!");
+        const data = snap.val();
+        if (data.hasVoted) return alert("⚠️ You already voted!");
+        localStorage.setItem("voterID", id);
+        localStorage.setItem("firstName", data.firstName);
+        localStorage.setItem("classSelect", data.classSelect);
+        localStorage.setItem("gender", data.gender);
+        alert(`✅ Welcome ${data.firstName}! Redirecting...`);
+        window.location.href = "voting.html";
+      } catch(err){
+        alert("Login failed (network?). If offline, please make sure you registered previously on this device.");
+      }
     };
+
     window.adminLogin = () => {
       const pass = prompt("Enter Admin Password:");
       if (pass === "ukss2025") window.location.href = "admin.html";
       else if (pass) alert("❌ Wrong password!");
     };
+
+    // Attempt a sync on load (if online)
+    if (navigator.onLine){
+      setTimeout(()=> { if(window.syncOfflineQueue) window.syncOfflineQueue(db); }, 1200);
+    }
+
+    // Register service worker (optional) — file provided below
+    if ('serviceWorker' in navigator) {
+      try {
+        navigator.serviceWorker.register('/service-worker.js');
+        console.log("Service worker registered");
+      } catch (err) {
+        console.warn("Service worker register failed:", err);
+      }
+    }
+
   </script>
 </body>
 </html>
