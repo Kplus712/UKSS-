@@ -207,7 +207,7 @@ body{
 </div>
 
 <script>
-// POSITION CODES
+// ALL POSITION CODES
 const POS_CODES = {
   "headboy": "HB",
   "headgirl": "HG",
@@ -222,15 +222,32 @@ const POS_CODES = {
   "maintenance": "MP"
 };
 
-// Normalize position name → Prefect
+// Smart position formatting
 function formatPosition(pos){
   let p = pos.toLowerCase().trim();
-  if(p.includes("headboy")) return "Head Boy";
-  if(p.includes("headgirl")) return "Head Girl";
-  if(p.includes("generalsec")) return "General Secretary";
 
-  // Others become "____ Prefect"
+  if(p.includes("head boy")) return "Head Boy";
+  if(p.includes("headgirl") || p.includes("head girl")) return "Head Girl";
+  if(p.includes("general")) return "General Secretary";
+
+  // prevent double 'Prefect'
+  if(p.includes("prefect")){
+    let clean = p.replace("prefect","").trim();
+    return clean.charAt(0).toUpperCase() + clean.slice(1) + " Prefect";
+  }
+
   return p.charAt(0).toUpperCase() + p.slice(1) + " Prefect";
+}
+
+// Normalize for serial code
+function positionKey(raw){
+  return raw.toLowerCase()
+            .replace(/prefect/g,"")
+            .replace(/girl/g,"")
+            .replace(/boy/g,"")
+            .replace(/general secretary/,"generalsecretary")
+            .replace(/\s+/g,"")
+            .trim();
 }
 
 function getParams(){
@@ -258,13 +275,13 @@ function fillPage(){
   document.getElementById("yearLabel").textContent = p.year;
   document.getElementById("todayDate").textContent = new Date().toLocaleDateString();
 
-  // Build serial
-  const codeKey = p.position.toLowerCase().replace(/\s+/g,'');
-  const code = POS_CODES[codeKey] || "XX";
+  // Serial Generator
+  const key = positionKey(p.position);
+  const code = POS_CODES[key] || "XX";
   const serial = `UKSS/${p.year}/${code}/${String(Math.floor(Math.random()*9999)).padStart(4,'0')}`;
   document.getElementById("serialNumber").textContent = serial;
 
-  // Paragraph
+  // Content paragraph
   document.getElementById("contentParagraph").innerHTML =
     `This certificate is proudly awarded to <strong>${p.name}</strong> for demonstrating outstanding 
      leadership, discipline, and integrity while serving as the <strong>${formattedPos}</strong> 
