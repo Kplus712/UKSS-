@@ -494,64 +494,134 @@ function displayResults(votes){
 
 /* winners */
 function displayWinners(votes){
-  if(!votes || votes.length===0){ winnerSummary.innerHTML = ""; return; }
+  if(!votes || votes.length===0){ 
+    winnerSummary.innerHTML = "";
+    return;
+  }
+
   const totals = {};
+
+  // Count totals per position
   votes.forEach(rec => {
-    Object.entries(rec.votes || {}).forEach(([pos,cand])=>{
+    Object.entries(rec.votes || {}).forEach(([pos, cand]) => {
       if(!totals[pos]) totals[pos] = {};
-      totals[pos][cand] = (totals[pos][cand]||0)+1;
+      totals[pos][cand] = (totals[pos][cand] || 0) + 1;
     });
   });
-  // Build winners table and add "Generate Letter" button for each winner
-  let html = `<h3>🏆 Winners Summary</h3><table class="winner-table"><thead><tr><th>Position</th><th>Winner</th><th>Votes</th><th>Action</th></tr></thead><tbody>`;
-  Object.entries(totals).forEach(([pos,cands])=>{
-    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
-    const [winner, count] = sorted[0] || ["-",0];
-    // Adding button that opens appreciation page — passes params: name, pos, votes, year, winnerId (if retrievable)
-    html += `<tr><td style="text-transform:capitalize">${pos}</td><td>${escapeHtml(winner)}</td><td>${count}</td><td><button class="gen-letter" data-pos="${encodeURIComponent(pos)}" data-name="${encodeURIComponent(winner)}" data-votes="${count}">Generate Letter</button></td></tr>`;
+
+  // Winners table
+  let html = `
+    <h3>🏆 Winners Summary</h3>
+    <table class="winner-table">
+      <thead>
+        <tr>
+          <th>Position</th>
+          <th>Winner</th>
+          <th>Votes</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  Object.entries(totals).forEach(([pos, cands])=>{
+    const sorted = Object.entries(cands).sort((a,b)=>b[1] - a[1]);
+    const [winner, count] = sorted[0] || ["-", 0];
+
+    // Clean display name (foodBoy → Food Prefect)
+    const cleanPosition = cleanPositionName(pos);
+
+    // auto serial e.g. FP-2025-0001
+    const shortCode = makeShortCode(cleanPosition);
+    const serialNumber = `${shortCode}-${new Date().getFullYear()}-${String(count).padStart(4,"0")}`;
+
+    html += `
+      <tr>
+        <td>${cleanPosition}</td>
+        <td>${escapeHtml(winner)}</td>
+        <td>${count}</td>
+        <td>
+          <button class="gen-letter"
+             data-name="${encodeURIComponent(winner)}"
+             data-pos="${encodeURIComponent(cleanPosition)}"
+             data-votes="${count}"
+             data-serial="${serialNumber}">
+             Generate Letter
+          </button>
+        </td>
+      </tr>
+    `;
   });
-  html += `</tbody></table>`;
+
+  html += "</tbody></table>";
   winnerSummary.innerHTML = html;
 
-  // wire up the generated buttons (open appreciation.html in new tab with params)
+  /* --------------- GENERATE LETTER BUTTON HANDLER ------------------ */
   document.querySelectorAll(".gen-letter").forEach(btn=>{
-    btn.addEventListener("click", (e)=>{
-      const name = decodeURIComponent(btn.dataset.name || "");
-      const pos = decodeURIComponent(btn.dataset.pos || "");
-      const votes = btn.dataset.votes || 0;
-      // Try to include candidate details if available: find voter registration or vote record for that candidate (best-effort)
-      // We'll pick first matching vote record that selected this candidate for that position to extract class/gender/id
-      let candidateInfo = { id: '', classSelect: '', gender: '', firstName: '', lastName: '' };
+    btn.addEventListener("click", ()=>{
+
+      const name = decodeURIComponent(btn.dataset.name);
+      const pos  = decodeURIComponent(btn.dataset.pos);
+      const votes = btn.dataset.votes;
+      const serial = btn.dataset.serial;
+
+      // --- FIND candidate details from votersRef ---
+      let candidateClass = "";
+      let candidateGender = "";
+
+      // loop through all votes and extract class/gender
       for(const rec of allVotes){
-        try {
-          if(rec.votes && rec.votes[pos] && String(rec.votes[pos]).toLowerCase() === String(name).toLowerCase()){
-            // candidate info might be embedded in rec.voter or rec.candidate fields — try to find
-            if(rec.candidate) { candidateInfo = { ...candidateInfo, ...rec.candidate }; }
-            if(rec.voter) { candidateInfo = { ...candidateInfo, ...rec.voter }; }
-            // some datasets store candidate under rec.candidateName etc — we don't modify original data
-            break;
+        if(rec.votes && rec.votes[pos] &&
+            String(rec.votes[pos]).toLowerCase() === name.toLowerCase()){
+
+          if(rec.voter){
+            candidateClass = rec.voter.classSelect || "";
+            candidateGender = rec.voter.gender || "";
           }
-        } catch(err){ /* ignore */ }
+          break;
+        }
       }
 
-      // Build query string
+      // Build URL params
       const params = new URLSearchParams();
-      params.set('name', name || '');
-      params.set('position', pos || '');
-      params.set('votes', votes || '0');
-      params.set('year', new Date().getFullYear());
-      // candidate info placeholders
-      params.set('candidateId', candidateInfo.id || '');
-      params.set('candidateClass', candidateInfo.classSelect || '');
-      params.set('candidateGender', candidateInfo.gender || '');
-      params.set('candidateFirst', candidateInfo.firstName || '');
-      params.set('candidateLast', candidateInfo.lastName || '');
-      // Link to appreciation page (assumes appreciation.html is in same folder)
-      const url = `appreciation.html?${params.toString()}`;
-      window.open(url, '_blank');
+      params.set("name", name);
+      params.set("position", pos);
+      params.set("votes", votes);
+      params.set("class", candidateClass);
+      params.set("gender", candidateGender);
+      params.set("serial", serial);
+      params.set("year", new Date().getFullYear());
+
+      window.open("appreciation.html?" + params.toString(), "_blank");
     });
   });
 }
+
+
+/* =================== HELPERS ===================== */
+
+// Convert DB key to human readable
+function cleanPositionName(pos){
+  const map = {
+    headBoy: "Head Boy Prefect",
+    headGirl: "Head Girl Prefect",
+    generalSec: "General Secretary",
+    discipline: "Discipline Prefect",
+    foodBoy: "Food Prefect",
+    foodGirl: "Food Prefect"
+  };
+  return map[pos] || pos.replace(/([A-Z])/g, " $1").replace(/^./, c=>c.toUpperCase());
+}
+
+// Make short code for serial number
+function makeShortCode(name){
+  return name.split(" ")
+    .map(w=>w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0,3);
+}
+
 
 /* charts */
 function clearCharts(){
