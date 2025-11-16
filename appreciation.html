@@ -32,7 +32,6 @@
     overflow:hidden;
   }
 
-  /* corner flowers */
   .corner-decoration{
     position:absolute;
     width:140px;
@@ -112,7 +111,6 @@
     color:#3f6048;
   }
 
-  /* signature */
   .signature{
     margin-top:45px;
     display:flex;
@@ -171,18 +169,15 @@
 
 <div class="container">
 
-  <!-- Decorative corners -->
   <div class="corner-decoration corner-top-left"></div>
   <div class="corner-decoration corner-top-right"></div>
   <div class="corner-decoration corner-bottom-left"></div>
   <div class="corner-decoration corner-bottom-right"></div>
 
-  <!-- HEADER -->
   <div class="letter-header">
 
     <div class="logo-wrap">
-      <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png
-" alt="School Logo Left">
+      <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" alt="School Logo Left">
     </div>
 
     <div class="header-center">
@@ -191,19 +186,16 @@
     </div>
 
     <div class="logo-wrap">
-      <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png
-" alt="School Logo Right">
+      <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" alt="School Logo Right">
     </div>
 
   </div>
 
-  <!-- TITLE -->
   <div class="title-block">
     <h1>CERTIFICATE OF APPRECIATION</h1>
     <h2 style="color:#4d6e55;font-style:italic;">Presented to an Outstanding Student Leader</h2>
   </div>
 
-  <!-- BODY -->
   <div class="letter-body">
 
     <p id="contentParagraph"></p>
@@ -217,13 +209,11 @@
       <tr><td class="label">Election Year:</td><td id="yearLabel"></td></tr>
     </table>
 
-    <!-- SIGNATURE -->
     <div class="signature">
 
       <div class="sign-col">
         <div class="signature-img">
-          <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg
-" alt="Headmaster Signature">
+          <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg" alt="Headmaster Signature">
         </div>
         <div class="role">
           <b>Headmaster</b><br>Umoja King'ori Secondary School
@@ -239,7 +229,6 @@
 
   </div>
 
-  <!-- ACTION BUTTONS -->
   <div class="actions">
     <button class="btn btn-back" onclick="window.location.href='admin.html'">← Back</button>
     <button class="btn btn-download" onclick="window.print()">Download PDF</button>
@@ -249,14 +238,35 @@
 </div>
 
 <script>
+
+  // 🔵 Convert position automatically FoodBoy → Food Prefect
+  function formatPosition(pos){
+    if(!pos) return "";
+
+    pos = pos.toLowerCase();
+
+    if(pos.includes("head")) return "Head Prefect";
+    if(pos.includes("general")) return "General Secretary";
+    if(pos.includes("sports")) return "Sports Prefect";
+    if(pos.includes("food")) return "Food Prefect";
+    if(pos.includes("environment")) return "Environmental Prefect";
+    if(pos.includes("health")) return "Health Prefect";
+    if(pos.includes("maintenance")) return "Maintenance Prefect";
+    if(pos.includes("store")) return "Store Prefect";
+    if(pos.includes("academic")) return "Academic Prefect";
+    if(pos.includes("discipline")) return "Discipline Prefect";
+
+    return pos.replace(/boy|girl/gi, "") + " Prefect";
+  }
+
   function getParams(){
     const p = new URLSearchParams(window.location.search);
     return {
       name: p.get("name") || "",
-      position: p.get("position") || "",
+      positionRaw: p.get("position") || "",
       votes: p.get("votes") || "",
-      class: p.get("class") || "",
-      gender: p.get("gender") || "",
+      studentClass: p.get("class") || "",
+      studentGender: p.get("gender") || "",
       year: p.get("year") || new Date().getFullYear()
     };
   }
@@ -264,17 +274,19 @@
   function fillLetter(){
     const p = getParams();
 
+    const cleanPosition = formatPosition(p.positionRaw);
+
     document.getElementById("studentName").textContent = p.name;
-    document.getElementById("positionName").textContent = p.position;
+    document.getElementById("positionName").textContent = cleanPosition;
     document.getElementById("votesCount").textContent = p.votes;
-    document.getElementById("studentClass").textContent = p.class;
-    document.getElementById("studentGender").textContent = p.gender;
+    document.getElementById("studentClass").textContent = p.studentClass;
+    document.getElementById("studentGender").textContent = p.studentGender;
     document.getElementById("yearLabel").textContent = p.year;
     document.getElementById("todayDate").textContent = new Date().toLocaleDateString();
 
     document.getElementById("contentParagraph").innerHTML = `
       This certificate is proudly presented to <strong>${p.name}</strong> in recognition of
-      exceptional service, responsibility, and integrity as the <strong>${p.position}</strong>.
+      exceptional service, responsibility, and integrity as the <strong>${cleanPosition}</strong>.
       With a total of <strong>${p.votes}</strong> votes in the <strong>${p.year}</strong> UKSS Elections,
       the school appreciates your commitment, discipline, and exemplary leadership.
     `;
