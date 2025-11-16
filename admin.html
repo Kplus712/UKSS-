@@ -1,278 +1,1013 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Certificate of Appreciation — UKSS</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin Dashboard - UKSS Voting Results</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-:root{
-  --green: #265a2f;
-  --gold: #c5a106;
-  --text: #05320f;
-}
+  :root{
+    --green: #2e7d32;
+    --light-green: #e6f4e6;
+  }
+  html,body{height:100%}
+  body { font-family: Arial, sans-serif; background:#f4fff4; color:#222; margin:0; padding:20px; min-height:100%; box-sizing:border-box; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  h1 { color: var(--green); margin:0; font-size:20px; }
+  .hamburger { width:36px; height:28px; display:flex; flex-direction:column; justify-content:space-between; cursor:pointer; }
+  .hamburger span { display:block; height:4px; background:var(--green); border-radius:3px; }
+  .topbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:12px 0 18px 0; }
+  .panel { background:white; border-radius:10px; padding:14px; box-shadow:0 2px 6px rgba(0,0,0,.08); margin-bottom:14px; }
+  .table-container { width:100%; margin:12px 0; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { padding:8px; border:1px solid #e6e6e6; text-align:left; font-size:14px; vertical-align:middle; }
+  th { background:var(--green); color:white; }
+  .charts { display:flex; flex-wrap:wrap; gap:16px; justify-content:center; margin-bottom:14px; }
+  canvas { background: white; border-radius:8px; padding:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04); }
+  .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:999; animation:fadeIn .18s ease; }
+  .modal .content { background:#fff; width:92%; max-width:980px; border-radius:10px; padding:16px; max-height:86vh; overflow:auto; position:relative; animation:zoomIn .18s ease; }
+  .close-btn { position:absolute; top:12px; right:12px; background:crimson; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
+  .small { font-size:13px; color:#555; }
+  .menu-list { display:flex; flex-direction:column; gap:8px; padding:10px; }
+  .menu-list button { text-align:left; padding:8px 10px; border-radius:8px; background:var(--light-green); border:1px solid #d8efd8; cursor:pointer; color:var(--green); font-weight:600; }
+  .menu-list button:hover { background:#dff3df; }
 
-body{
-  margin:0;
-  padding:25px;
-  background:#f6fff6;
-  font-family:"Georgia", serif;
-}
+  .controls-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  input, select, button { padding:8px 10px; border-radius:6px; border:1px solid #cfcfcf; }
+  button { background:var(--green); color:white; border:none; cursor:pointer; }
+  button[style*="background:gray"]{ background:gray }
+  button:hover { opacity:0.95; }
 
-.container{
-  width:900px;
-  margin:auto;
-  background:white;
-  border:12px solid var(--gold);
-  border-radius:12px;
-  padding:20px;
-  position:relative;
-  overflow:hidden;
-}
+  /* Loading spinner center */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(255,255,255,0.7);
+    z-index: 2000;
+    flex-direction: column;
+    gap:12px;
+  }
+  .spinner {
+    width:64px; height:64px; border-radius:50%;
+    border:8px solid rgba(46,125,50,0.15);
+    border-top-color: var(--green);
+    animation:spin 1s linear infinite;
+  }
+  .loading-text { font-weight:600; color:var(--green); }
 
-/* Watermark */
-.watermark{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%, -50%);
-  opacity:0.18;
-  width:70%;
-  z-index:0;
-}
+  @keyframes spin { to{ transform: rotate(360deg); } }
+  @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+  @keyframes zoomIn { from {transform:scale(.96); opacity:0;} to {transform:scale(1); opacity:1;} }
 
-/* Header */
-.header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:3px double var(--green);
-  padding-bottom:10px;
-  margin-bottom:15px;
-  position:relative;
-  z-index:5;
-}
+  /* small table tweaks for modal tables */
+  #votersTable, #registeredTable { width:100%; border-collapse:collapse; margin-top:8px; }
+  #votersTable th, #votersTable td, #registeredTable th, #registeredTable td { padding:6px; font-size:13px; }
 
-.logo{
-  width:120px;
-  height:120px;
-}
+  /* Audit panel styles */
+  .audit-summary { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
+  .audit-card { background:var(--light-green); padding:12px; border-radius:8px; min-width:160px; box-shadow:0 1px 3px rgba(0,0,0,0.05); }
+  .audit-card h4 { margin:0 0 6px 0; color:var(--green); }
+  .audit-actions { display:flex; gap:8px; margin-top:10px; align-items:center; }
 
-.header-center{
-  text-align:center;
-  flex:1;
-}
+  /* small style for generate button in winners */
+  .gen-letter { background:linear-gradient(90deg,#2e7d32,#4caf50); border:none; color:white; padding:6px 10px; border-radius:6px; cursor:pointer; margin-left:8px; font-weight:700; }
 
-.header-center h2{
-  color:var(--green);
-  margin:0;
-  font-size:24px;
-  letter-spacing:1px;
-}
+  /* responsive tweaks */
+  @media (max-width:700px){
+    .charts{flex-direction:column; align-items:center}
+  }
 
-/* Title */
-.title{
-  text-align:center;
-  margin:20px 0;
-  position:relative;
-  z-index:5;
-}
-.title h1{
-  margin:0;
-  font-size:32px;
-  color:var(--green);
-  font-weight:700;
-}
-
-/* Body text */
-.body{
-  font-size:18px;
-  line-height:1.7;
-  padding:10px 30px;
-  position:relative;
-  z-index:5;
-}
-
-/* Info table */
-.info-table{
-  width:100%;
-  margin-top:15px;
-  border-collapse:collapse;
-}
-.info-table td{
-  padding:7px 4px;
-  font-size:17px;
-}
-.label{
-  font-weight:700;
-  color:#2b5530;
-  width:200px;
-}
-
-/* Signature block */
-.signature-block{
-  display:flex;
-  justify-content:space-between;
-  margin-top:40px;
-  padding:0 30px;
-}
-
-.sign-img{
-  width:200px;
-  height:90px;
-}
-
-.actions{
-  text-align:right;
-  margin-top:20px;
-}
-.btn{
-  padding:10px 14px;
-  border-radius:6px;
-  border:none;
-  cursor:pointer;
-  font-weight:bold;
-}
-.print-btn{ background:var(--green); color:white; }
-.download-btn{ background:var(--gold); color:white; }
-
-@media print{
-  .actions{ display:none; }
-  body{ padding:0; background:white; }
-  .container{ margin:0; border:none; }
-}
 </style>
 </head>
-
 <body>
 
-<div class="container">
+<header>
+  <div>
+    <h1>📊 UKSS LIVE RESULTS DASHBOARD</h1>
+    <div style="font-size:13px; color:#666;">Admin control panel</div>
+  </div>
 
-  <!-- Watermark -->
-  <img class="watermark" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
-
-  <!-- Header -->
-  <div class="header">
-    <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
-    <div class="header-center">
-      <h2>UMOJA KING'ORI SECONDARY SCHOOL</h2>
-      <div style="color:#355b3a; font-size:14px;">Official Student Leadership Appreciation Certificate</div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <div title="Menu" class="hamburger" id="hamburgerBtn" onclick="openMenuPopup()">
+      <span></span><span></span><span></span>
     </div>
-    <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
   </div>
+</header>
 
-  <!-- Title -->
-  <div class="title">
-    <h1>CERTIFICATE OF APPRECIATION</h1>
-  </div>
-
-  <!-- Body -->
-  <div class="body">
-    <p id="contentParagraph"></p>
-
-    <table class="info-table">
-      <tr><td class="label">Student Name:</td><td id="studentName"></td></tr>
-      <tr><td class="label">Position:</td><td id="positionName"></td></tr>
-      <tr><td class="label">Class:</td><td id="studentClass"></td></tr>
-      <tr><td class="label">Gender:</td><td id="studentGender"></td></tr>
-      <tr><td class="label">Votes Received:</td><td id="votesCount"></td></tr>
-      <tr><td class="label">Certificate Serial:</td><td id="serialNumber"></td></tr>
-      <tr><td class="label">Election Year:</td><td id="yearLabel"></td></tr>
-    </table>
-
-    <!-- Signature block -->
-    <div class="signature-block">
-      <div>
-        <img class="sign-img" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg">
-        <div style="font-size:14px; color:#2d4d2b; margin-top:-6px;">
-          <b>Headmaster</b><br>
-          Umoja King'ori Secondary School
-        </div>
-      </div>
-
-      <div style="text-align:right;">
-        <div>Date:</div>
-        <div id="todayDate" style="font-weight:bold; font-size:18px;"></div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Buttons -->
-  <div class="actions">
-    <button class="btn print-btn" onclick="window.print()">Print</button>
-    <button class="btn download-btn" onclick="window.print()">Download PDF</button>
-  </div>
-
+<!-- Loading spinner (center) -->
+<div id="loadingOverlay" class="loading-overlay" aria-hidden="false" style="display:flex;">
+  <div class="spinner" role="status" aria-label="Loading"></div>
+  <div class="loading-text">Loading data... please wait</div>
 </div>
 
-<script>
-// POSITION CODES
-const POS_CODES = {
-  "headboy": "HB",
-  "headgirl": "HG",
-  "academic": "AP",
-  "generalsecretary": "GS",
-  "discipline": "DP",
-  "sports": "SG",
-  "environmental": "EP",
-  "food": "FP",
-  "storekeeper": "SK",
-  "health": "HP",
-  "maintenance": "MP"
+<div class="topbar panel" id="topControls" style="opacity:0;">
+  <div class="controls-row">
+    <input id="searchName" placeholder="Search voter name" />
+    <select id="filterClass">
+      <option value="">All Classes</option>
+      <option>Form One</option><option>Form Two</option><option>Form Three</option><option>Form Four</option>
+    </select>
+    <select id="filterGender">
+      <option value="">All Genders</option><option>Male</option><option>Female</option>
+    </select>
+    <select id="filterPosition">
+      <option value="">All Positions</option>
+      <option value="headBoy">headBoy</option><option value="headGirl">headGirl</option>
+      <option value="generalSec">generalSec</option><option value="discipline">discipline</option>
+    </select>
+    <button id="clearFilters">Clear</button>
+  </div>
+  <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+    <div id="topSummary" class="small">Loading...</div>
+  </div>
+</div>
+
+<!-- winner summary -->
+<div id="winnerSummary" class="panel table-container" style="opacity:0;"></div>
+
+<!-- results (per-position tables) -->
+<div id="resultsContainer" class="panel" style="opacity:0;"></div>
+
+<!-- charts -->
+<div class="charts" id="chartsWrap" style="opacity:0;">
+  <canvas id="barChart" width="600" height="260"></canvas>
+  <canvas id="pieChart" width="360" height="260"></canvas>
+  <canvas id="lineChart" width="600" height="260"></canvas>
+</div>
+
+<!-- timeline -->
+<div id="timelineContainer" class="panel table-container" style="opacity:0;"></div>
+
+<!-- ================= Menu Popup (Hamburger) ================= -->
+<div id="menuPopup" class="modal" aria-hidden="true">
+  <div class="content" role="dialog" aria-modal="true">
+    <button class="close-btn" onclick="closeMenuPopup()">✖</button>
+    <h2 style="color:var(--green); margin-top:4px">☰ Admin Menu</h2>
+   <div class="menu-list">
+      <button onclick="openVotersModal()">🧾 View All Voters List</button>
+      <button onclick="openRegisteredModal()">📋 Registered Voters List</button>
+
+      <!-- ✅ NEW BUTTON ADDED HERE -->
+      <button onclick="window.location.href='registration.html'">
+        🧑‍🏫 Register Candidates (Edit & Delete)
+      </button>
+      <!-- END NEW BUTTON -->
+
+      <button onclick="openAuditModal()">🔍 Audit (Yearly Summary)</button>
+      <button onclick="confirmDeleteAll()">🗑️ Delete All Votes</button>
+      <button onclick="window.location.href='manage_voters.html'">
+    🧹 Manage Voters (Search & Delete)
+</button>
+      <button onclick="triggerDownloadResults()">⬇️ Download Results (CSV)</button>
+      <button onclick="backupVotes()">💾 Backup Votes (JSON)</button>
+      <button onclick="triggerRestore()">♻️ Restore Votes (JSON)</button>
+      <button onclick="closeMenuPopup()" style="background:#f5f5f5; border:1px solid #ddd; color:#111;">❌ Close</button>
+
+
+</div>
+  </div>
+</div>
+
+<!-- ================= Voters Modal (who voted) ================= -->
+<div id="votersModal" class="modal" role="dialog" aria-modal="true">
+  <div class="content">
+    <button class="close-btn" onclick="closeVotersModal()">✖</button>
+    <h2 style="color:var(--green); margin-top:4px">🧾 All Voters (Who Voted) — Full Details</h2>
+
+    <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px;">
+      <input id="votersSearch" placeholder="Search name, class or voter ID" style="flex:1" />
+      <button id="downloadVotersCSV">⬇️ Download Voters CSV</button>
+      <button onclick="closeVotersModal()" style="background:gray;">Cancel</button>
+    </div>
+
+    <table id="votersTable" style="width:100%">
+      <thead>
+        <tr>
+          <th>Voter ID</th>
+          <th>Name</th>
+          <th>Class</th>
+          <th>Gender</th>
+          <th>Votes (position : candidate)</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= Registered Voters Modal ================= -->
+<div id="registeredModal" class="modal" role="dialog" aria-modal="true">
+  <div class="content">
+    <button class="close-btn" onclick="closeRegisteredModal()">✖</button>
+    <h2 style="color:var(--green); margin-top:4px">📋 Registered Voters List</h2>
+
+    <div style="display:flex; gap:8px; align-items:center; margin:8px 0 12px;">
+      <input id="registeredSearch" placeholder="Search name, voter ID or class" style="flex:1" />
+      <button id="downloadRegisteredCSV">⬇️ Download Registered CSV</button>
+      <button onclick="closeRegisteredModal()" style="background:gray;">Cancel</button>
+    </div>
+
+    <table id="registeredTable" style="width:100%">
+      <thead>
+        <tr><th>Voter ID</th><th>Name</th><th>Class</th><th>Gender</th><th>Registered At</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= Audit Modal ================= -->
+<div id="auditModal" class="modal" role="dialog" aria-modal="true">
+  <div class="content">
+    <button class="close-btn" onclick="closeAuditModal()">✖</button>
+    <h2 style="color:var(--green); margin-top:4px">🔍 Audit — Yearly Summary</h2>
+
+    <div style="display:flex; gap:10px; align-items:center; margin:8px 0 12px; flex-wrap:wrap;">
+      <label for="auditYear">Select year:</label>
+      <select id="auditYear"></select>
+
+      <label for="auditScope">Scope:</label>
+      <select id="auditScope">
+        <option value="all">All registered (default)</option>
+        <option value="registeredThisYear">Only registered in selected year</option>
+      </select>
+
+      <div class="audit-actions">
+        <button id="runAuditBtn">Run Audit</button>
+        <button id="exportAuditCSV">⬇️ Export Summary CSV</button>
+        <button onclick="closeAuditModal()" style="background:gray">Cancel</button>
+      </div>
+    </div>
+
+    <div id="auditResult" style="margin-top:12px;">
+      <!-- filled dynamically -->
+    </div>
+
+    <div style="margin-top:10px;">
+      <canvas id="auditChart" width="700" height="220"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- confirm modal -->
+<div id="confirmModal" class="modal"><div class="content" style="max-width:520px;text-align:center">
+  <button class="close-btn" onclick="closeConfirm()">✖</button>
+  <h3 id="confirmText">Confirm action</h3>
+  <div style="margin-top:12px"><button id="confirmYes">Yes</button> <button id="confirmNo" style="background:crimson">Cancel</button></div>
+</div></div>
+
+<!-- hidden file input for restore -->
+<input id="restoreFile" type="file" accept=".json" style="display:none">
+
+<p id="voterSummary" class="small panel" style="opacity:0;"></p>
+
+<script type="module">
+/* Full admin page: menu popup, voters list, registered list, audit added (summary-only export), CSV, backup, restore, charts, spinner.
+   Uses Realtime Database: nodes 'votes' and 'voters'. */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getDatabase, ref, onValue, remove, set } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+
+/* Firebase config */
+const firebaseConfig = {
+  apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+  authDomain: "ukss-voting-system.firebaseapp.com",
+  databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+  projectId: "ukss-voting-system",
+  storageBucket: "ukss-voting-system.firebasestorage.app",
+  messagingSenderId: "525528255065",
+  appId: "1:525528255065:web:97c4e55d2984acc718bf48",
+  measurementId: "G-14ZV9E3X7C"
 };
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-// Normalize position name → Prefect
-function formatPosition(pos){
-  let p = pos.toLowerCase().trim();
-  if(p.includes("headboy")) return "Head Boy";
-  if(p.includes("headgirl")) return "Head Girl";
-  if(p.includes("generalsec")) return "General Secretary";
+/* refs */
+const votesRef = ref(db, "votes");
+const votersRef = ref(db, "voters");
+const TOTAL_STUDENTS = 308;
 
-  // Others become "____ Prefect"
-  return p.charAt(0).toUpperCase() + p.slice(1) + " Prefect";
+/* state */
+let votesObj = {};
+let allVotes = [];
+let registeredObj = {};
+let registeredList = [];
+let barChart, pieChart, lineChart;
+
+/* elements */
+const barCtx = document.getElementById("barChart").getContext("2d");
+const pieCtx = document.getElementById("pieChart").getContext("2d");
+const lineCtx = document.getElementById("lineChart").getContext("2d");
+
+const resultsContainer = document.getElementById("resultsContainer");
+const winnerSummary = document.getElementById("winnerSummary");
+const voterSummaryP = document.getElementById("voterSummary");
+
+/* popup/menu elements & global exposure (so HTML onclick="" works) */
+const menuPopup = document.getElementById("menuPopup");
+function openMenuPopup(){ menuPopup.style.display = "flex"; }
+function closeMenuPopup(){ menuPopup.style.display = "none"; }
+window.openMenuPopup = openMenuPopup;
+window.closeMenuPopup = closeMenuPopup;
+
+/* voters modal */
+const votersModal = document.getElementById("votersModal");
+const votersTableBody = document.querySelector("#votersTable tbody");
+const votersSearch = document.getElementById("votersSearch");
+function openVotersModal(){ populateVotersTable(allVotes); votersModal.style.display = "flex"; votersSearch.value=""; }
+function closeVotersModal(){ votersModal.style.display = "none"; }
+window.openVotersModal = openVotersModal;
+window.closeVotersModal = closeVotersModal;
+
+/* registered modal */
+const registeredModal = document.getElementById("registeredModal");
+const registeredTableBody = document.querySelector("#registeredTable tbody");
+const registeredSearch = document.getElementById("registeredSearch");
+function openRegisteredModal(){ populateRegisteredTable(registeredList); registeredModal.style.display = "flex"; registeredSearch.value=""; }
+function closeRegisteredModal(){ registeredModal.style.display = "none"; }
+window.openRegisteredModal = openRegisteredModal;
+window.closeRegisteredModal = closeRegisteredModal;
+
+/* audit modal */
+const auditModal = document.getElementById("auditModal");
+const auditYearSelect = document.getElementById("auditYear");
+const auditScope = document.getElementById("auditScope");
+const runAuditBtn = document.getElementById("runAuditBtn");
+const exportAuditCSVBtn = document.getElementById("exportAuditCSV");
+const auditResultDiv = document.getElementById("auditResult");
+const auditChartCtx = document.getElementById("auditChart").getContext("2d");
+let auditChart;
+function openAuditModal(){
+  // populate years (this year down to -5)
+  const now = new Date();
+  const thisYear = now.getFullYear();
+  auditYearSelect.innerHTML = "";
+  for(let y=thisYear; y>= thisYear - 5; y--){
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    auditYearSelect.appendChild(opt);
+  }
+  auditModal.style.display = "flex";
+}
+function closeAuditModal(){ auditModal.style.display = "none"; if(auditChart) { auditChart.destroy(); auditChart = null; } }
+window.openAuditModal = openAuditModal;
+window.closeAuditModal = closeAuditModal;
+
+/* confirm modal */
+const confirmModal = document.getElementById("confirmModal");
+const confirmText = document.getElementById("confirmText");
+const confirmYes = document.getElementById("confirmYes");
+const confirmNo = document.getElementById("confirmNo");
+function closeConfirm(){ confirmModal.style.display = "none"; }
+window.closeConfirm = closeConfirm;
+
+/* filters */
+const searchName = document.getElementById("searchName");
+const filterClass = document.getElementById("filterClass");
+const filterGender = document.getElementById("filterGender");
+const filterPosition = document.getElementById("filterPosition");
+const clearFiltersBtn = document.getElementById("clearFilters");
+
+/* loading overlay */
+const loadingOverlay = document.getElementById("loadingOverlay");
+const topControls = document.getElementById("topControls");
+const chartsWrap = document.getElementById("chartsWrap");
+const winnerSummaryEl = document.getElementById("winnerSummary");
+const resultsContainerEl = document.getElementById("resultsContainer");
+const timelineContainer = document.getElementById("timelineContainer");
+const voterSummaryEl = document.getElementById("voterSummary");
+
+/* show loading until both listeners have fired at least once */
+let votesLoaded = false;
+let votersLoaded = false;
+function hideLoadingIfReady(){
+  if(votesLoaded && votersLoaded){
+    loadingOverlay.style.display = "none";
+    topControls.style.opacity = "1";
+    chartsWrap.style.opacity = "1";
+    winnerSummaryEl.style.opacity = "1";
+    resultsContainerEl.style.opacity = "1";
+    timelineContainer.style.opacity = "1";
+    voterSummaryEl.style.opacity = "1";
+  }
 }
 
-function getParams(){
-  const p = new URLSearchParams(window.location.search);
-  return {
-    name: p.get("name") || "",
-    position: p.get("position") || "",
-    votes: p.get("votes") || "",
-    class: p.get("candidateClass") || "",
-    gender: p.get("candidateGender") || "",
-    year: p.get("year") || new Date().getFullYear()
+/* Live listeners */
+onValue(votesRef, (snap) => {
+  votesLoaded = true;
+  votesObj = snap.val() || {};
+  allVotes = Object.entries(votesObj).map(([k,v]) => ({ _id: k, ...v }));
+  allVotes.forEach(r => { if (!r.timestamp) r.timestamp = new Date().toISOString(); });
+  applyFilters();
+  hideLoadingIfReady();
+});
+
+onValue(votersRef, (snap) => {
+  votersLoaded = true;
+  registeredObj = snap.val() || {};
+  registeredList = Object.entries(registeredObj).map(([id,v]) => ({ id, ...v }));
+  hideLoadingIfReady();
+});
+
+/* filters & apply */
+function applyFilters(){
+  const nameQ = (searchName.value || "").toLowerCase();
+  const cQ = filterClass.value || "";
+  const gQ = filterGender.value || "";
+  const pQ = filterPosition.value || "";
+
+  const filtered = allVotes.filter(rec => {
+    const voter = rec.voter || {};
+    const first = (voter.firstName || rec.firstName || rec.name || "").toString();
+    const middle = (voter.middleName || rec.middleName || "").toString();
+    const last = (voter.lastName || rec.lastName || "").toString();
+    const fullName = `${first} ${middle} ${last}`.toLowerCase();
+    const matchesName = !nameQ || fullName.includes(nameQ);
+    const recClass = (voter.classSelect || rec.class || rec.classSelect || "").toString();
+    const matchesClass = !cQ || recClass === cQ;
+    const recGender = (voter.gender || rec.gender || "").toString();
+    const matchesGender = !gQ || recGender === gQ;
+    const matchesPos = !pQ || (rec.votes && rec.votes[pQ]);
+    return matchesName && matchesClass && matchesGender && matchesPos;
+  });
+
+  displayResults(filtered);
+}
+
+/* display results */
+function displayResults(votes){
+  displayWinners(votes);
+
+  if (!votes || votes.length === 0) {
+    resultsContainer.innerHTML = "<p>No votes yet.</p>";
+    voterSummaryEl.textContent = "No votes cast yet.";
+    clearCharts();
+    document.getElementById("timelineContainer").innerHTML = "";
+    return;
+  }
+
+  // totals per position
+  const totals = {};
+  votes.forEach(rec => {
+    const v = rec.votes || {};
+    Object.entries(v).forEach(([pos, cand]) => {
+      if (!totals[pos]) totals[pos] = {};
+      totals[pos][cand] = (totals[pos][cand] || 0) + 1;
+    });
+  });
+
+  // render tables
+  let html = "";
+  for (const [pos, cands] of Object.entries(totals)) {
+    html += `<div class="table-container"><h3 style="text-transform:capitalize">${pos}</h3><table><thead><tr><th>Candidate</th><th>Votes</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
+    sorted.forEach(([name,count], idx) => {
+      const status = idx === 0 ? "👑 Leading" : "";
+      html += `<tr><td>${escapeHtml(name)}</td><td>${count}</td><td>${status}</td><td><button data-candidate="${escapeHtml(name)}" class="deleteCandidateBtn">🗑️ Delete</button></td></tr>`;
+    });
+    html += `</tbody></table></div>`;
+  }
+  resultsContainer.innerHTML = html;
+
+  // attach delete buttons
+  document.querySelectorAll(".deleteCandidateBtn").forEach(btn=>{
+    btn.addEventListener("click", ()=> showConfirmDelete(btn.dataset.candidate));
+  });
+
+  // update summary
+  const voted = votes.length;
+  const notVoted = TOTAL_STUDENTS - voted;
+  voterSummaryEl.innerHTML = `🧍‍♂️ <b>${voted}</b> voted out of ${TOTAL_STUDENTS} | <b>${notVoted}</b> not yet voted.`;
+  document.getElementById("topSummary").textContent = `${voted} voted / ${TOTAL_STUDENTS}`;
+
+  drawCharts(totals, votes);
+  drawTimeline(votes);
+}
+
+/* winners */
+function displayWinners(votes){
+  if(!votes || votes.length===0){
+    winnerSummary.innerHTML = "";
+    return;
+  }
+
+  const totals = {};
+
+  votes.forEach(rec=>{
+    Object.entries(rec.votes || {}).forEach(([pos,cand])=>{
+      if(!totals[pos]) totals[pos] = {};
+      totals[pos][cand] = (totals[pos][cand]||0)+1;
+    });
+  });
+
+  let html = `
+    <h3>🏆 Winners Summary</h3>
+    <table class="winner-table">
+      <thead>
+        <tr><th>Position</th><th>Winner</th><th>Votes</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+  `;
+
+  Object.entries(totals).forEach(([posKey,cands])=>{
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
+    const [winner,count] = sorted[0];
+
+    const posName = cleanPositionName(posKey);
+
+    html += `
+      <tr>
+        <td>${posName}</td>
+        <td>${winner}</td>
+        <td>${count}</td>
+        <td>
+          <button class="gen-letter"
+            data-name="${encodeURIComponent(winner)}"
+            data-posdb="${posKey}"
+            data-posname="${posName}"
+            data-votes="${count}">
+            Generate Letter
+          </button>
+        </td>
+      </tr>`;
+  });
+
+  html += "</tbody></table>";
+  winnerSummary.innerHTML = html;
+
+  document.querySelectorAll(".gen-letter").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+
+      const name = decodeURIComponent(btn.dataset.name);
+      const posDB = btn.dataset.posdb;
+      const posName = btn.dataset.posname;
+      const votes = btn.dataset.votes;
+
+      let cls = "";
+      let gen = "";
+
+      for(const rec of allVotes){
+        if(rec.votes && rec.votes[posDB] &&
+          rec.votes[posDB].toLowerCase() === name.toLowerCase()){
+            cls = rec.voter?.classSelect || "";
+            gen = rec.voter?.gender || "";
+            break;
+        }
+      }
+
+      const params = new URLSearchParams();
+      params.set("name", name);
+      params.set("position", posName);
+      params.set("votes", votes);
+      params.set("class", cls);
+      params.set("gender", gen);
+      params.set("year", new Date().getFullYear());
+
+      window.open("appreciation.html?" + params.toString(), "_blank");
+    });
+  });
+}
+
+
+
+/* =================== HELPERS ===================== */
+
+// Convert DB key to human readable
+function cleanPositionName(pos){
+  const map = {
+    headBoy: "Head Boy Prefect",
+    headGirl: "Head Girl Prefect",
+    generalSec: "General Secretary",
+    discipline: "Discipline Prefect",
+    foodBoy: "Food Prefect",
+    foodGirl: "Food Prefect"
   };
+  return map[pos] || pos.replace(/([A-Z])/g, " $1").replace(/^./, c=>c.toUpperCase());
 }
 
-function fillPage(){
-  const p = getParams();
-
-  const formattedPos = formatPosition(p.position);
-
-  document.getElementById("studentName").textContent = p.name;
-  document.getElementById("positionName").textContent = formattedPos;
-  document.getElementById("votesCount").textContent = p.votes;
-  document.getElementById("studentClass").textContent = p.class;
-  document.getElementById("studentGender").textContent = p.gender;
-  document.getElementById("yearLabel").textContent = p.year;
-  document.getElementById("todayDate").textContent = new Date().toLocaleDateString();
-
-  // Build serial
-  const codeKey = p.position.toLowerCase().replace(/\s+/g,'');
-  const code = POS_CODES[codeKey] || "XX";
-  const serial = `UKSS/${p.year}/${code}/${String(Math.floor(Math.random()*9999)).padStart(4,'0')}`;
-  document.getElementById("serialNumber").textContent = serial;
-
-  // Paragraph
-  document.getElementById("contentParagraph").innerHTML =
-    `This certificate is proudly awarded to <strong>${p.name}</strong> for demonstrating outstanding 
-     leadership, discipline, and integrity while serving as the <strong>${formattedPos}</strong> 
-     during the ${p.year} UKSS elections. Your dedication and exemplary conduct are highly appreciated.`;
+// Make short code for serial number
+function makeShortCode(name){
+  return name.split(" ")
+    .map(w=>w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0,3);
 }
 
-fillPage();
+
+/* charts */
+function clearCharts(){
+  if(barChart) { barChart.destroy(); barChart = null; }
+  if(pieChart) { pieChart.destroy(); pieChart = null; }
+  if(lineChart) { lineChart.destroy(); lineChart = null; }
+}
+
+function drawCharts(totals, votes){
+  const labels = [];
+  const counts = [];
+  Object.entries(totals).forEach(([pos,cands])=>{
+    Object.entries(cands).forEach(([cand,count])=>{
+      labels.push(`${pos}: ${cand}`);
+      counts.push(count);
+    });
+  });
+
+  clearCharts();
+
+  barChart = new Chart(barCtx, {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Votes", data: counts, backgroundColor: "rgba(34,139,34,0.6)" }] },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+  });
+
+  pieChart = new Chart(pieCtx, {
+    type: "pie",
+    data: { labels, datasets: [{ data: counts, backgroundColor: generatePalette(counts.length) }] },
+    options: { responsive:true }
+  });
+
+  const sorted = votes.slice().sort((a,b)=> new Date(a.timestamp) - new Date(b.timestamp));
+  const times = sorted.map(s => new Date(s.timestamp).toLocaleTimeString());
+  const cum = []; let acc = 0;
+  sorted.forEach(s => { acc += 1; cum.push(acc); });
+
+  lineChart = new Chart(lineCtx, {
+    type: "line",
+    data: { labels: times, datasets: [{ label: "Votes over time", data: cum, borderColor:"forestgreen", tension:0.25, fill:false }] },
+    options: { responsive:true, scales:{ y:{ beginAtZero:true } } }
+  });
+}
+
+function generatePalette(n){
+  const base = ["#2e7d32","#388e3c","#66bb6a","#81c784","#a5d6a7","#c8e6c9","#4caf50","#99d68a"];
+  const out = [];
+  for(let i=0;i<n;i++) out.push(base[i % base.length]);
+  return out;
+}
+
+/* timeline */
+function drawTimeline(votes){
+  const container = document.getElementById("timelineContainer");
+  const sorted = votes.slice().sort((a,b)=> new Date(b.timestamp) - new Date(a.timestamp));
+  let html = `<h3>🕒 Vote Timeline (latest first)</h3><table><thead><tr><th>Voter</th><th>Class</th><th>Gender</th><th>Voted For</th><th>Time</th></tr></thead><tbody>`;
+  sorted.forEach(rec=>{
+    const voter = rec.voter || {};
+    const first = voter.firstName || rec.firstName || rec.name || '';
+    const middle = voter.middleName || rec.middleName || '';
+    const last = voter.lastName || rec.lastName || '';
+    const name = `${first} ${middle} ${last}`.trim();
+    const recClass = voter.classSelect || rec.class || rec.classSelect || '-';
+    const recGender = voter.gender || rec.gender || '-';
+    const votesList = Object.entries(rec.votes || {}).map(([p,c])=>`${p}: ${c}`).join("; ");
+    html += `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(recClass)}</td><td>${escapeHtml(recGender)}</td><td>${escapeHtml(votesList)}</td><td>${new Date(rec.timestamp).toLocaleString()}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  container.innerHTML = html;
+}
+
+/* voters modal populate/search */
+votersSearch.addEventListener("input", ()=> {
+  const q = (votersSearch.value||'').toLowerCase();
+  const filtered = allVotes.filter(rec => {
+    const voter = rec.voter || {};
+    const first = (voter.firstName || rec.firstName || rec.name || '').toString();
+    const middle = (voter.middleName || rec.middleName || '').toString();
+    const last = (voter.lastName || rec.lastName || '').toString();
+    const id = rec._id || '';
+    const full = `${first} ${middle} ${last} ${id}`.toLowerCase();
+    return full.includes(q);
+  });
+  populateVotersTable(filtered);
+});
+
+function populateVotersTable(data){
+  votersTableBody.innerHTML = "";
+  data.forEach(rec=>{
+    const voter = rec.voter || {};
+    const voterID = rec._id || (rec.voterID || '');
+    const first = voter.firstName || rec.firstName || rec.name || '';
+    const middle = voter.middleName || rec.middleName || '';
+    const last = voter.lastName || rec.lastName || '';
+    const name = `${first} ${middle} ${last}`.trim();
+    const recClass = voter.classSelect || rec.class || rec.classSelect || '-';
+    const recGender = voter.gender || rec.gender || '-';
+    const votesList = Object.entries(rec.votes||{}).map(([p,c])=>`${p}: ${c}`).join("; ");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${escapeHtml(voterID)}</td><td>${escapeHtml(name)}</td><td>${escapeHtml(recClass)}</td><td>${escapeHtml(recGender)}</td><td>${escapeHtml(votesList)}</td><td>${new Date(rec.timestamp).toLocaleString()}</td>`;
+    votersTableBody.appendChild(tr);
+  });
+}
+
+/* download voters CSV (who voted) */
+document.getElementById("downloadVotersCSV").addEventListener("click", ()=>{
+  if(allVotes.length===0) return alert("No voters yet");
+  let csv = "VoterID,First,Middle,Last,Class,Gender,Votes,Timestamp\n";
+  allVotes.forEach(rec=>{
+    const voter = rec.voter || {};
+    const voterID = rec._id || (rec.voterID || '');
+    const first = voter.firstName || rec.firstName || rec.name || '';
+    const middle = voter.middleName || rec.middleName || '';
+    const last = voter.lastName || rec.lastName || '';
+    const recClass = voter.classSelect || rec.class || rec.classSelect || '';
+    const recGender = voter.gender || rec.gender || '';
+    const votesList = Object.entries(rec.votes||{}).map(([p,c])=>`${p}:${c}`).join("; ");
+    csv += `"${voterID}","${first}","${middle}","${last}","${recClass}","${recGender}","${votesList}","${new Date(rec.timestamp).toLocaleString()}"\n`;
+  });
+  downloadBlob(csv, "UKSS_Voters_Who_Voted.csv", "text/csv");
+});
+
+/* registered modal populate/search */
+registeredSearch.addEventListener("input", ()=> {
+  const q = (registeredSearch.value||'').toLowerCase();
+  const filtered = registeredList.filter(rec => {
+    const id = (rec.id || '').toLowerCase();
+    const name = ((rec.firstName||'') + ' ' + (rec.lastName||'')).toLowerCase();
+    const cls = (rec.classSelect || '').toLowerCase();
+    return id.includes(q) || name.includes(q) || cls.includes(q);
+  });
+  populateRegisteredTable(filtered);
+});
+
+function populateRegisteredTable(data){
+  registeredTableBody.innerHTML = "";
+  data.forEach(rec=>{
+    const id = rec.id || '';
+    const name = `${rec.firstName||''} ${rec.middleName||''} ${rec.lastName||''}`.trim();
+    const cls = rec.classSelect || '';
+    const gender = rec.gender || '';
+    const regAt = rec.registeredAt || rec.registeredAt || '';
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${escapeHtml(id)}</td><td>${escapeHtml(name)}</td><td>${escapeHtml(cls)}</td><td>${escapeHtml(gender)}</td><td>${escapeHtml(regAt)}</td>`;
+    registeredTableBody.appendChild(tr);
+  });
+}
+
+/* download registered CSV */
+document.getElementById("downloadRegisteredCSV").addEventListener("click", ()=>{
+  if(registeredList.length===0) return alert("No registered voters yet");
+  let csv = "VoterID,First,Middle,Last,Class,Gender,RegisteredAt\n";
+  registeredList.forEach(rec=>{
+    csv += `"${rec.id||''}","${rec.firstName||''}","${rec.middleName||''}","${rec.lastName||''}","${rec.classSelect||''}","${rec.gender||''}","${rec.registeredAt||''}"\n`;
+  });
+  downloadBlob(csv, "UKSS_Registered_Voters.csv", "text/csv");
+});
+
+/* delete candidate votes (confirm) */
+function showConfirmDelete(candidateName){
+  confirmText.textContent = `Delete all votes for "${candidateName}"? This will remove that candidate entry from every vote record but keep the rest.`;
+  confirmModal.style.display = "flex";
+  confirmYes.onclick = async () => {
+    for(const rec of allVotes){
+      const newVotes = {};
+      for(const [pos,cand] of Object.entries(rec.votes || {})){
+        if(cand !== candidateName) newVotes[pos] = cand;
+      }
+      await set(ref(db, "votes/" + rec._id), { ...rec, votes: newVotes });
+    }
+    confirmModal.style.display = "none";
+  };
+  confirmNo.onclick = ()=> confirmModal.style.display = "none";
+}
+window.showConfirmDelete = showConfirmDelete;
+
+/* delete all votes */
+function confirmDeleteAll(){
+  confirmText.textContent = "Delete ALL votes permanently? This action cannot be undone.";
+  confirmModal.style.display = "flex";
+  confirmYes.onclick = async () => { await remove(votesRef); confirmModal.style.display = "none"; closeMenuPopup(); alert("All votes deleted."); };
+  confirmNo.onclick = ()=> confirmModal.style.display = "none";
+}
+window.confirmDeleteAll = confirmDeleteAll;
+
+/* download results CSV (summary) */
+function triggerDownloadResults(){
+  if(allVotes.length === 0) return alert("No data to export");
+  let csv = "VoterID,First,Middle,Last,Class,Gender,HeadBoy,HeadGirl,GeneralSec,Discipline,Timestamp\n";
+  allVotes.forEach(rec=>{
+    const voter = rec.voter || {};
+    const id = rec._id || '';
+    const first = voter.firstName || rec.firstName || rec.name || '';
+    const middle = voter.middleName || rec.middleName || '';
+    const last = voter.lastName || rec.lastName || '';
+    const cls = voter.classSelect || rec.class || rec.classSelect || '';
+    const gender = voter.gender || rec.gender || '';
+    csv += `"${id}","${first}","${middle}","${last}","${cls}","${gender}","${rec.votes?.headBoy||''}","${rec.votes?.headGirl||''}","${rec.votes?.generalSec||''}","${rec.votes?.discipline||''}","${new Date(rec.timestamp).toLocaleString()}"\n`;
+  });
+  downloadBlob(csv, "UKSS_Voting_Results.csv", "text/csv");
+  closeMenuPopup();
+}
+window.triggerDownloadResults = triggerDownloadResults;
+
+/* backup & restore */
+function backupVotes(){
+  const blob = new Blob([JSON.stringify(allVotes, null, 2)], { type: "application/json" });
+  downloadBlob(blob, "UKSS_Votes_Backup.json");
+  closeMenuPopup();
+}
+window.backupVotes = backupVotes;
+
+function triggerRestore(){
+  document.getElementById("restoreFile").click();
+}
+window.triggerRestore = triggerRestore;
+
+document.getElementById("restoreFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  try {
+    const text = await file.text();
+    const json = JSON.parse(text);
+    if(!Array.isArray(json)) return alert("Invalid backup format. Expected array.");
+    for(const item of json){
+      const key = item._id || (item.voterID || (item.name ? (item.name.replace(/\s+/g,'_') + '_' + Date.now()) : Date.now()));
+      await set(ref(db, "votes/" + key), item);
+    }
+    alert("✅ Backup restored successfully!");
+    closeMenuPopup();
+  } catch(err){
+    alert("Restore failed: " + (err.message || err));
+  }
+  e.target.value = "";
+});
+
+/* ================= Audit: compute & export (summary-only) ================= */
+
+/**
+ * Helper: try parse date string into year (YYYY). returns null if can't parse.
+ * Accepts ISO or locale strings.
+ */
+function parseYearFromString(s){
+  if(!s) return null;
+  // try ISO parse
+  const d = new Date(s);
+  if(!isNaN(d.getTime())) return d.getFullYear();
+  // try number extraction (YYYY)
+  const m = String(s).match(/(20\d{2}|19\d{2})/);
+  if(m) return parseInt(m[0],10);
+  return null;
+}
+
+/**
+ * Run audit for selected year.
+ * scope:
+ *   - 'all' => registered = all registered (regardless of reg date)
+ *   - 'registeredThisYear' => registered only those with registeredAt year === selected year
+ */
+async function runAuditForYear(year, scope='all'){
+  const y = parseInt(year,10);
+  // compute registered count for that year depending on scope
+  let registeredCount = 0;
+  let registeredIDs = new Set();
+
+  registeredList.forEach(r => {
+    // try parse registration year
+    const regYear = parseYearFromString(r.registeredAt || r.timestamp || r.registered_at || r.registeredOn || r.registeredDate);
+    if(scope === 'all'){
+      registeredCount++;
+      registeredIDs.add(r.id || r.id === 0 ? (r.id) : (r.voterID || `${r.firstName||''}_${r.lastName||''}`));
+    } else {
+      if(regYear === y){
+        registeredCount++;
+        registeredIDs.add(r.id || r.voterID || `${r.firstName||''}_${r.lastName||''}`);
+      }
+    }
+  });
+
+  // If no registered found and scope=registeredThisYear -> zero (expected)
+  // If registeredCount is zero and scope === 'all' fallback to length
+  if(scope === 'all' && registeredCount === 0) {
+    registeredCount = registeredList.length;
+    registeredList.forEach(r => registeredIDs.add(r.id || r.voterID || `${r.firstName||''}_${r.lastName||''}`));
+  }
+
+  // Count votes for that year by examining vote.timestamp year
+  const votesInYear = allVotes.filter(rec => {
+    const voteYear = parseYearFromString(rec.timestamp);
+    return voteYear === y;
+  });
+
+  const votedCount = votesInYear.length;
+
+  // duplicates (same voterID appearing more than once in votesInYear)
+  const seen = {};
+  const duplicates = [];
+  votesInYear.forEach(rec => {
+    const vid = rec._id || rec.voterID || (rec.voter && (rec.voter.id || (rec.voter.firstName + '_' + (rec.voter.lastName||'')))) || '';
+    const key = String(vid || (rec.name || '')).toLowerCase();
+    seen[key] = (seen[key] || 0) + 1;
+    if(seen[key] > 1) duplicates.push({ id: vid, count: seen[key] });
+  });
+  const dupCount = Object.values(seen).filter(c=>c>1).reduce((acc,c)=> acc + (c-1), 0);
+
+  // not voted = registeredCount - votedCount (but cannot be negative)
+  const notVotedCount = Math.max(0, registeredCount - votedCount);
+
+  // turnout %
+  const turnout = registeredCount > 0 ? ((votedCount / registeredCount) * 100) : 0;
+
+  // Build summary object
+  const summary = {
+    year: y,
+    registered: registeredCount,
+    voted: votedCount,
+    notVoted: notVotedCount,
+    turnoutPercent: Number(turnout.toFixed(2)),
+    duplicates: dupCount
+  };
+
+  return { summary, votesInYear, duplicatesList: duplicates };
+}
+
+/* render audit UI */
+runAuditBtn.addEventListener("click", async () => {
+  const year = auditYearSelect.value;
+  const scope = auditScope.value;
+  auditResultDiv.innerHTML = "Running audit...";
+
+  try {
+    const { summary } = await runAuditForYear(year, scope);
+    // display nicely
+    auditResultDiv.innerHTML = `
+      <div class="audit-summary">
+        <div class="audit-card"><h4>Year</h4><div>${summary.year}</div></div>
+        <div class="audit-card"><h4>Registered</h4><div>${summary.registered}</div></div>
+        <div class="audit-card"><h4>Voted</h4><div>${summary.voted}</div></div>
+        <div class="audit-card"><h4>Not Voted</h4><div>${summary.notVoted}</div></div>
+        <div class="audit-card"><h4>Turnout</h4><div>${summary.turnoutPercent}%</div></div>
+        <div class="audit-card"><h4>Duplicates</h4><div>${summary.duplicates}</div></div>
+      </div>
+    `;
+
+    // draw small chart: voted vs not voted (if registered>0)
+    if(auditChart) { auditChart.destroy(); auditChart = null; }
+    const labels = ['Voted','Not Voted'];
+    const data = [summary.voted, summary.notVoted];
+    auditChart = new Chart(auditChartCtx, {
+      type: 'doughnut',
+      data: { labels, datasets: [{ data, backgroundColor: ['#2e7d32', '#c8e6c9'] }] },
+      options: { responsive:true, plugins:{legend:{position:'bottom'}} }
+    });
+
+  } catch(err){
+    auditResultDiv.innerHTML = `<div style="color:crimson">Audit failed: ${err.message||err}</div>`;
+  }
+});
+
+/* Export audit summary CSV (summary only as requested) */
+exportAuditCSVBtn.addEventListener("click", async () => {
+  const year = auditYearSelect.value;
+  const scope = auditScope.value;
+  try {
+    const { summary } = await runAuditForYear(year, scope);
+    // CSV with header and one row summary
+    const csv = `Year,Registered,Voted,NotVoted,TurnoutPercent,Duplicates\n"${summary.year}","${summary.registered}","${summary.voted}","${summary.notVoted}","${summary.turnoutPercent}","${summary.duplicates}"\n`;
+    downloadBlob(csv, `UKSS_Audit_Summary_${summary.year}.csv`, "text/csv");
+  } catch(err){
+    alert("Export failed: " + (err.message||err));
+  }
+});
+
+/* helpers */
+function downloadBlob(content, filename, type){
+  const blob = (content instanceof Blob) ? content : new Blob([content], { type: type || "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function escapeHtml(str){
+  if(!str) return "";
+  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[s]);
+}
+
+/* filters binding */
+searchName.addEventListener("input", applyFilters);
+filterClass.addEventListener("change", applyFilters);
+filterGender.addEventListener("change", applyFilters);
+filterPosition.addEventListener("change", applyFilters);
+clearFiltersBtn.addEventListener("click", ()=>{
+  searchName.value=""; filterClass.value=""; filterGender.value=""; filterPosition.value="";
+  applyFilters();
+});
+  
+
+/* small UI bindings to close popups when clicking outside content */
+menuPopup.addEventListener("click", (e) => { if(e.target === menuPopup) closeMenuPopup(); });
+votersModal.addEventListener("click", (e)=>{ if(e.target === votersModal) closeVotersModal(); });
+registeredModal.addEventListener("click", (e)=>{ if(e.target === registeredModal) closeRegisteredModal(); });
+auditModal.addEventListener("click", (e)=>{ if(e.target === auditModal) closeAuditModal(); });
+confirmModal.addEventListener("click", (e)=>{ if(e.target === confirmModal) closeConfirm(); });
+
+
 </script>
-
 </body>
 </html>
