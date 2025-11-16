@@ -492,56 +492,69 @@ function displayResults(votes){
   drawTimeline(votes);
 }
 
-/* winners */
+/* ================= WINNERS (FULL FIXED VERSION) ================= */
+
 function displayWinners(votes){
-  if(!votes || votes.length===0){
+  if(!votes || votes.length === 0){
     winnerSummary.innerHTML = "";
     return;
   }
 
   const totals = {};
 
+  // Count votes per position
   votes.forEach(rec=>{
-    Object.entries(rec.votes || {}).forEach(([pos,cand])=>{
+    const v = rec.votes || {};
+    Object.entries(v).forEach(([pos, cand])=>{
       if(!totals[pos]) totals[pos] = {};
-      totals[pos][cand] = (totals[pos][cand]||0)+1;
+      totals[pos][cand] = (totals[pos][cand] || 0) + 1;
     });
   });
 
   let html = `
     <h3>🏆 Winners Summary</h3>
     <table class="winner-table">
-      <thead>
-        <tr><th>Position</th><th>Winner</th><th>Votes</th><th>Action</th></tr>
-      </thead>
-      <tbody>
+    <thead>
+      <tr>
+        <th>Position</th>
+        <th>Winner</th>
+        <th>Votes</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
   `;
 
-  Object.entries(totals).forEach(([posKey,cands])=>{
-    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
-    const [winner,count] = sorted[0];
+  // For each position → find winner
+  Object.entries(totals).forEach(([posKey, candObj])=>{
+    const sorted = Object.entries(candObj).sort((a,b)=>b[1]-a[1]);
+    const [winner, count] = sorted[0];
 
-    const posName = cleanPositionName(posKey);
+    const readablePos = cleanPositionName(posKey);
 
     html += `
       <tr>
-        <td>${posName}</td>
+        <td>${readablePos}</td>
         <td>${winner}</td>
         <td>${count}</td>
         <td>
           <button class="gen-letter"
             data-name="${encodeURIComponent(winner)}"
             data-posdb="${posKey}"
-            data-posname="${posName}"
+            data-posname="${readablePos}"
             data-votes="${count}">
             Generate Letter
           </button>
         </td>
-      </tr>`;
+      </tr>
+    `;
   });
 
   html += "</tbody></table>";
   winnerSummary.innerHTML = html;
+
+
+  /* ================= BUTTON HANDLER (FIXED CLASS & GENDER) ================= */
 
   document.querySelectorAll(".gen-letter").forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -554,21 +567,26 @@ function displayWinners(votes){
       let cls = "";
       let gen = "";
 
+      // Find any record where this winner was voted
       for(const rec of allVotes){
-        if(rec.votes && rec.votes[posDB] &&
-          rec.votes[posDB].toLowerCase() === name.toLowerCase()){
+        const v = rec.votes || {};
+
+        for(const [p, c] of Object.entries(v)){
+          if(p === posDB && String(c).toLowerCase() === name.toLowerCase()){
             cls = rec.voter?.classSelect || "";
             gen = rec.voter?.gender || "";
             break;
+          }
         }
+        if(cls || gen) break;
       }
 
       const params = new URLSearchParams();
       params.set("name", name);
       params.set("position", posName);
       params.set("votes", votes);
-      params.set("class", cls);
-      params.set("gender", gen);
+      params.set("candidateClass", cls);
+      params.set("candidateGender", gen);
       params.set("year", new Date().getFullYear());
 
       window.open("appreciation.html?" + params.toString(), "_blank");
@@ -577,29 +595,26 @@ function displayWinners(votes){
 }
 
 
-
 /* =================== HELPERS ===================== */
 
-// Convert DB key to human readable
 function cleanPositionName(pos){
   const map = {
     headBoy: "Head Boy Prefect",
     headGirl: "Head Girl Prefect",
     generalSec: "General Secretary",
     discipline: "Discipline Prefect",
-    foodBoy: "Food Prefect",
-    foodGirl: "Food Prefect"
+    sports: "Sports & Games Prefect",
+    environmental: "Environmental Prefect",
+    food: "Food Prefect",
+    storekeeper: "Store Keeper Prefect",
+    health: "Health Prefect",
+    maintenance: "Maintenance Prefect",
+    academic: "Academic Prefect"
   };
-  return map[pos] || pos.replace(/([A-Z])/g, " $1").replace(/^./, c=>c.toUpperCase());
-}
 
-// Make short code for serial number
-function makeShortCode(name){
-  return name.split(" ")
-    .map(w=>w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0,3);
+  return map[pos] || 
+         pos.replace(/([A-Z])/g, " $1")
+            .replace(/^./, c=>c.toUpperCase()) + " Prefect";
 }
 
 
