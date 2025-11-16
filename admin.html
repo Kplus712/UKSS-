@@ -558,25 +558,6 @@ document.querySelectorAll(".gen-letter").forEach(btn => {
   });
 });
 
-      // Build query string
-      const params = new URLSearchParams();
-      params.set('name', name || '');
-      params.set('position', pos || '');
-      params.set('votes', votes || '0');
-      params.set('year', new Date().getFullYear());
-      // candidate info placeholders
-      params.set('candidateId', candidateInfo.id || '');
-      params.set('candidateClass', candidateInfo.classSelect || '');
-      params.set('candidateGender', candidateInfo.gender || '');
-      params.set('candidateFirst', candidateInfo.firstName || '');
-      params.set('candidateLast', candidateInfo.lastName || '');
-      // Link to appreciation page (assumes appreciation.html is in same folder)
-      const url = `appreciation.html?${params.toString()}`;
-      window.open(url, '_blank');
-    });
-  });
-}
-
 /* charts */
 function clearCharts(){
   if(barChart) { barChart.destroy(); barChart = null; }
