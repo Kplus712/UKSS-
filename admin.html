@@ -513,45 +513,71 @@ function displayWinners(votes){
   html += `</tbody></table>`;
   winnerSummary.innerHTML = html;
 
-  // wire up the generated buttons (open appreciation.html in new tab with params)
-  document.querySelectorAll(".gen-letter").forEach(btn=>{
-    btn.addEventListener("click", (e)=>{
-      const name = decodeURIComponent(btn.dataset.name || "");
-      const pos = decodeURIComponent(btn.dataset.pos || "");
-      const votes = btn.dataset.votes || 0;
-      // Try to include candidate details if available: find voter registration or vote record for that candidate (best-effort)
-      // We'll pick first matching vote record that selected this candidate for that position to extract class/gender/id
-      let candidateInfo = { id: '', classSelect: '', gender: '', firstName: '', lastName: '' };
-      for(const rec of allVotes){
-        try {
-          if(rec.votes && rec.votes[pos] && String(rec.votes[pos]).toLowerCase() === String(name).toLowerCase()){
-            // candidate info might be embedded in rec.voter or rec.candidate fields — try to find
-            if(rec.candidate) { candidateInfo = { ...candidateInfo, ...rec.candidate }; }
-            if(rec.voter) { candidateInfo = { ...candidateInfo, ...rec.voter }; }
-            // some datasets store candidate under rec.candidateName etc — we don't modify original data
-            break;
-          }
-        } catch(err){ /* ignore */ }
-      }
+// wire up the generated buttons (open appreciation.html in new tab with params)
+document.querySelectorAll(".gen-letter").forEach(btn=>{
+  btn.addEventListener("click", (e)=>{
 
-      // Build query string
-      const params = new URLSearchParams();
-      params.set('name', name || '');
-      params.set('position', pos || '');
-      params.set('votes', votes || '0');
-      params.set('year', new Date().getFullYear());
-      // candidate info placeholders
-      params.set('candidateId', candidateInfo.id || '');
-      params.set('candidateClass', candidateInfo.classSelect || '');
-      params.set('candidateGender', candidateInfo.gender || '');
-      params.set('candidateFirst', candidateInfo.firstName || '');
-      params.set('candidateLast', candidateInfo.lastName || '');
-      // Link to appreciation page (assumes appreciation.html is in same folder)
-      const url = `appreciation.html?${params.toString()}`;
-      window.open(url, '_blank');
-    });
+    const name = decodeURIComponent(btn.dataset.name || "");
+    const pos  = decodeURIComponent(btn.dataset.pos || "");
+    const votes = btn.dataset.votes || 0;
+
+    // prepare container for candidate info
+    let candidateInfo = {
+      id: '',
+      classSelect: '',
+      gender: '',
+      firstName: '',
+      lastName: ''
+    };
+
+    // FIND class & gender from votes node
+    for(const rec of allVotes){
+      try {
+        if(
+          rec.votes &&
+          rec.votes[pos] &&
+          String(rec.votes[pos]).toLowerCase() === String(name).toLowerCase()
+        ){
+          // If candidate info exists in rec.candidate
+          if(rec.candidate){
+            candidateInfo = { ...candidateInfo, ...rec.candidate };
+          }
+
+          // If student/class info exists in rec.voter (most likely)
+          if(rec.voter){
+            candidateInfo = { ...candidateInfo, ...rec.voter };
+          }
+
+          break;
+        }
+      } catch(err){ /* ignore */ }
+    }
+
+    // Build query string for appreciation.html
+    const params = new URLSearchParams();
+    params.set("name", name);
+    params.set("position", pos);
+    params.set("votes", votes);
+    params.set("year", new Date().getFullYear());
+
+    // FIXED: use correct param names used by appreciation.html
+    params.set("class",  candidateInfo.classSelect || "—");
+    params.set("gender", candidateInfo.gender || "—");
+
+    // OPTIONAL extra info (not required but good to send)
+    params.set("firstName", candidateInfo.firstName || "");
+    params.set("lastName",  candidateInfo.lastName || "");
+    params.set("id",        candidateInfo.id || "");
+
+    // FIXED: AUTO serial numbering
+    const serialVal = btn.dataset.serial || "0012";
+    params.set("serial", serialVal);
+
+    // OPEN appreciation page
+    const url = `appreciation.html?${params.toString()}`;
+    window.open(url, "_blank");
   });
-}
+});
 
 /* charts */
 function clearCharts(){
