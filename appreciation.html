@@ -1,174 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Appreciation Letter — UKSS</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Certificate of Appreciation — UKSS</title>
 
 <style>
-  :root{
-    --ukss-green: #265a2f;
-    --soft-green: #e6f4e6;
-    --text: #0b2b18;
-    --accent: #6fbf73;
-  }
+:root{
+  --green: #265a2f;
+  --gold: #c5a106;
+  --text: #05320f;
+}
 
-  body{
-    margin:0;
-    font-family:"Georgia", serif;
-    background:#f6fff6;
-    padding:25px;
-    color:var(--text);
-  }
+body{
+  margin:0;
+  padding:25px;
+  background:#f6fff6;
+  font-family:"Georgia", serif;
+}
 
-  .container{
-    max-width:920px;
-    margin:0 auto;
-    background:white;
-    border-radius:14px;
-    border:10px solid var(--ukss-green);
-    box-shadow:0 0 35px rgba(0,0,0,0.15);
-    padding:0;
-    position:relative;
-    overflow:hidden;
-  }
+.container{
+  width:900px;
+  margin:auto;
+  background:white;
+  border:12px solid var(--gold);
+  border-radius:12px;
+  padding:20px;
+  position:relative;
+  overflow:hidden;
+}
 
-  /* Watermark */
-  .watermark{
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    opacity:0.07;
-    width:450px;
-    height:450px;
-    background:url('https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png') center/contain no-repeat;
-    z-index:0;
-    pointer-events:none;
-  }
+/* Watermark */
+.watermark{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  opacity:0.18;
+  width:70%;
+  z-index:0;
+}
 
-  /* Flowers decoration */
-  .corner-decoration{
-    position:absolute;
-    width:130px;
-    height:130px;
-    background-image:url('flowers.png');
-    background-size:contain;
-    background-repeat:no-repeat;
-    opacity:0.13;
-  }
-  .corner-top-left{ top:10px; left:10px; }
-  .corner-top-right{ top:10px; right:10px; transform:scaleX(-1); }
-  .corner-bottom-left{ bottom:10px; left:10px; transform:rotate(-6deg); }
-  .corner-bottom-right{ bottom:10px; right:10px; transform:scaleX(-1); }
+/* Header */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:3px double var(--green);
+  padding-bottom:10px;
+  margin-bottom:15px;
+  position:relative;
+  z-index:5;
+}
 
-  /* HEADER */
-  .letter-header{
-    padding:18px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border-bottom:4px double var(--ukss-green);
-    background:var(--soft-green);
-  }
+.logo{
+  width:120px;
+  height:120px;
+}
 
-  .logo-wrap{
-    width:120px;
-    height:120px;
-  }
-  .logo-wrap img{
-    width:100%;
-    height:100%;
-    object-fit:contain;
-  }
+.header-center{
+  text-align:center;
+  flex:1;
+}
 
-  .header-center{
-    text-align:center;
-    flex:1;
-  }
-  .header-center h2{
-    margin:0;
-    font-size:24px;
-    font-weight:800;
-    color:var(--ukss-green);
-  }
+.header-center h2{
+  color:var(--green);
+  margin:0;
+  font-size:24px;
+  letter-spacing:1px;
+}
 
-  /* TITLE */
-  .title-block{
-    text-align:center;
-    padding:30px 20px;
-  }
-  .title-block h1{
-    margin-bottom:8px;
-    font-size:32px;
-    color:var(--ukss-green);
-  }
+/* Title */
+.title{
+  text-align:center;
+  margin:20px 0;
+  position:relative;
+  z-index:5;
+}
+.title h1{
+  margin:0;
+  font-size:32px;
+  color:var(--green);
+  font-weight:700;
+}
 
-  /* BODY */
-  .letter-body{
-    padding:30px 40px;
-    font-size:18px;
-    line-height:1.7;
-    position:relative;
-    z-index:2;
-  }
+/* Body text */
+.body{
+  font-size:18px;
+  line-height:1.7;
+  padding:10px 30px;
+  position:relative;
+  z-index:5;
+}
 
-  .info-table{
-    width:100%;
-    margin-top:28px;
-    border-collapse:collapse;
-  }
-  .info-table td{
-    padding:8px 6px;
-    font-size:17px;
-  }
-  .label{
-    font-weight:700;
-    width:200px;
-    color:#355943;
-  }
+/* Info table */
+.info-table{
+  width:100%;
+  margin-top:15px;
+  border-collapse:collapse;
+}
+.info-table td{
+  padding:7px 4px;
+  font-size:17px;
+}
+.label{
+  font-weight:700;
+  color:#2b5530;
+  width:200px;
+}
 
-  /* signature */
-  .signature{
-    margin-top:45px;
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-end;
-  }
-  .sign-col{text-align:left;}
+/* Signature block */
+.signature-block{
+  display:flex;
+  justify-content:space-between;
+  margin-top:40px;
+  padding:0 30px;
+}
 
-  .signature-img{
-    width:210px;
-    height:90px;
-  }
-  .signature-img img{
-    width:100%;
-    height:100%;
-    object-fit:contain;
-  }
+.sign-img{
+  width:200px;
+  height:90px;
+}
 
-  .actions{
-    padding:18px;
-    text-align:right;
-    border-top:4px double var(--soft-green);
-    background:#f8fff8;
-  }
-  .btn{
-    padding:10px 14px;
-    font-weight:bold;
-    border-radius:7px;
-    cursor:pointer;
-    margin-left:10px;
-  }
-  .btn-print{ background:var(--ukss-green); color:white; border:none; }
-  .btn-download{ background:var(--accent); color:white; border:none; }
-  .btn-back{ background:white; border:2px solid var(--ukss-green); color:var(--ukss-green); }
+.actions{
+  text-align:right;
+  margin-top:20px;
+}
+.btn{
+  padding:10px 14px;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+  font-weight:bold;
+}
+.print-btn{ background:var(--green); color:white; }
+.download-btn{ background:var(--gold); color:white; }
 
-  @media print{
-    .actions{ display:none; }
-    body{ padding:0; background:white; }
-    .container{ border:none; }
-  }
+@media print{
+  .actions{ display:none; }
+  body{ padding:0; background:white; }
+  .container{ margin:0; border:none; }
+}
 </style>
 </head>
 
@@ -176,35 +148,26 @@
 
 <div class="container">
 
-  <div class="watermark"></div>
+  <!-- Watermark -->
+  <img class="watermark" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
 
-  <div class="corner-decoration corner-top-left"></div>
-  <div class="corner-decoration corner-top-right"></div>
-  <div class="corner-decoration corner-bottom-left"></div>
-  <div class="corner-decoration corner-bottom-right"></div>
-
-  <div class="letter-header">
-    <div class="logo-wrap">
-      <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" />
-    </div>
-
+  <!-- Header -->
+  <div class="header">
+    <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
     <div class="header-center">
       <h2>UMOJA KING'ORI SECONDARY SCHOOL</h2>
-      <p style="font-size:13px;color:#345840;">Official Appreciation Letter — Student Leadership</p>
+      <div style="color:#355b3a; font-size:14px;">Official Student Leadership Appreciation Certificate</div>
     </div>
-
-    <div class="logo-wrap">
-      <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" />
-    </div>
+    <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
   </div>
 
-  <div class="title-block">
+  <!-- Title -->
+  <div class="title">
     <h1>CERTIFICATE OF APPRECIATION</h1>
-    <h3 style="color:#4d6e55;font-style:italic;">Presented to an Outstanding Student Leader</h3>
   </div>
 
-  <div class="letter-body">
-
+  <!-- Body -->
+  <div class="body">
     <p id="contentParagraph"></p>
 
     <table class="info-table">
@@ -217,101 +180,98 @@
       <tr><td class="label">Election Year:</td><td id="yearLabel"></td></tr>
     </table>
 
-    <div class="signature">
-
-      <div class="sign-col">
-        <div class="signature-img">
-          <img src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg" />
-        </div>
-        <div style="color:#355943;font-size:15px;">
+    <!-- Signature block -->
+    <div class="signature-block">
+      <div>
+        <img class="sign-img" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg">
+        <div style="font-size:14px; color:#2d4d2b; margin-top:-6px;">
           <b>Headmaster</b><br>
           Umoja King'ori Secondary School
         </div>
       </div>
 
       <div style="text-align:right;">
-        <div style="font-size:14px;color:#355943;">Date:</div>
-        <div id="todayDate" style="font-size:18px;font-weight:700;"></div>
+        <div>Date:</div>
+        <div id="todayDate" style="font-weight:bold; font-size:18px;"></div>
       </div>
-
     </div>
 
   </div>
 
+  <!-- Buttons -->
   <div class="actions">
-    <button class="btn btn-back" onclick="history.back()">← Back</button>
-    <button class="btn btn-download" onclick="window.print()">Download PDF</button>
-    <button class="btn btn-print" onclick="window.print()">Print</button>
+    <button class="btn print-btn" onclick="window.print()">Print</button>
+    <button class="btn download-btn" onclick="window.print()">Download PDF</button>
   </div>
 
 </div>
 
 <script>
-  const SHORT_CODES = {
-    "head": "HP",
-    "headPrefect": "HP",
-    "generalSecretary": "GS",
-    "sports": "SP",
-    "sportsBoy": "SP",
-    "sportsGirl": "SP",
-    "food": "FP",
-    "foodBoy": "FP",
-    "foodGirl": "FP",
-    "environment": "EP",
-    "health": "HPF",
-    "maintenance": "MP",
-    "store": "STP",
-    "academic": "AP",
-    "discipline": "DP"
+// POSITION CODES
+const POS_CODES = {
+  "headboy": "HB",
+  "headgirl": "HG",
+  "academic": "AP",
+  "generalsecretary": "GS",
+  "discipline": "DP",
+  "sports": "SG",
+  "environmental": "EP",
+  "food": "FP",
+  "storekeeper": "SK",
+  "health": "HP",
+  "maintenance": "MP"
+};
+
+// Normalize position name → Prefect
+function formatPosition(pos){
+  let p = pos.toLowerCase().trim();
+  if(p.includes("headboy")) return "Head Boy";
+  if(p.includes("headgirl")) return "Head Girl";
+  if(p.includes("generalsec")) return "General Secretary";
+
+  // Others become "____ Prefect"
+  return p.charAt(0).toUpperCase() + p.slice(1) + " Prefect";
+}
+
+function getParams(){
+  const p = new URLSearchParams(window.location.search);
+  return {
+    name: p.get("name") || "",
+    position: p.get("position") || "",
+    votes: p.get("votes") || "",
+    class: p.get("candidateClass") || "",
+    gender: p.get("candidateGender") || "",
+    year: p.get("year") || new Date().getFullYear()
   };
+}
 
-  function humanPosition(pos){
-    if(!pos) return "";
-    const base = pos.replace(/Boy|Girl/i,"");
-    return (
-      base.charAt(0).toUpperCase() +
-      base.slice(1)
-    ) + " Prefect";
-  }
+function fillPage(){
+  const p = getParams();
 
-  function getParams(){
-    const p = new URLSearchParams(window.location.search);
-    return {
-      name: p.get("name") || "",
-      position: p.get("position") || "",
-      votes: p.get("votes") || "",
-      class: p.get("class") || "",
-      gender: p.get("gender") || "",
-      serial: p.get("serial") || "0012",
-      year: p.get("year") || new Date().getFullYear()
-    };
-  }
+  const formattedPos = formatPosition(p.position);
 
-  function fill(){
-    const p = getParams();
-    const cleanPos = humanPosition(p.position);
-    const short = SHORT_CODES[p.position] || "XX";
+  document.getElementById("studentName").textContent = p.name;
+  document.getElementById("positionName").textContent = formattedPos;
+  document.getElementById("votesCount").textContent = p.votes;
+  document.getElementById("studentClass").textContent = p.class;
+  document.getElementById("studentGender").textContent = p.gender;
+  document.getElementById("yearLabel").textContent = p.year;
+  document.getElementById("todayDate").textContent = new Date().toLocaleDateString();
 
-    document.getElementById("studentName").textContent = p.name;
-    document.getElementById("positionName").textContent = cleanPos;
-    document.getElementById("votesCount").textContent = p.votes;
-    document.getElementById("studentClass").textContent = p.class;
-    document.getElementById("studentGender").textContent = p.gender;
-    document.getElementById("yearLabel").textContent = p.year;
-    document.getElementById("todayDate").textContent =
-      new Date().toLocaleDateString();
+  // Build serial
+  const codeKey = p.position.toLowerCase().replace(/\s+/g,'');
+  const code = POS_CODES[codeKey] || "XX";
+  const serial = `UKSS/${p.year}/${code}/${String(Math.floor(Math.random()*9999)).padStart(4,'0')}`;
+  document.getElementById("serialNumber").textContent = serial;
 
-    document.getElementById("serialNumber").textContent =
-      `UKSS-${p.year}-${short}-${p.serial}`;
+  // Paragraph
+  document.getElementById("contentParagraph").innerHTML =
+    `This certificate is proudly awarded to <strong>${p.name}</strong> for demonstrating outstanding 
+     leadership, discipline, and integrity while serving as the <strong>${formattedPos}</strong> 
+     during the ${p.year} UKSS elections. Your dedication and exemplary conduct are highly appreciated.`;
+}
 
-    document.getElementById("contentParagraph").innerHTML =
-      `This certificate is proudly presented to <strong>${p.name}</strong>
-       in recognition of outstanding service as the <strong>${cleanPos}</strong>.
-       Receiving <strong>${p.votes}</strong> votes in the ${p.year} elections,
-       your dedication, discipline and leadership are highly appreciated.`;
-  }
-
-  fill();
+fillPage();
 </script>
 
 </body>
