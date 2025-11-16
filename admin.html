@@ -494,108 +494,88 @@ function displayResults(votes){
 
 /* winners */
 function displayWinners(votes){
-  if(!votes || votes.length===0){ 
+  if(!votes || votes.length===0){
     winnerSummary.innerHTML = "";
     return;
   }
 
   const totals = {};
 
-  // Count totals per position
-  votes.forEach(rec => {
-    Object.entries(rec.votes || {}).forEach(([pos, cand]) => {
+  votes.forEach(rec=>{
+    Object.entries(rec.votes || {}).forEach(([pos,cand])=>{
       if(!totals[pos]) totals[pos] = {};
-      totals[pos][cand] = (totals[pos][cand] || 0) + 1;
+      totals[pos][cand] = (totals[pos][cand]||0)+1;
     });
   });
 
-  // Winners table
   let html = `
     <h3>🏆 Winners Summary</h3>
     <table class="winner-table">
       <thead>
-        <tr>
-          <th>Position</th>
-          <th>Winner</th>
-          <th>Votes</th>
-          <th>Action</th>
-        </tr>
+        <tr><th>Position</th><th>Winner</th><th>Votes</th><th>Action</th></tr>
       </thead>
       <tbody>
   `;
 
-  Object.entries(totals).forEach(([pos, cands])=>{
-    const sorted = Object.entries(cands).sort((a,b)=>b[1] - a[1]);
-    const [winner, count] = sorted[0] || ["-", 0];
+  Object.entries(totals).forEach(([posKey,cands])=>{
+    const sorted = Object.entries(cands).sort((a,b)=>b[1]-a[1]);
+    const [winner,count] = sorted[0];
 
-    // Clean display name (foodBoy → Food Prefect)
-    const cleanPosition = cleanPositionName(pos);
-
-    // auto serial e.g. FP-2025-0001
-    const shortCode = makeShortCode(cleanPosition);
-    const serialNumber = `${shortCode}-${new Date().getFullYear()}-${String(count).padStart(4,"0")}`;
+    const posName = cleanPositionName(posKey);
 
     html += `
       <tr>
-        <td>${cleanPosition}</td>
-        <td>${escapeHtml(winner)}</td>
+        <td>${posName}</td>
+        <td>${winner}</td>
         <td>${count}</td>
         <td>
           <button class="gen-letter"
-             data-name="${encodeURIComponent(winner)}"
-             data-pos="${encodeURIComponent(cleanPosition)}"
-             data-votes="${count}"
-             data-serial="${serialNumber}">
-             Generate Letter
+            data-name="${encodeURIComponent(winner)}"
+            data-posdb="${posKey}"
+            data-posname="${posName}"
+            data-votes="${count}">
+            Generate Letter
           </button>
         </td>
-      </tr>
-    `;
+      </tr>`;
   });
 
   html += "</tbody></table>";
   winnerSummary.innerHTML = html;
 
-  /* --------------- GENERATE LETTER BUTTON HANDLER ------------------ */
   document.querySelectorAll(".gen-letter").forEach(btn=>{
     btn.addEventListener("click", ()=>{
 
       const name = decodeURIComponent(btn.dataset.name);
-      const pos  = decodeURIComponent(btn.dataset.pos);
+      const posDB = btn.dataset.posdb;
+      const posName = btn.dataset.posname;
       const votes = btn.dataset.votes;
-      const serial = btn.dataset.serial;
 
-      // --- FIND candidate details from votersRef ---
-      let candidateClass = "";
-      let candidateGender = "";
+      let cls = "";
+      let gen = "";
 
-      // loop through all votes and extract class/gender
       for(const rec of allVotes){
-        if(rec.votes && rec.votes[pos] &&
-            String(rec.votes[pos]).toLowerCase() === name.toLowerCase()){
-
-          if(rec.voter){
-            candidateClass = rec.voter.classSelect || "";
-            candidateGender = rec.voter.gender || "";
-          }
-          break;
+        if(rec.votes && rec.votes[posDB] &&
+          rec.votes[posDB].toLowerCase() === name.toLowerCase()){
+            cls = rec.voter?.classSelect || "";
+            gen = rec.voter?.gender || "";
+            break;
         }
       }
 
-      // Build URL params
       const params = new URLSearchParams();
       params.set("name", name);
-      params.set("position", pos);
+      params.set("position", posName);
       params.set("votes", votes);
-      params.set("class", candidateClass);
-      params.set("gender", candidateGender);
-      params.set("serial", serial);
+      params.set("class", cls);
+      params.set("gender", gen);
       params.set("year", new Date().getFullYear());
 
       window.open("appreciation.html?" + params.toString(), "_blank");
     });
   });
 }
+
 
 
 /* =================== HELPERS ===================== */
