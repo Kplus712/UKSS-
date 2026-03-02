@@ -5,14 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>UKSS Voting — Official (Offline-ready)</title>
 
-<!-- QR library (small) -->
-<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <!-- LocalForage (IndexedDB wrapper) for offline queue -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
-
-<!-- ✅ jsPDF (Download PDF) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <style>
   :root{
@@ -35,7 +29,6 @@
   }
   h1{ text-align:center; color:var(--accent); margin:6px 0 12px; }
   p.lead{ text-align:center; color:#2e7d32; margin-top:0; font-weight:600; }
-
   .position-block{ margin:28px 0; position:relative; }
   .position-title{
     text-align:center; font-weight:800; color:var(--green);
@@ -71,55 +64,24 @@
     color:#2e7d32; font-weight:700; font-size:12px;
   }
 
+  /* buttons */
   .actions{
     display:flex; gap:12px; margin-top:22px; justify-content:space-between;
     align-items:center; flex-wrap:wrap;
   }
   .btn{
     padding:12px 18px; border-radius:10px; border:none; background:var(--accent);
-    color:white; cursor:pointer; font-weight:800; text-decoration:none; display:inline-flex; align-items:center;
+    color:white; cursor:pointer; font-weight:800;
   }
   .btn.secondary{
     background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06);
   }
 
-  .netStatus {
+  /* network status indicator */
+  .netStatus{
     position:fixed; right:18px; top:18px; background:#fff; padding:8px 10px; border-radius:8px;
     border:2px solid var(--accent); font-weight:700; color:var(--accent); z-index:9999;
     box-shadow:0 6px 18px rgba(0,0,0,0.06);
-  }
-
-  /* === RECEIPT MODAL (Centered) === */
-  .modal-overlay {
-    position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none;
-    align-items:center; justify-content:center; z-index:9999;
-  }
-  .receipt-modal {
-    width:260px;
-    background: #fff;
-    border-radius:8px;
-    padding:10px 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    border: 4px solid #222;
-    font-family: "Courier New", Courier, monospace;
-    color:#111;
-  }
-  .receipt-header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
-  .receipt-title { font-weight:900; color:var(--accent); font-size:12px; }
-  .receipt-close { background:crimson; color:#fff; border:none; padding:6px 8px; border-radius:6px; cursor:pointer; font-weight:700; }
-  .receipt-body { font-size:12px; margin-top:8px; line-height:1.15; }
-  .receipt-body .small { font-size:11px; color:#444; }
-  .receipt-qr { display:flex; justify-content:center; margin-top:8px; }
-  .receipt-actions { display:flex; gap:8px; margin-top:10px; justify-content:center; }
-  .receipt-actions button { padding:8px 10px; border-radius:6px; border:none; cursor:pointer; font-weight:800; }
-  .btn-print { background:#2e7d32; color:white; }
-  .btn-close { background:#f0f0f0; color:#222; border:1px solid #ddd; }
-
-  /* when printing receipt, only show modal content */
-  @media print {
-    body * { visibility: hidden; }
-    .receipt-modal, .receipt-modal * { visibility: visible; }
-    .receipt-modal { position: absolute; left:0; top:0; width:100%; box-shadow:none; border:none; }
   }
 
   /* responsive */
@@ -128,6 +90,60 @@
     .column{ width:100%; }
     .center-col{ display:none; }
   }
+
+  /* ================= SWEET POPUP (Centered) ================= */
+  .sweet-overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:10000;
+    padding:18px;
+  }
+  .sweet-popup{
+    width:min(420px, 92vw);
+    background:#fff;
+    border-radius:16px;
+    border:4px solid rgba(46,125,50,0.18);
+    box-shadow:0 18px 45px rgba(0,0,0,0.22);
+    padding:18px 16px;
+    text-align:center;
+    transform: translateY(8px);
+    animation: popIn .18s ease-out forwards;
+  }
+  @keyframes popIn{
+    to{ transform: translateY(0); }
+  }
+  .sweet-icon{
+    width:64px; height:64px;
+    margin:2px auto 10px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:rgba(46,125,50,0.10);
+    border:3px solid rgba(46,125,50,0.35);
+  }
+  .sweet-icon svg{ width:34px; height:34px; }
+  .sweet-title{
+    font-weight:900;
+    color:var(--green);
+    font-size:18px;
+    margin:0 0 6px;
+  }
+  .sweet-msg{
+    margin:0;
+    color:#214b28;
+    font-weight:700;
+    font-size:14px;
+    line-height:1.35;
+  }
+  .sweet-small{
+    margin-top:10px;
+    font-size:12px;
+    color:#4a6a50;
+    font-weight:700;
+  }
 </style>
 </head>
 
@@ -135,7 +151,7 @@
   <div class="netStatus" id="netStatus">Network: —</div>
 
   <div class="container">
-    <h1>UKSS VOTING</h1>
+    <h1>🗳️ UKSS VOTING</h1>
     <p class="lead">Choose leaders carefully — girls left, boys right. General Secretary: choose one (male or female).</p>
 
     <div id="positionsArea">Loading candidates...</div>
@@ -143,33 +159,20 @@
     <div class="actions">
       <button class="btn" id="submitBtn">SUBMIT VOTE</button>
       <button class="btn secondary" id="refreshBtn">Refresh Candidates</button>
-
-      <!-- ✅ View/Print (proper white PDF-like layout) -->
-      <button class="btn secondary" id="printCandidatesBtn">View/Print Candidates</button>
-
-      <!-- ✅ Download actual PDF -->
-      <a class="btn secondary" id="downloadPdfLink" href="#" download="UKSS_Candidates_List.pdf">Download Candidates PDF</a>
     </div>
   </div>
 
-  <!-- Receipt Modal -->
-  <div id="modalOverlay" class="modal-overlay" role="dialog" aria-hidden="true">
-    <div class="receipt-modal" id="receiptModal" role="document">
-      <div class="receipt-header">
-        <div class="receipt-title">UKSS — Voting Receipt</div>
-        <button class="receipt-close" id="closeReceiptBtn">✖</button>
+  <!-- Sweet Popup -->
+  <div id="sweetOverlay" class="sweet-overlay" aria-hidden="true">
+    <div class="sweet-popup" role="dialog" aria-modal="true" aria-label="Vote status">
+      <div class="sweet-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M20 6L9 17l-5-5" stroke="#2e7d32" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
-
-      <div id="receiptContent" class="receipt-body"></div>
-
-      <div class="receipt-qr">
-        <canvas id="receiptQR" width="140" height="140" aria-hidden="false"></canvas>
-      </div>
-
-      <div class="receipt-actions">
-        <button class="btn-print" id="printReceiptBtn">PRINT</button>
-        <button class="btn-close" id="closeReceiptBtn2">CLOSE</button>
-      </div>
+      <div class="sweet-title" id="sweetTitle">Success</div>
+      <p class="sweet-msg" id="sweetMsg">Your vote recorded successfully.</p>
+      <div class="sweet-small" id="sweetSmall">Logging out...</div>
     </div>
   </div>
 
@@ -206,7 +209,10 @@ if(!voterID){
 }
 
 /* ============== LocalForage setup (offline queue) ============== */
-localforage.config({ name: 'ukss_offline', storeName: 'vote_queue' });
+localforage.config({
+  name: 'ukss_offline',
+  storeName: 'vote_queue'
+});
 const QUEUE_KEY = 'pending_votes_queue_v1';
 
 async function getQueue(){
@@ -243,7 +249,6 @@ function placeholderDataUrl(gender){
 }
 
 /* ============== Utility: text prettify for position titles ============== */
-const NATURAL_ORDER = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
 function prettyTitle(posKey){
   const map = {
     head: "Head Prefect",
@@ -261,15 +266,12 @@ function prettyTitle(posKey){
   return map[base] || base.replace(/([A-Z])/g," $1").trim();
 }
 
-/* ============== Fetch & Render candidates (Voting UI) ============== */
+/* ============== Fetch & Render candidates ============== */
 const positionsArea = document.getElementById("positionsArea");
 let latestCandidates = {}; // snapshot cache
 
 function groupCandidatesByBase(candidatesObj){
   const groups = {};
-  // init all positions so print/pdf shows ALL sections even if empty
-  NATURAL_ORDER.forEach(b => groups[b] = { girls:[], boys:[] });
-
   Object.entries(candidatesObj || {}).forEach(([id, c])=>{
     const pos = c.position || "";
     let base = pos;
@@ -313,12 +315,17 @@ function renderCandidates(snapshotObj){
   latestCandidates = snapshotObj || {};
   const groups = groupCandidatesByBase(snapshotObj || {});
 
-  let out = "";
-  for(const base of NATURAL_ORDER){
-    const grp = groups[base] || { girls:[], boys:[] };
+  const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
+  const presentBases = Object.keys(groups);
+  const ordered = [];
+  naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
+  presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
 
-    // if no candidates at all for this base and it's not in DB at all, we still show empty section (optional)
-    // keep it visible so "position zote" are always present:
+  let out = "";
+  for(const base of ordered){
+    const grp = groups[base];
+    if(!grp) continue;
+
     out += `<div class="position-block" data-base="${base}">`;
     out += `<div class="position-title">${prettyTitle(base)}</div>`;
 
@@ -357,7 +364,12 @@ function renderCandidates(snapshotObj){
 /* ============== Live listener ============== */
 const candidatesRef = ref(db, "candidates");
 onValue(candidatesRef, snap => {
-  const data = snap.val() || {};
+  const data = snap.val();
+  if(!data){
+    positionsArea.innerHTML = `<div style="padding:20px;color:#556">No candidates registered yet.</div>`;
+    latestCandidates = {};
+    return;
+  }
   renderCandidates(data);
 });
 
@@ -376,11 +388,13 @@ window.addEventListener('online', () => { updateNetworkUI(); startSyncLoop(); })
 window.addEventListener('offline', () => { updateNetworkUI(); });
 updateNetworkUI();
 
+/* Sync loop: tries to sync pending votes every 5 seconds when online */
 let syncIntervalId = null;
 function startSyncLoop(){
   if(syncIntervalId) return;
   syncIntervalId = setInterval(async () => {
     if(!navigator.onLine) return;
+
     let item = await dequeueOne();
     while(item){
       try{
@@ -399,12 +413,46 @@ function startSyncLoop(){
 }
 if(navigator.onLine) startSyncLoop();
 
+/* ================= SWEET POPUP + LOGOUT ================= */
+const sweetOverlay = document.getElementById("sweetOverlay");
+const sweetTitle = document.getElementById("sweetTitle");
+const sweetMsg = document.getElementById("sweetMsg");
+const sweetSmall = document.getElementById("sweetSmall");
+
+function logoutToEntryPage(){
+  // clear only session keys used by your voting flow
+  localStorage.removeItem("voterID");
+  localStorage.removeItem("firstName");
+  localStorage.removeItem("middleName");
+  localStorage.removeItem("lastName");
+  localStorage.removeItem("classSelect");
+  localStorage.removeItem("gender");
+  // NOTE: we keep hasVoted_local_ID so they can't re-vote from same device
+  location.href = "index.html"; // entry/login page
+}
+
+function showSweetSuccessAndLogout(fullName){
+  const cleanName = (fullName || "").trim() || "Student";
+  sweetTitle.textContent = "SUCCESS";
+  sweetMsg.textContent = `${cleanName}, your vote recorded successfully.`;
+  sweetSmall.textContent = "Logging out...";
+  sweetOverlay.style.display = "flex";
+  sweetOverlay.setAttribute("aria-hidden", "false");
+
+  // after 3 seconds -> logout
+  setTimeout(() => {
+    sweetOverlay.style.display = "none";
+    sweetOverlay.setAttribute("aria-hidden", "true");
+    logoutToEntryPage();
+  }, 3000);
+}
+
 /* ============== Voting submission logic ============== */
 document.getElementById("submitBtn").addEventListener("click", async () => {
-  const groups = document.querySelectorAll(".position-block");
+  const blocks = document.querySelectorAll(".position-block");
   const votes = {};
 
-  for(const block of groups){
+  for(const block of blocks){
     const base = block.dataset.base;
     if(!base) continue;
 
@@ -427,12 +475,14 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     }
   }
 
+  // local prevention of double-vote
   const localVotedFlag = localStorage.getItem("hasVoted_local_" + voterID);
   if(localVotedFlag === "true"){
     alert("You have already voted (local). Duplicate voting not allowed.");
     return;
   }
 
+  // server check (best-effort)
   try {
     const voterSnap = await get(ref(db, "voters/" + voterID));
     if(voterSnap.exists() && voterSnap.val().hasVoted){
@@ -443,9 +493,12 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     console.warn("Server check failed (likely offline):", e);
   }
 
+  const fullName = `${fname} ${mname} ${lname}`.trim();
+
+  // Save votes object
   const voteObj = {
     voterID,
-    name: `${fname} ${mname} ${lname}`.trim(),
+    name: fullName,
     class: classSelect,
     gender,
     votes,
@@ -458,11 +511,10 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
       await set(ref(db, "votes/" + voterID), voteObj);
       await update(ref(db, "voters/" + voterID), { hasVoted: true });
       localStorage.setItem("hasVoted_local_" + voterID, "true");
-      openReceiptModal(voteObj, false);
     } else {
+      // offline: store in queue and mark local voted flag
       await enqueueVote(voteObj);
       localStorage.setItem("hasVoted_local_" + voterID, "true");
-      openReceiptModal(voteObj, true);
     }
   } catch(err){
     alert("Failed to save your vote: " + (err.message||err));
@@ -470,7 +522,11 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     return;
   }
 
+  // hide submit immediately
   document.getElementById("submitBtn").style.display = 'none';
+
+  // ✅ sweet popup (3 sec) then logout to entry page
+  showSweetSuccessAndLogout(fullName);
 });
 
 /* ============== Refresh button ============== */
@@ -484,337 +540,10 @@ document.getElementById("refreshBtn").addEventListener("click", async () => {
   }
 });
 
-/* ============== RECEIPT MODAL HANDLING ============== */
-const modalOverlay = document.getElementById("modalOverlay");
-const receiptContent = document.getElementById("receiptContent");
-const qrCanvas = document.getElementById("receiptQR");
-const closeReceiptBtn = document.getElementById("closeReceiptBtn");
-const closeReceiptBtn2 = document.getElementById("closeReceiptBtn2");
-const printReceiptBtn = document.getElementById("printReceiptBtn");
-
-function openReceiptModal(voteObj, queued=false){
-  const v = voteObj.votes || {};
-  let html = "";
-  html += `<div style="text-align:center; font-weight:900; font-size:12px;">UKSS VOTING</div>`;
-  html += `<div style="text-align:center; font-size:11px; margin-top:6px;">VOTING RECEIPT</div>`;
-  html += `<div style="margin-top:8px; font-size:12px;">`;
-  html += `<div><b>ID:</b> ${voteObj.voterID}</div>`;
-  html += `<div><b>Name:</b> ${voteObj.name}</div>`;
-  html += `<div><b>Class:</b> ${voteObj.class}</div>`;
-  html += `<div><b>Date:</b> ${new Date(voteObj.timestamp).toLocaleString()}</div>`;
-  html += `</div>`;
-  html += `<hr style="border:none;border-top:1px dashed #ccc;margin:8px 0;">`;
-  html += `<div style="font-size:12px;"><b>Your choices:</b></div>`;
-  html += `<div style="font-size:11px; margin-top:6px;">`;
-
-  Object.entries(v).forEach(([k,val])=>{
-    const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
-                  prettyTitle(k.replace(/(Girl|Boy)$/i,""));
-    const suffix = (/(Girl|Boy)$/i.test(k)) ? ` (${k.match(/(Girl|Boy)$/i)[0]})` : "";
-    html += `<div>${label}${suffix}: ${val}</div>`;
-  });
-
-  html += `</div>`;
-  html += `<div style="margin-top:8px; font-size:11px; text-align:center;" class="small">Thank you for voting</div>`;
-  html += queued
-    ? `<div style="margin-top:6px; text-align:center; color:crimson; font-weight:900;">(OFFLINE — Vote queued, will sync automatically)</div>`
-    : `<div style="margin-top:6px; text-align:center; color:green; font-weight:900;">(Vote recorded)</div>`;
-
-  receiptContent.innerHTML = html;
-
-  try {
-    const jsonStr = JSON.stringify(voteObj);
-    new QRious({ element: qrCanvas, value: jsonStr, size: 140, level: "M" });
-  } catch(e){
-    const ctx = qrCanvas.getContext('2d');
-    ctx.clearRect(0,0, qrCanvas.width, qrCanvas.height);
-    ctx.font = "12px monospace";
-    ctx.fillText(voteObj.voterID, 10, 20);
-  }
-
-  modalOverlay.style.display = "flex";
-  modalOverlay.setAttribute("aria-hidden", "false");
-}
-
-function closeReceiptModal(){
-  modalOverlay.style.display = "none";
-  modalOverlay.setAttribute("aria-hidden", "true");
-}
-closeReceiptBtn.addEventListener("click", closeReceiptModal);
-closeReceiptBtn2.addEventListener("click", closeReceiptModal);
-printReceiptBtn.addEventListener("click", () => window.print());
-modalOverlay.addEventListener("click", (e) => { if(e.target === modalOverlay) closeReceiptModal(); });
-
-/* ================= VIEW/PRINT CANDIDATES (White PDF-style layout) ================= */
-const printCandidatesBtn = document.getElementById("printCandidatesBtn");
-
-function esc(s=""){
-  return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function nameOf(c){
-  return `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim() || "-";
-}
-
-function buildPrintPageHtml(candidatesObj){
-  const groups = groupCandidatesByBase(candidatesObj || {});
-  const now = new Date().toLocaleString();
-  const total = Object.keys(candidatesObj || {}).length;
-
-  let sections = "";
-  for(const base of NATURAL_ORDER){
-    const grp = groups[base] || { girls:[], boys:[] };
-
-    // create simple list rows (no photos) like a white official PDF
-    const girls = (grp.girls || []).map((c,i)=> `<div class="rowItem">${i+1}. ${esc(nameOf(c))}${c.classSelect?` <span class="muted">(${esc(c.classSelect)})</span>`:""}</div>`).join("");
-    const boys  = (grp.boys  || []).map((c,i)=> `<div class="rowItem">${i+1}. ${esc(nameOf(c))}${c.classSelect?` <span class="muted">(${esc(c.classSelect)})</span>`:""}</div>`).join("");
-
-    sections += `
-      <section class="posSection">
-        <div class="posTitle">${esc(prettyTitle(base))}</div>
-        <div class="twoCols">
-          <div class="colBox">
-            <div class="colHeader">GIRLS</div>
-            ${girls || `<div class="empty">No female candidates</div>`}
-          </div>
-          <div class="colBox">
-            <div class="colHeader">BOYS</div>
-            ${boys || `<div class="empty">No male candidates</div>`}
-          </div>
-        </div>
-      </section>
-    `;
-  }
-
-  return `
-  <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>UKSS VOTING — Candidates (Print)</title>
-    <style>
-      @page { size: A4; margin: 14mm; }
-      body{ margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:#fff; color:#111; }
-      .wrap{ padding: 14mm; }
-      .head{
-        text-align:center;
-        padding-bottom:10px;
-        border-bottom:2px solid #111;
-        margin-bottom:12px;
-      }
-      .head h1{ margin:0; font-size:20px; letter-spacing:1px; }
-      .meta{ margin-top:6px; font-size:12px; color:#333; font-weight:700; }
-      .actions{
-        display:flex; gap:10px; justify-content:center; margin:10px 0 14px;
-      }
-      .actions button{
-        padding:10px 14px; border-radius:10px; border:1px solid #111; background:#111; color:#fff;
-        cursor:pointer; font-weight:900;
-      }
-      .actions button.secondary{ background:#fff; color:#111; }
-      .posSection{
-        border:1px solid #222;
-        border-radius:10px;
-        padding:10px;
-        margin:10px 0;
-        break-inside: avoid;
-      }
-      .posTitle{
-        text-align:center;
-        font-weight:900;
-        letter-spacing:0.6px;
-        text-transform:uppercase;
-        padding-bottom:8px;
-        border-bottom:1px solid #999;
-        margin-bottom:10px;
-        font-size:13px;
-      }
-      .twoCols{
-        display:grid;
-        grid-template-columns: 1fr 1fr;
-        gap:10px;
-      }
-      .colBox{
-        border:1px solid #999;
-        border-radius:10px;
-        padding:10px;
-        min-height:70px;
-      }
-      .colHeader{
-        font-weight:900;
-        font-size:12px;
-        margin-bottom:8px;
-        padding-bottom:6px;
-        border-bottom:1px dashed #aaa;
-      }
-      .rowItem{
-        font-size:12px;
-        padding:4px 0;
-        border-bottom:1px dotted #eee;
-      }
-      .rowItem:last-child{ border-bottom:none; }
-      .muted{ color:#555; font-weight:700; }
-      .empty{ color:#666; font-style:italic; font-size:12px; padding:6px 0; }
-
-      @media print{
-        .actions{ display:none !important; }
-        .wrap{ padding:0; }
-      }
-      @media (max-width:900px){
-        .twoCols{ grid-template-columns: 1fr; }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <div class="head">
-        <h1>UKSS VOTING</h1>
-        <div class="meta">CANDIDATES LIST • ${esc(now)} • TOTAL CANDIDATES: ${esc(total)}</div>
-      </div>
-
-      <div class="actions">
-        <button onclick="window.print()">Print / Save as PDF</button>
-        <button class="secondary" onclick="window.close()">Close</button>
-      </div>
-
-      ${sections}
-    </div>
-  </body>
-  </html>`;
-}
-
-printCandidatesBtn.addEventListener("click", async () => {
-  let data = latestCandidates;
-  if(!data || Object.keys(data).length === 0){
-    try{
-      const snap = await get(candidatesRef);
-      data = snap.val() || {};
-    }catch(e){
-      alert("Failed to load candidates for print view.");
-      return;
-    }
-  }
-
-  const w = window.open("about:blank", "_blank");
-  if(!w){
-    alert("Popup blocked. Please allow popups for this site.");
-    return;
-  }
-  const html = buildPrintPageHtml(data);
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-});
-
-/* ================= DOWNLOAD MODERN PDF (positions + girls/boys columns) ================= */
-const downloadPdfLink = document.getElementById("downloadPdfLink");
-let lastPdfUrl = null;
-
-async function getCandidatesData(){
-  let data = latestCandidates;
-  if(!data || Object.keys(data).length === 0){
-    const snap = await get(candidatesRef);
-    data = snap.val() || {};
-  }
-  return data;
-}
-
-function buildTwoColumnRows(girls, boys){
-  const maxLen = Math.max(girls.length, boys.length);
-  const rows = [];
-  for(let i=0;i<maxLen;i++){
-    const g = girls[i] ? `${i+1}. ${nameOf(girls[i])}${girls[i].classSelect ? " ("+girls[i].classSelect+")" : ""}` : "";
-    const b = boys[i]  ? `${i+1}. ${nameOf(boys[i])}${boys[i].classSelect ? " ("+boys[i].classSelect+")" : ""}` : "";
-    rows.push([g, b]);
-  }
-  return rows.length ? rows : [["No female candidates", "No male candidates"]];
-}
-
-downloadPdfLink.addEventListener("click", async (e) => {
-  e.preventDefault();
-
-  if(lastPdfUrl){
-    URL.revokeObjectURL(lastPdfUrl);
-    lastPdfUrl = null;
-  }
-
-  try{
-    const data = await getCandidatesData();
-    const groups = groupCandidatesByBase(data || {});
-    const { jsPDF } = window.jspdf;
-
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
-    const now = new Date().toLocaleString();
-    const total = Object.keys(data || {}).length;
-
-    // Header (modern, clean)
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("UKSS VOTING", 40, 50);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.text(`Candidates List • ${now}`, 40, 70);
-    doc.text(`Total Candidates: ${total}`, 40, 86);
-
-    let cursorY = 110;
-
-    for(const base of NATURAL_ORDER){
-      const grp = groups[base] || { girls:[], boys:[] };
-      const girls = grp.girls || [];
-      const boys  = grp.boys  || [];
-
-      // section title
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.text(prettyTitle(base).toUpperCase(), 40, cursorY);
-      cursorY += 8;
-
-      const rows = buildTwoColumnRows(girls, boys);
-
-      doc.autoTable({
-        startY: cursorY,
-        head: [["GIRLS", "BOYS"]],
-        body: rows,
-        margin: { left: 40, right: 40 },
-        styles: { font: "helvetica", fontSize: 9, cellPadding: 4, overflow: "linebreak" },
-        headStyles: { fontStyle: "bold" },
-        theme: "grid"
-      });
-
-      cursorY = doc.lastAutoTable.finalY + 18;
-
-      // new page if close to bottom
-      if(cursorY > 760){
-        doc.addPage();
-        cursorY = 60;
-      }
-    }
-
-    // create blob and download
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
-    lastPdfUrl = url;
-
-    downloadPdfLink.href = url;
-    downloadPdfLink.download = "UKSS_Candidates_List.pdf";
-    downloadPdfLink.click();
-  } catch(err){
-    console.error(err);
-    alert("Failed to generate PDF. Ensure candidates are loaded (online) then try again.");
-  }
-});
-
 /* ============== Keep UI updated for network status (poll) ============== */
 setInterval(updateNetworkUI, 2000);
 
-/* ======= Convenience / initial sanity ======= */
+/* ======= start sync immediately if online ======= */
 (async () => {
   if(navigator.onLine) startSyncLoop();
   updateNetworkUI();
