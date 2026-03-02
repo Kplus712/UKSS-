@@ -29,10 +29,13 @@
     color:#123;
     padding:20px;
   }
-  .container{ max-width:1100px; margin:20px auto; background:white; border-radius:12px;
-    padding:18px; border:5px solid var(--accent); box-shadow:0 6px 24px rgba(0,0,0,0.08);}
+  .container{
+    max-width:1100px; margin:20px auto; background:white; border-radius:12px;
+    padding:18px; border:5px solid var(--accent); box-shadow:0 6px 24px rgba(0,0,0,0.08);
+  }
   h1{ text-align:center; color:var(--accent); margin:6px 0 12px; }
   p.lead{ text-align:center; color:#2e7d32; margin-top:0; font-weight:600; }
+
   .position-block{ margin:28px 0; position:relative; }
   .position-title{
     text-align:center; font-weight:800; color:var(--green);
@@ -40,13 +43,14 @@
     text-transform:uppercase;
   }
 
+  /* landscape row: left = girls, center = spacer/title area, right = boys */
   .landscape-row{
     display:flex; gap:12px; align-items:flex-start;
     flex-wrap:nowrap; justify-content:space-between;
   }
-
   .column { width:48%; display:flex; flex-direction:column; gap:10px; }
 
+  /* candidate card */
   .candidate-card{
     display:flex; gap:12px; align-items:center;
     background:var(--card); padding:10px; border-radius:10px;
@@ -62,14 +66,30 @@
   .vote-row label{ font-weight:700; color:#083f20; cursor:pointer; user-select:none; }
   input[type="radio"]{ margin-right:8px; transform:scale(1.02); }
 
-  .center-col{ width:4%; min-width:60px; display:flex; align-items:center; justify-content:center; color:#2e7d32; font-weight:700; font-size:12px; }
+  .center-col{
+    width:4%; min-width:60px; display:flex; align-items:center; justify-content:center;
+    color:#2e7d32; font-weight:700; font-size:12px;
+  }
 
-  .actions{ display:flex; gap:12px; margin-top:22px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
-  .btn{ padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; }
-  .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
+  .actions{
+    display:flex; gap:12px; margin-top:22px; justify-content:space-between;
+    align-items:center; flex-wrap:wrap;
+  }
+  .btn{
+    padding:12px 18px; border-radius:10px; border:none; background:var(--accent);
+    color:white; cursor:pointer; font-weight:800; text-decoration:none; display:inline-flex; align-items:center;
+  }
+  .btn.secondary{
+    background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06);
+  }
 
-  .netStatus { position:fixed; right:18px; top:18px; background:#fff; padding:8px 10px; border-radius:8px; border:2px solid var(--accent); font-weight:700; color:var(--accent); z-index:9999; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+  .netStatus {
+    position:fixed; right:18px; top:18px; background:#fff; padding:8px 10px; border-radius:8px;
+    border:2px solid var(--accent); font-weight:700; color:var(--accent); z-index:9999;
+    box-shadow:0 6px 18px rgba(0,0,0,0.06);
+  }
 
+  /* === RECEIPT MODAL (Centered) === */
   .modal-overlay {
     position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none;
     align-items:center; justify-content:center; z-index:9999;
@@ -95,12 +115,14 @@
   .btn-print { background:#2e7d32; color:white; }
   .btn-close { background:#f0f0f0; color:#222; border:1px solid #ddd; }
 
+  /* when printing receipt, only show modal content */
   @media print {
     body * { visibility: hidden; }
     .receipt-modal, .receipt-modal * { visibility: visible; }
     .receipt-modal { position: absolute; left:0; top:0; width:100%; box-shadow:none; border:none; }
   }
 
+  /* responsive */
   @media (max-width:900px){
     .landscape-row{ flex-direction:column; }
     .column{ width:100%; }
@@ -122,10 +144,10 @@
       <button class="btn" id="submitBtn">SUBMIT VOTE</button>
       <button class="btn secondary" id="refreshBtn">Refresh Candidates</button>
 
-      <!-- ✅ Print window (view list on one page) -->
+      <!-- ✅ View/Print (proper white PDF-like layout) -->
       <button class="btn secondary" id="printCandidatesBtn">View/Print Candidates</button>
 
-      <!-- ✅ Download PDF link (real PDF file) -->
+      <!-- ✅ Download actual PDF -->
       <a class="btn secondary" id="downloadPdfLink" href="#" download="UKSS_Candidates_List.pdf">Download Candidates PDF</a>
     </div>
   </div>
@@ -221,6 +243,7 @@ function placeholderDataUrl(gender){
 }
 
 /* ============== Utility: text prettify for position titles ============== */
+const NATURAL_ORDER = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
 function prettyTitle(posKey){
   const map = {
     head: "Head Prefect",
@@ -238,27 +261,34 @@ function prettyTitle(posKey){
   return map[base] || base.replace(/([A-Z])/g," $1").trim();
 }
 
-/* ============== Fetch & Render candidates ============== */
+/* ============== Fetch & Render candidates (Voting UI) ============== */
 const positionsArea = document.getElementById("positionsArea");
 let latestCandidates = {}; // snapshot cache
 
 function groupCandidatesByBase(candidatesObj){
   const groups = {};
+  // init all positions so print/pdf shows ALL sections even if empty
+  NATURAL_ORDER.forEach(b => groups[b] = { girls:[], boys:[] });
+
   Object.entries(candidatesObj || {}).forEach(([id, c])=>{
     const pos = c.position || "";
     let base = pos;
+
     if(/Boy$/i.test(pos) || /Girl$/i.test(pos)){
       base = pos.replace(/(Boy|Girl)$/i, "");
     } else if(/generalSecretary/i.test(pos)){
       base = "generalSecretary";
     }
+
     if(!groups[base]) groups[base] = { girls:[], boys:[] };
 
     const candidate = { id, ...c };
     const g = (c.gender||"").toLowerCase();
+
     if(/female|girl|f/i.test(g) || /Girl$/i.test(pos)) groups[base].girls.push(candidate);
     else groups[base].boys.push(candidate);
   });
+
   return groups;
 }
 
@@ -283,17 +313,12 @@ function renderCandidates(snapshotObj){
   latestCandidates = snapshotObj || {};
   const groups = groupCandidatesByBase(snapshotObj || {});
 
-  const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
-  const presentBases = Object.keys(groups);
-  const ordered = [];
-  naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
-  presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
-
   let out = "";
-  for(const base of ordered){
-    const grp = groups[base];
-    if(!grp) continue;
+  for(const base of NATURAL_ORDER){
+    const grp = groups[base] || { girls:[], boys:[] };
 
+    // if no candidates at all for this base and it's not in DB at all, we still show empty section (optional)
+    // keep it visible so "position zote" are always present:
     out += `<div class="position-block" data-base="${base}">`;
     out += `<div class="position-title">${prettyTitle(base)}</div>`;
 
@@ -332,12 +357,7 @@ function renderCandidates(snapshotObj){
 /* ============== Live listener ============== */
 const candidatesRef = ref(db, "candidates");
 onValue(candidatesRef, snap => {
-  const data = snap.val();
-  if(!data){
-    positionsArea.innerHTML = `<div style="padding:20px;color:#556">No candidates registered yet.</div>`;
-    latestCandidates = {};
-    return;
-  }
+  const data = snap.val() || {};
   renderCandidates(data);
 });
 
@@ -356,7 +376,6 @@ window.addEventListener('online', () => { updateNetworkUI(); startSyncLoop(); })
 window.addEventListener('offline', () => { updateNetworkUI(); });
 updateNetworkUI();
 
-/* Sync loop: tries to sync pending votes every 5 seconds when online */
 let syncIntervalId = null;
 function startSyncLoop(){
   if(syncIntervalId) return;
@@ -526,7 +545,7 @@ closeReceiptBtn2.addEventListener("click", closeReceiptModal);
 printReceiptBtn.addEventListener("click", () => window.print());
 modalOverlay.addEventListener("click", (e) => { if(e.target === modalOverlay) closeReceiptModal(); });
 
-/* ======= PRINT VIEW (Fix blank window) ======= */
+/* ================= VIEW/PRINT CANDIDATES (White PDF-style layout) ================= */
 const printCandidatesBtn = document.getElementById("printCandidatesBtn");
 
 function esc(s=""){
@@ -538,83 +557,132 @@ function esc(s=""){
     .replaceAll("'","&#039;");
 }
 
-function buildPrintHtml(candidatesObj){
+function nameOf(c){
+  return `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim() || "-";
+}
+
+function buildPrintPageHtml(candidatesObj){
   const groups = groupCandidatesByBase(candidatesObj || {});
-  const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
-  const presentBases = Object.keys(groups);
-  const ordered = [];
-  naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
-  presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
-
   const now = new Date().toLocaleString();
+  const total = Object.keys(candidatesObj || {}).length;
+
   let sections = "";
+  for(const base of NATURAL_ORDER){
+    const grp = groups[base] || { girls:[], boys:[] };
 
-  for(const base of ordered){
-    const grp = groups[base];
-    if(!grp) continue;
-
-    const all = [...(grp.girls||[]), ...(grp.boys||[])];
-
-    let cards = "";
-    if(all.length === 0){
-      cards = `<div style="color:#556;font-style:italic">No candidates</div>`;
-    }else{
-      for(const c of all){
-        const fullname = `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim();
-        const photo = c.photoURL || placeholderDataUrl(c.gender);
-        cards += `
-          <div style="display:flex;gap:10px;align-items:center;border:1px solid rgba(46,125,50,0.15);border-radius:10px;padding:8px;margin-bottom:8px;background:#f7fff7;break-inside:avoid;">
-            <img src="${esc(photo)}" style="width:54px;height:54px;object-fit:cover;border-radius:8px;border:2px solid #2e7d32" alt="${esc(fullname)}">
-            <div>
-              <div style="font-weight:900;color:#15491a;font-size:13px;">${esc(fullname)}</div>
-              <div style="font-size:12px;color:#21572a;">
-                ${esc(c.position || "")}
-                ${c.classSelect ? " • " + esc(c.classSelect) : ""}
-                ${c.gender ? " • " + esc(c.gender) : ""}
-              </div>
-            </div>
-          </div>
-        `;
-      }
-    }
+    // create simple list rows (no photos) like a white official PDF
+    const girls = (grp.girls || []).map((c,i)=> `<div class="rowItem">${i+1}. ${esc(nameOf(c))}${c.classSelect?` <span class="muted">(${esc(c.classSelect)})</span>`:""}</div>`).join("");
+    const boys  = (grp.boys  || []).map((c,i)=> `<div class="rowItem">${i+1}. ${esc(nameOf(c))}${c.classSelect?` <span class="muted">(${esc(c.classSelect)})</span>`:""}</div>`).join("");
 
     sections += `
-      <div style="border:2px solid rgba(46,125,50,0.18);border-radius:10px;padding:10px;background:#fff;">
-        <h3 style="margin:0 0 8px;color:#1b5e20;font-size:14px;text-transform:uppercase;letter-spacing:.4px;">${esc(prettyTitle(base))}</h3>
-        ${cards}
-      </div>
+      <section class="posSection">
+        <div class="posTitle">${esc(prettyTitle(base))}</div>
+        <div class="twoCols">
+          <div class="colBox">
+            <div class="colHeader">GIRLS</div>
+            ${girls || `<div class="empty">No female candidates</div>`}
+          </div>
+          <div class="colBox">
+            <div class="colHeader">BOYS</div>
+            ${boys || `<div class="empty">No male candidates</div>`}
+          </div>
+        </div>
+      </section>
     `;
   }
 
   return `
   <!DOCTYPE html>
-  <html>
+  <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>UKSS VOTING — Candidates</title>
+    <title>UKSS VOTING — Candidates (Print)</title>
     <style>
-      body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;padding:16px;background:#fff;color:#123}
-      h1{text-align:center;color:#1b5e20;margin:0 0 6px}
-      .meta{text-align:center;color:#2e7d32;font-weight:800;font-size:12px;margin-bottom:14px}
-      .actions{display:flex;gap:10px;justify-content:center;margin:10px 0 14px}
-      .actions button{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:900;background:#2e7d32;color:#fff}
-      .actions button.secondary{background:#e8f5e9;color:#1b5e20;border:2px solid rgba(46,125,50,0.12)}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-      @media print{ .actions{display:none} }
-      @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+      @page { size: A4; margin: 14mm; }
+      body{ margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; background:#fff; color:#111; }
+      .wrap{ padding: 14mm; }
+      .head{
+        text-align:center;
+        padding-bottom:10px;
+        border-bottom:2px solid #111;
+        margin-bottom:12px;
+      }
+      .head h1{ margin:0; font-size:20px; letter-spacing:1px; }
+      .meta{ margin-top:6px; font-size:12px; color:#333; font-weight:700; }
+      .actions{
+        display:flex; gap:10px; justify-content:center; margin:10px 0 14px;
+      }
+      .actions button{
+        padding:10px 14px; border-radius:10px; border:1px solid #111; background:#111; color:#fff;
+        cursor:pointer; font-weight:900;
+      }
+      .actions button.secondary{ background:#fff; color:#111; }
+      .posSection{
+        border:1px solid #222;
+        border-radius:10px;
+        padding:10px;
+        margin:10px 0;
+        break-inside: avoid;
+      }
+      .posTitle{
+        text-align:center;
+        font-weight:900;
+        letter-spacing:0.6px;
+        text-transform:uppercase;
+        padding-bottom:8px;
+        border-bottom:1px solid #999;
+        margin-bottom:10px;
+        font-size:13px;
+      }
+      .twoCols{
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        gap:10px;
+      }
+      .colBox{
+        border:1px solid #999;
+        border-radius:10px;
+        padding:10px;
+        min-height:70px;
+      }
+      .colHeader{
+        font-weight:900;
+        font-size:12px;
+        margin-bottom:8px;
+        padding-bottom:6px;
+        border-bottom:1px dashed #aaa;
+      }
+      .rowItem{
+        font-size:12px;
+        padding:4px 0;
+        border-bottom:1px dotted #eee;
+      }
+      .rowItem:last-child{ border-bottom:none; }
+      .muted{ color:#555; font-weight:700; }
+      .empty{ color:#666; font-style:italic; font-size:12px; padding:6px 0; }
+
+      @media print{
+        .actions{ display:none !important; }
+        .wrap{ padding:0; }
+      }
+      @media (max-width:900px){
+        .twoCols{ grid-template-columns: 1fr; }
+      }
     </style>
   </head>
   <body>
-    <h1>UKSS VOTING</h1>
-    <div class="meta">Candidates List • ${esc(now)} • Total: ${Object.keys(candidatesObj||{}).length}</div>
+    <div class="wrap">
+      <div class="head">
+        <h1>UKSS VOTING</h1>
+        <div class="meta">CANDIDATES LIST • ${esc(now)} • TOTAL CANDIDATES: ${esc(total)}</div>
+      </div>
 
-    <div class="actions">
-      <button onclick="window.print()">Print / Save as PDF</button>
-      <button class="secondary" onclick="window.close()">Close</button>
-    </div>
+      <div class="actions">
+        <button onclick="window.print()">Print / Save as PDF</button>
+        <button class="secondary" onclick="window.close()">Close</button>
+      </div>
 
-    <div class="grid">
       ${sections}
     </div>
   </body>
@@ -638,13 +706,13 @@ printCandidatesBtn.addEventListener("click", async () => {
     alert("Popup blocked. Please allow popups for this site.");
     return;
   }
-  const html = buildPrintHtml(data);
+  const html = buildPrintPageHtml(data);
   w.document.open();
   w.document.write(html);
   w.document.close();
 });
 
-/* ======= DOWNLOAD PDF (Real file) ======= */
+/* ================= DOWNLOAD MODERN PDF (positions + girls/boys columns) ================= */
 const downloadPdfLink = document.getElementById("downloadPdfLink");
 let lastPdfUrl = null;
 
@@ -657,44 +725,20 @@ async function getCandidatesData(){
   return data;
 }
 
-function buildRowsForPdf(candidatesObj){
-  const groups = groupCandidatesByBase(candidatesObj || {});
-  const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
-  const presentBases = Object.keys(groups);
-
-  const ordered = [];
-  naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
-  presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
-
-  const sections = [];
-  for(const base of ordered){
-    const grp = groups[base];
-    if(!grp) continue;
-
-    const all = [...(grp.girls||[]), ...(grp.boys||[])];
-    const rows = all.map((c, i) => {
-      const fullname = `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim();
-      return [
-        String(i + 1),
-        fullname || "-",
-        (c.gender || "-"),
-        (c.classSelect || "-"),
-        (c.position || prettyTitle(base) || "-")
-      ];
-    });
-
-    sections.push({
-      title: prettyTitle(base),
-      rows
-    });
+function buildTwoColumnRows(girls, boys){
+  const maxLen = Math.max(girls.length, boys.length);
+  const rows = [];
+  for(let i=0;i<maxLen;i++){
+    const g = girls[i] ? `${i+1}. ${nameOf(girls[i])}${girls[i].classSelect ? " ("+girls[i].classSelect+")" : ""}` : "";
+    const b = boys[i]  ? `${i+1}. ${nameOf(boys[i])}${boys[i].classSelect ? " ("+boys[i].classSelect+")" : ""}` : "";
+    rows.push([g, b]);
   }
-  return sections;
+  return rows.length ? rows : [["No female candidates", "No male candidates"]];
 }
 
 downloadPdfLink.addEventListener("click", async (e) => {
   e.preventDefault();
 
-  // revoke old blob if exists
   if(lastPdfUrl){
     URL.revokeObjectURL(lastPdfUrl);
     lastPdfUrl = null;
@@ -702,65 +746,68 @@ downloadPdfLink.addEventListener("click", async (e) => {
 
   try{
     const data = await getCandidatesData();
-
+    const groups = groupCandidatesByBase(data || {});
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "a4" });
 
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
     const now = new Date().toLocaleString();
+    const total = Object.keys(data || {}).length;
+
+    // Header (modern, clean)
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("UKSS VOTING", 40, 45);
+    doc.setFontSize(18);
+    doc.text("UKSS VOTING", 40, 50);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
-    doc.text(`Candidates List • ${now}`, 40, 65);
+    doc.text(`Candidates List • ${now}`, 40, 70);
+    doc.text(`Total Candidates: ${total}`, 40, 86);
 
-    const total = Object.keys(data || {}).length;
-    doc.text(`Total Candidates: ${total}`, 40, 82);
+    let cursorY = 110;
 
-    let y = 105;
+    for(const base of NATURAL_ORDER){
+      const grp = groups[base] || { girls:[], boys:[] };
+      const girls = grp.girls || [];
+      const boys  = grp.boys  || [];
 
-    const sections = buildRowsForPdf(data);
-    if(sections.length === 0){
-      doc.text("No candidates registered yet.", 40, y);
-    } else {
-      for(const sec of sections){
-        // Section title
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.text(String(sec.title || "Position"), 40, y);
-        y += 8;
+      // section title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(prettyTitle(base).toUpperCase(), 40, cursorY);
+      cursorY += 8;
 
-        // Table
-        doc.autoTable({
-          startY: y,
-          head: [["#", "Full Name", "Gender", "Class", "Position"]],
-          body: sec.rows.length ? sec.rows : [["-", "No candidates", "-", "-", "-"]],
-          styles: { font: "helvetica", fontSize: 9, cellPadding: 4 },
-          headStyles: { fontStyle: "bold" },
-          margin: { left: 40, right: 40 }
-        });
+      const rows = buildTwoColumnRows(girls, boys);
 
-        y = doc.lastAutoTable.finalY + 18;
-        if(y > 760){
-          doc.addPage();
-          y = 60;
-        }
+      doc.autoTable({
+        startY: cursorY,
+        head: [["GIRLS", "BOYS"]],
+        body: rows,
+        margin: { left: 40, right: 40 },
+        styles: { font: "helvetica", fontSize: 9, cellPadding: 4, overflow: "linebreak" },
+        headStyles: { fontStyle: "bold" },
+        theme: "grid"
+      });
+
+      cursorY = doc.lastAutoTable.finalY + 18;
+
+      // new page if close to bottom
+      if(cursorY > 760){
+        doc.addPage();
+        cursorY = 60;
       }
     }
 
-    // Create downloadable blob link
+    // create blob and download
     const blob = doc.output("blob");
     const url = URL.createObjectURL(blob);
     lastPdfUrl = url;
 
-    // set href then trigger download
     downloadPdfLink.href = url;
     downloadPdfLink.download = "UKSS_Candidates_List.pdf";
     downloadPdfLink.click();
   } catch(err){
     console.error(err);
-    alert("Failed to generate PDF. Make sure you are online (or candidates already loaded).");
+    alert("Failed to generate PDF. Ensure candidates are loaded (online) then try again.");
   }
 });
 
