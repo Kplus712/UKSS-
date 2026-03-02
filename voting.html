@@ -116,13 +116,95 @@
     .column{ width:100%; }
     .center-col{ display:none; }
   }
+
+  /* ================= PRINT / PDF VIEW STYLES ================= */
+  .print-page{
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    padding:16px;
+  }
+  .print-page h2{
+    text-align:center;
+    margin:0 0 6px;
+    color:#1b5e20;
+  }
+  .print-meta{
+    text-align:center;
+    font-size:12px;
+    color:#2e7d32;
+    margin-bottom:14px;
+    font-weight:700;
+  }
+  .print-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  .print-section{
+    border:2px solid rgba(46,125,50,0.18);
+    border-radius:10px;
+    padding:10px;
+    background:#fff;
+  }
+  .print-section h3{
+    margin:0 0 8px;
+    color:#1b5e20;
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+  }
+  .print-card{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    border:1px solid rgba(46,125,50,0.15);
+    border-radius:10px;
+    padding:8px;
+    margin-bottom:8px;
+    background:#f7fff7;
+  }
+  .print-card img{
+    width:54px;
+    height:54px;
+    object-fit:cover;
+    border-radius:8px;
+    border:2px solid #2e7d32;
+  }
+  .print-card .nm{ font-weight:800; color:#15491a; font-size:13px; }
+  .print-card .dt{ font-size:12px; color:#21572a; }
+
+  .print-actions{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin:10px 0 14px;
+  }
+  .print-actions button{
+    padding:10px 14px;
+    border-radius:10px;
+    border:none;
+    cursor:pointer;
+    font-weight:800;
+    background:#2e7d32;
+    color:#fff;
+  }
+  .print-actions button.secondary{
+    background:#e8f5e9;
+    color:#1b5e20;
+    border:2px solid rgba(46,125,50,0.12);
+  }
+
+  @media print{
+    .print-actions{ display:none !important; }
+    .print-card{ break-inside: avoid; }
+  }
 </style>
 </head>
 <body>
   <div class="netStatus" id="netStatus">Network: —</div>
 
   <div class="container">
-    <h1>🗳️ UKSS Student Voting</h1>
+    <!-- SYSTEM HEADING -->
+    <h1>UKSS VOTING</h1>
     <p class="lead">Choose leaders carefully — girls left, boys right. General Secretary: choose one (male or female).</p>
 
     <!-- positions area will be filled dynamically -->
@@ -131,6 +213,7 @@
     <div class="actions">
       <button class="btn" id="submitBtn">SUBMIT VOTE</button>
       <button class="btn secondary" id="refreshBtn">Refresh Candidates</button>
+      <button class="btn secondary" id="printCandidatesBtn">View/Print Candidates (PDF)</button>
     </div>
   </div>
 
@@ -494,7 +577,6 @@ document.getElementById("refreshBtn").addEventListener("click", async () => {
 
 /* ============== RECEIPT MODAL HANDLING ============== */
 const modalOverlay = document.getElementById("modalOverlay");
-const receiptModal = document.getElementById("receiptModal");
 const receiptContent = document.getElementById("receiptContent");
 const qrCanvas = document.getElementById("receiptQR");
 const closeReceiptBtn = document.getElementById("closeReceiptBtn");
@@ -504,7 +586,7 @@ const printReceiptBtn = document.getElementById("printReceiptBtn");
 function openReceiptModal(voteObj, queued=false){
   const v = voteObj.votes || {};
   let html = "";
-  html += `<div style="text-align:center; font-weight:800; font-size:12px;">SCHOOL: UKSS</div>`;
+  html += `<div style="text-align:center; font-weight:900; font-size:12px;">UKSS VOTING</div>`;
   html += `<div style="text-align:center; font-size:11px; margin-top:6px;">VOTING RECEIPT</div>`;
   html += `<div style="margin-top:8px; font-size:12px;">`;
   html += `<div><b>ID:</b> ${voteObj.voterID}</div>`;
@@ -524,19 +606,15 @@ function openReceiptModal(voteObj, queued=false){
   html += `</div>`;
   html += `<div style="margin-top:8px; font-size:11px; text-align:center;" class="small">Thank you for voting</div>`;
   if(queued){
-    html += `<div style="margin-top:6px; text-align:center; color:crimson; font-weight:800;">(OFFLINE — Vote queued, will sync automatically)</div>`;
+    html += `<div style="margin-top:6px; text-align:center; color:crimson; font-weight:900;">(OFFLINE — Vote queued, will sync automatically)</div>`;
   } else {
-    html += `<div style="margin-top:6px; text-align:center; color:green; font-weight:800;">(Vote recorded)</div>`;
+    html += `<div style="margin-top:6px; text-align:center; color:green; font-weight:900;">(Vote recorded)</div>`;
   }
-
-  // attach full JSON printed under small text (hidden visually but encoded in QR)
-  html += `<div style="display:none" id="receiptJSON">${encodeURIComponent(JSON.stringify(voteObj))}</div>`;
 
   receiptContent.innerHTML = html;
 
   // generate FULL JSON QR (encode compact JSON)
   try {
-    // compress by removing spaces for smaller QR
     const jsonStr = JSON.stringify(voteObj);
     new QRious({
       element: qrCanvas,
@@ -545,7 +623,6 @@ function openReceiptModal(voteObj, queued=false){
       level: "M"
     });
   } catch(e){
-    // fallback: draw text if QR lib fails
     const ctx = qrCanvas.getContext('2d');
     ctx.clearRect(0,0, qrCanvas.width, qrCanvas.height);
     ctx.font = "12px monospace";
@@ -565,18 +642,124 @@ function closeReceiptModal(){
 closeReceiptBtn.addEventListener("click", closeReceiptModal);
 closeReceiptBtn2.addEventListener("click", closeReceiptModal);
 
-// print only the modal content (CSS @media print ensures only modal visible)
-printReceiptBtn.addEventListener("click", () => {
-  window.print();
-});
+printReceiptBtn.addEventListener("click", () => window.print());
 
-/* Accessibility: close modal when clicking outside modal content */
 modalOverlay.addEventListener("click", (e) => {
   if(e.target === modalOverlay) closeReceiptModal();
 });
 
 /* ============== Try to keep UI updated for network status (poll) ============== */
 setInterval(updateNetworkUI, 2000);
+
+/* ================= PRINT / PDF VIEW (All candidates one page) ================= */
+const printCandidatesBtn = document.getElementById("printCandidatesBtn");
+
+function escapeHtml(str=""){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function buildPrintCandidatesHTML(candidatesObj){
+  const groups = groupCandidatesByBase(candidatesObj || {});
+  const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
+
+  const presentBases = Object.keys(groups);
+  const ordered = [];
+  naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
+  presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
+
+  const now = new Date();
+  const meta = `${now.toLocaleString()} • Total candidates: ${Object.keys(candidatesObj||{}).length}`;
+
+  let sections = "";
+  for(const base of ordered){
+    const grp = groups[base];
+    if(!grp) continue;
+
+    const all = [...grp.girls, ...grp.boys];
+
+    let cards = "";
+    if(all.length === 0){
+      cards = `<div style="color:#556;font-style:italic">No candidates</div>`;
+    } else {
+      all.forEach(c => {
+        const fullname = `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim();
+        const photo = c.photoURL || placeholderDataUrl(c.gender);
+        cards += `
+          <div class="print-card">
+            <img src="${escapeHtml(photo)}" alt="${escapeHtml(fullname)}">
+            <div>
+              <div class="nm">${escapeHtml(fullname)}</div>
+              <div class="dt">${escapeHtml(c.position || "")}${c.classSelect ? " • " + escapeHtml(c.classSelect) : ""}${c.gender ? " • " + escapeHtml(c.gender) : ""}</div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    sections += `
+      <div class="print-section">
+        <h3>${escapeHtml(prettyTitle(base))}</h3>
+        ${cards}
+      </div>
+    `;
+  }
+
+  // Full HTML page for the new window
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>UKSS VOTING — Candidates Print View</title>
+    <style>${document.querySelector("style").innerHTML}</style>
+  </head>
+  <body>
+    <div class="print-page">
+      <h2>UKSS VOTING</h2>
+      <div class="print-meta">Candidates List • ${escapeHtml(meta)}</div>
+
+      <div class="print-actions">
+        <button onclick="window.print()">Print / Save as PDF</button>
+        <button class="secondary" onclick="window.close()">Close</button>
+      </div>
+
+      <div class="print-grid">
+        ${sections}
+      </div>
+    </div>
+  </body>
+  </html>`;
+}
+
+printCandidatesBtn?.addEventListener("click", async () => {
+  // Use cached snapshot if available; else fetch
+  let data = latestCandidates;
+  if(!data || Object.keys(data).length === 0){
+    try{
+      const snap = await get(candidatesRef);
+      data = snap.val() || {};
+    }catch(e){
+      alert("Failed to load candidates for print view.");
+      return;
+    }
+  }
+
+  const html = buildPrintCandidatesHTML(data);
+  const w = window.open("", "_blank", "noopener,noreferrer,width=1100,height=800");
+  if(!w){
+    alert("Popup blocked. Please allow popups for this site.");
+    return;
+  }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+});
 
 /* ======= Convenience / initial sanity: try to start sync immediately if online ======= */
 (async () => {
