@@ -10,6 +10,10 @@
 <!-- LocalForage (IndexedDB wrapper) for offline queue -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 
+<!-- ✅ jsPDF (Download PDF) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 <style>
   :root{
     --green:#1b5e20;
@@ -36,18 +40,13 @@
     text-transform:uppercase;
   }
 
-  /* landscape row: left = girls, center = spacer/title area, right = boys */
   .landscape-row{
     display:flex; gap:12px; align-items:flex-start;
     flex-wrap:nowrap; justify-content:space-between;
   }
 
-  .column {
-    width:48%;
-    display:flex; flex-direction:column; gap:10px;
-  }
+  .column { width:48%; display:flex; flex-direction:column; gap:10px; }
 
-  /* candidate card */
   .candidate-card{
     display:flex; gap:12px; align-items:center;
     background:var(--card); padding:10px; border-radius:10px;
@@ -63,33 +62,26 @@
   .vote-row label{ font-weight:700; color:#083f20; cursor:pointer; user-select:none; }
   input[type="radio"]{ margin-right:8px; transform:scale(1.02); }
 
-  /* center placeholder column for title/notes (optional) */
   .center-col{ width:4%; min-width:60px; display:flex; align-items:center; justify-content:center; color:#2e7d32; font-weight:700; font-size:12px; }
 
-  /* general secretary pair layout */
-  .pair{ display:flex; gap:12px; flex-wrap:wrap; }
-
-  /* submit */
   .actions{ display:flex; gap:12px; margin-top:22px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
-  .btn{ padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:800; }
+  .btn{ padding:12px 18px; border-radius:10px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; }
   .btn.secondary{ background:#c8e6c9; color:var(--green); font-weight:700; border:2px solid rgba(38,90,47,0.06); }
 
-  /* network status indicator */
   .netStatus { position:fixed; right:18px; top:18px; background:#fff; padding:8px 10px; border-radius:8px; border:2px solid var(--accent); font-weight:700; color:var(--accent); z-index:9999; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
 
-  /* === RECEIPT MODAL (Centered) === */
   .modal-overlay {
     position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none;
     align-items:center; justify-content:center; z-index:9999;
   }
   .receipt-modal {
-    width:260px; /* small efd-like width */
+    width:260px;
     background: #fff;
     border-radius:8px;
     padding:10px 12px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    border: 4px solid #222; /* simulated print border */
-    font-family: "Courier New", Courier, monospace; /* receipt-ish */
+    border: 4px solid #222;
+    font-family: "Courier New", Courier, monospace;
     color:#111;
   }
   .receipt-header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -103,117 +95,38 @@
   .btn-print { background:#2e7d32; color:white; }
   .btn-close { background:#f0f0f0; color:#222; border:1px solid #ddd; }
 
-  /* when printing, only show modal content */
   @media print {
     body * { visibility: hidden; }
     .receipt-modal, .receipt-modal * { visibility: visible; }
     .receipt-modal { position: absolute; left:0; top:0; width:100%; box-shadow:none; border:none; }
   }
 
-  /* responsive */
   @media (max-width:900px){
     .landscape-row{ flex-direction:column; }
     .column{ width:100%; }
     .center-col{ display:none; }
   }
-
-  /* ================= PRINT / PDF VIEW STYLES ================= */
-  .print-page{
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-    padding:16px;
-  }
-  .print-page h2{
-    text-align:center;
-    margin:0 0 6px;
-    color:#1b5e20;
-  }
-  .print-meta{
-    text-align:center;
-    font-size:12px;
-    color:#2e7d32;
-    margin-bottom:14px;
-    font-weight:700;
-  }
-  .print-grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:10px;
-  }
-  .print-section{
-    border:2px solid rgba(46,125,50,0.18);
-    border-radius:10px;
-    padding:10px;
-    background:#fff;
-  }
-  .print-section h3{
-    margin:0 0 8px;
-    color:#1b5e20;
-    font-size:14px;
-    text-transform:uppercase;
-    letter-spacing:.4px;
-  }
-  .print-card{
-    display:flex;
-    gap:10px;
-    align-items:center;
-    border:1px solid rgba(46,125,50,0.15);
-    border-radius:10px;
-    padding:8px;
-    margin-bottom:8px;
-    background:#f7fff7;
-  }
-  .print-card img{
-    width:54px;
-    height:54px;
-    object-fit:cover;
-    border-radius:8px;
-    border:2px solid #2e7d32;
-  }
-  .print-card .nm{ font-weight:800; color:#15491a; font-size:13px; }
-  .print-card .dt{ font-size:12px; color:#21572a; }
-
-  .print-actions{
-    display:flex;
-    gap:10px;
-    justify-content:center;
-    margin:10px 0 14px;
-  }
-  .print-actions button{
-    padding:10px 14px;
-    border-radius:10px;
-    border:none;
-    cursor:pointer;
-    font-weight:800;
-    background:#2e7d32;
-    color:#fff;
-  }
-  .print-actions button.secondary{
-    background:#e8f5e9;
-    color:#1b5e20;
-    border:2px solid rgba(46,125,50,0.12);
-  }
-
-  @media print{
-    .print-actions{ display:none !important; }
-    .print-card{ break-inside: avoid; }
-  }
 </style>
 </head>
+
 <body>
   <div class="netStatus" id="netStatus">Network: —</div>
 
   <div class="container">
-    <!-- SYSTEM HEADING -->
     <h1>UKSS VOTING</h1>
     <p class="lead">Choose leaders carefully — girls left, boys right. General Secretary: choose one (male or female).</p>
 
-    <!-- positions area will be filled dynamically -->
     <div id="positionsArea">Loading candidates...</div>
 
     <div class="actions">
       <button class="btn" id="submitBtn">SUBMIT VOTE</button>
       <button class="btn secondary" id="refreshBtn">Refresh Candidates</button>
-      <button class="btn secondary" id="printCandidatesBtn">View/Print Candidates (PDF)</button>
+
+      <!-- ✅ Print window (view list on one page) -->
+      <button class="btn secondary" id="printCandidatesBtn">View/Print Candidates</button>
+
+      <!-- ✅ Download PDF link (real PDF file) -->
+      <a class="btn secondary" id="downloadPdfLink" href="#" download="UKSS_Candidates_List.pdf">Download Candidates PDF</a>
     </div>
   </div>
 
@@ -225,9 +138,7 @@
         <button class="receipt-close" id="closeReceiptBtn">✖</button>
       </div>
 
-      <div id="receiptContent" class="receipt-body">
-        <!-- Filled dynamically -->
-      </div>
+      <div id="receiptContent" class="receipt-body"></div>
 
       <div class="receipt-qr">
         <canvas id="receiptQR" width="140" height="140" aria-hidden="false"></canvas>
@@ -273,27 +184,19 @@ if(!voterID){
 }
 
 /* ============== LocalForage setup (offline queue) ============== */
-localforage.config({
-  name: 'ukss_offline',
-  storeName: 'vote_queue'
-});
+localforage.config({ name: 'ukss_offline', storeName: 'vote_queue' });
 const QUEUE_KEY = 'pending_votes_queue_v1';
 
-/* helper: get queue (array) */
 async function getQueue(){
   const q = await localforage.getItem(QUEUE_KEY);
   return Array.isArray(q) ? q : [];
 }
 async function setQueue(arr){ await localforage.setItem(QUEUE_KEY, arr); }
-
-/* add to queue */
 async function enqueueVote(voteObj){
   const q = await getQueue();
   q.push(voteObj);
   await setQueue(q);
 }
-
-/* pop first and return it */
 async function dequeueOne(){
   const q = await getQueue();
   if(q.length === 0) return null;
@@ -341,7 +244,7 @@ let latestCandidates = {}; // snapshot cache
 
 function groupCandidatesByBase(candidatesObj){
   const groups = {};
-  Object.entries(candidatesObj).forEach(([id, c])=>{
+  Object.entries(candidatesObj || {}).forEach(([id, c])=>{
     const pos = c.position || "";
     let base = pos;
     if(/Boy$/i.test(pos) || /Girl$/i.test(pos)){
@@ -349,15 +252,13 @@ function groupCandidatesByBase(candidatesObj){
     } else if(/generalSecretary/i.test(pos)){
       base = "generalSecretary";
     }
-    if(!groups[base]) groups[base] = { girls:[], boys:[], rawPositions: new Set() };
-    groups[base].rawPositions.add(pos);
+    if(!groups[base]) groups[base] = { girls:[], boys:[] };
 
     const candidate = { id, ...c };
     const g = (c.gender||"").toLowerCase();
     if(/female|girl|f/i.test(g) || /Girl$/i.test(pos)) groups[base].girls.push(candidate);
     else groups[base].boys.push(candidate);
   });
-
   return groups;
 }
 
@@ -392,6 +293,7 @@ function renderCandidates(snapshotObj){
   for(const base of ordered){
     const grp = groups[base];
     if(!grp) continue;
+
     out += `<div class="position-block" data-base="${base}">`;
     out += `<div class="position-title">${prettyTitle(base)}</div>`;
 
@@ -433,6 +335,7 @@ onValue(candidatesRef, snap => {
   const data = snap.val();
   if(!data){
     positionsArea.innerHTML = `<div style="padding:20px;color:#556">No candidates registered yet.</div>`;
+    latestCandidates = {};
     return;
   }
   renderCandidates(data);
@@ -459,37 +362,33 @@ function startSyncLoop(){
   if(syncIntervalId) return;
   syncIntervalId = setInterval(async () => {
     if(!navigator.onLine) return;
-    // attempt to flush queue until empty
     let item = await dequeueOne();
     while(item){
       try{
-        // write vote to firebase
         await set(ref(db, "votes/" + item.voterID), item);
-        // ensure voters flagged on server (best-effort)
         try { await update(ref(db, "voters/" + item.voterID), { hasVoted: true }); } catch(e){}
-        // next
         item = await dequeueOne();
       } catch(err){
-        // push back item to queue front (since set failed)
         const q = await getQueue();
-        q.unshift(item); // put back
+        q.unshift(item);
         await setQueue(q);
         console.error("Sync failed, will retry:", err);
-        break; // exit while, will retry later
+        break;
       }
     }
   }, 5000);
 }
-/* start loop if online at load */
 if(navigator.onLine) startSyncLoop();
 
 /* ============== Voting submission logic ============== */
 document.getElementById("submitBtn").addEventListener("click", async () => {
   const groups = document.querySelectorAll(".position-block");
   const votes = {};
+
   for(const block of groups){
     const base = block.dataset.base;
     if(!base) continue;
+
     if(base === "generalSecretary"){
       const sel = block.querySelector('input[name="generalSecretary"]:checked');
       if(!sel){
@@ -509,14 +408,12 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     }
   }
 
-  // local prevention of double-vote: check local flag first
   const localVotedFlag = localStorage.getItem("hasVoted_local_" + voterID);
   if(localVotedFlag === "true"){
     alert("You have already voted (local). Duplicate voting not allowed.");
     return;
   }
 
-  // server check (best-effort)
   try {
     const voterSnap = await get(ref(db, "voters/" + voterID));
     if(voterSnap.exists() && voterSnap.val().hasVoted){
@@ -524,11 +421,9 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
       return;
     }
   } catch(e){
-    // offline or error -> will handle via queue
     console.warn("Server check failed (likely offline):", e);
   }
 
-  // Save votes object
   const voteObj = {
     voterID,
     name: `${fname} ${mname} ${lname}`.trim(),
@@ -536,22 +431,18 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     gender,
     votes,
     timestamp: new Date().toISOString(),
-    queued: !navigator.onLine // mark queued if offline
+    queued: !navigator.onLine
   };
 
   try{
     if(navigator.onLine){
-      // try write directly
       await set(ref(db, "votes/" + voterID), voteObj);
       await update(ref(db, "voters/" + voterID), { hasVoted: true });
       localStorage.setItem("hasVoted_local_" + voterID, "true");
-      // show receipt (not queued)
       openReceiptModal(voteObj, false);
     } else {
-      // offline: store in queue and mark local voted flag
       await enqueueVote(voteObj);
       localStorage.setItem("hasVoted_local_" + voterID, "true");
-      // show receipt with queued indicator
       openReceiptModal(voteObj, true);
     }
   } catch(err){
@@ -560,7 +451,6 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
     return;
   }
 
-  // once vote recorded locally or server-side, hide submit
   document.getElementById("submitBtn").style.display = 'none';
 });
 
@@ -597,31 +487,25 @@ function openReceiptModal(voteObj, queued=false){
   html += `<hr style="border:none;border-top:1px dashed #ccc;margin:8px 0;">`;
   html += `<div style="font-size:12px;"><b>Your choices:</b></div>`;
   html += `<div style="font-size:11px; margin-top:6px;">`;
+
   Object.entries(v).forEach(([k,val])=>{
     const label = (k === "generalSecretary") ? prettyTitle("generalSecretary") :
                   prettyTitle(k.replace(/(Girl|Boy)$/i,""));
     const suffix = (/(Girl|Boy)$/i.test(k)) ? ` (${k.match(/(Girl|Boy)$/i)[0]})` : "";
     html += `<div>${label}${suffix}: ${val}</div>`;
   });
+
   html += `</div>`;
   html += `<div style="margin-top:8px; font-size:11px; text-align:center;" class="small">Thank you for voting</div>`;
-  if(queued){
-    html += `<div style="margin-top:6px; text-align:center; color:crimson; font-weight:900;">(OFFLINE — Vote queued, will sync automatically)</div>`;
-  } else {
-    html += `<div style="margin-top:6px; text-align:center; color:green; font-weight:900;">(Vote recorded)</div>`;
-  }
+  html += queued
+    ? `<div style="margin-top:6px; text-align:center; color:crimson; font-weight:900;">(OFFLINE — Vote queued, will sync automatically)</div>`
+    : `<div style="margin-top:6px; text-align:center; color:green; font-weight:900;">(Vote recorded)</div>`;
 
   receiptContent.innerHTML = html;
 
-  // generate FULL JSON QR (encode compact JSON)
   try {
     const jsonStr = JSON.stringify(voteObj);
-    new QRious({
-      element: qrCanvas,
-      value: jsonStr,
-      size: 140,
-      level: "M"
-    });
+    new QRious({ element: qrCanvas, value: jsonStr, size: 140, level: "M" });
   } catch(e){
     const ctx = qrCanvas.getContext('2d');
     ctx.clearRect(0,0, qrCanvas.width, qrCanvas.height);
@@ -629,7 +513,6 @@ function openReceiptModal(voteObj, queued=false){
     ctx.fillText(voteObj.voterID, 10, 20);
   }
 
-  // show modal
   modalOverlay.style.display = "flex";
   modalOverlay.setAttribute("aria-hidden", "false");
 }
@@ -638,24 +521,16 @@ function closeReceiptModal(){
   modalOverlay.style.display = "none";
   modalOverlay.setAttribute("aria-hidden", "true");
 }
-
 closeReceiptBtn.addEventListener("click", closeReceiptModal);
 closeReceiptBtn2.addEventListener("click", closeReceiptModal);
-
 printReceiptBtn.addEventListener("click", () => window.print());
+modalOverlay.addEventListener("click", (e) => { if(e.target === modalOverlay) closeReceiptModal(); });
 
-modalOverlay.addEventListener("click", (e) => {
-  if(e.target === modalOverlay) closeReceiptModal();
-});
-
-/* ============== Try to keep UI updated for network status (poll) ============== */
-setInterval(updateNetworkUI, 2000);
-
-/* ================= PRINT / PDF VIEW (All candidates one page) ================= */
+/* ======= PRINT VIEW (Fix blank window) ======= */
 const printCandidatesBtn = document.getElementById("printCandidatesBtn");
 
-function escapeHtml(str=""){
-  return String(str)
+function esc(s=""){
+  return String(s)
     .replaceAll("&","&amp;")
     .replaceAll("<","&lt;")
     .replaceAll(">","&gt;")
@@ -663,82 +538,90 @@ function escapeHtml(str=""){
     .replaceAll("'","&#039;");
 }
 
-function buildPrintCandidatesHTML(candidatesObj){
+function buildPrintHtml(candidatesObj){
   const groups = groupCandidatesByBase(candidatesObj || {});
   const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
-
   const presentBases = Object.keys(groups);
   const ordered = [];
   naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
   presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
 
-  const now = new Date();
-  const meta = `${now.toLocaleString()} • Total candidates: ${Object.keys(candidatesObj||{}).length}`;
-
+  const now = new Date().toLocaleString();
   let sections = "";
+
   for(const base of ordered){
     const grp = groups[base];
     if(!grp) continue;
 
-    const all = [...grp.girls, ...grp.boys];
+    const all = [...(grp.girls||[]), ...(grp.boys||[])];
 
     let cards = "";
     if(all.length === 0){
       cards = `<div style="color:#556;font-style:italic">No candidates</div>`;
-    } else {
-      all.forEach(c => {
+    }else{
+      for(const c of all){
         const fullname = `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim();
         const photo = c.photoURL || placeholderDataUrl(c.gender);
         cards += `
-          <div class="print-card">
-            <img src="${escapeHtml(photo)}" alt="${escapeHtml(fullname)}">
+          <div style="display:flex;gap:10px;align-items:center;border:1px solid rgba(46,125,50,0.15);border-radius:10px;padding:8px;margin-bottom:8px;background:#f7fff7;break-inside:avoid;">
+            <img src="${esc(photo)}" style="width:54px;height:54px;object-fit:cover;border-radius:8px;border:2px solid #2e7d32" alt="${esc(fullname)}">
             <div>
-              <div class="nm">${escapeHtml(fullname)}</div>
-              <div class="dt">${escapeHtml(c.position || "")}${c.classSelect ? " • " + escapeHtml(c.classSelect) : ""}${c.gender ? " • " + escapeHtml(c.gender) : ""}</div>
+              <div style="font-weight:900;color:#15491a;font-size:13px;">${esc(fullname)}</div>
+              <div style="font-size:12px;color:#21572a;">
+                ${esc(c.position || "")}
+                ${c.classSelect ? " • " + esc(c.classSelect) : ""}
+                ${c.gender ? " • " + esc(c.gender) : ""}
+              </div>
             </div>
           </div>
         `;
-      });
+      }
     }
 
     sections += `
-      <div class="print-section">
-        <h3>${escapeHtml(prettyTitle(base))}</h3>
+      <div style="border:2px solid rgba(46,125,50,0.18);border-radius:10px;padding:10px;background:#fff;">
+        <h3 style="margin:0 0 8px;color:#1b5e20;font-size:14px;text-transform:uppercase;letter-spacing:.4px;">${esc(prettyTitle(base))}</h3>
         ${cards}
       </div>
     `;
   }
 
-  // Full HTML page for the new window
   return `
   <!DOCTYPE html>
-  <html lang="en">
+  <html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>UKSS VOTING — Candidates Print View</title>
-    <style>${document.querySelector("style").innerHTML}</style>
+    <title>UKSS VOTING — Candidates</title>
+    <style>
+      body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;padding:16px;background:#fff;color:#123}
+      h1{text-align:center;color:#1b5e20;margin:0 0 6px}
+      .meta{text-align:center;color:#2e7d32;font-weight:800;font-size:12px;margin-bottom:14px}
+      .actions{display:flex;gap:10px;justify-content:center;margin:10px 0 14px}
+      .actions button{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:900;background:#2e7d32;color:#fff}
+      .actions button.secondary{background:#e8f5e9;color:#1b5e20;border:2px solid rgba(46,125,50,0.12)}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      @media print{ .actions{display:none} }
+      @media (max-width:900px){ .grid{grid-template-columns:1fr} }
+    </style>
   </head>
   <body>
-    <div class="print-page">
-      <h2>UKSS VOTING</h2>
-      <div class="print-meta">Candidates List • ${escapeHtml(meta)}</div>
+    <h1>UKSS VOTING</h1>
+    <div class="meta">Candidates List • ${esc(now)} • Total: ${Object.keys(candidatesObj||{}).length}</div>
 
-      <div class="print-actions">
-        <button onclick="window.print()">Print / Save as PDF</button>
-        <button class="secondary" onclick="window.close()">Close</button>
-      </div>
+    <div class="actions">
+      <button onclick="window.print()">Print / Save as PDF</button>
+      <button class="secondary" onclick="window.close()">Close</button>
+    </div>
 
-      <div class="print-grid">
-        ${sections}
-      </div>
+    <div class="grid">
+      ${sections}
     </div>
   </body>
   </html>`;
 }
 
-printCandidatesBtn?.addEventListener("click", async () => {
-  // Use cached snapshot if available; else fetch
+printCandidatesBtn.addEventListener("click", async () => {
   let data = latestCandidates;
   if(!data || Object.keys(data).length === 0){
     try{
@@ -750,18 +633,141 @@ printCandidatesBtn?.addEventListener("click", async () => {
     }
   }
 
-  const html = buildPrintCandidatesHTML(data);
-  const w = window.open("", "_blank", "noopener,noreferrer,width=1100,height=800");
+  const w = window.open("about:blank", "_blank");
   if(!w){
     alert("Popup blocked. Please allow popups for this site.");
     return;
   }
+  const html = buildPrintHtml(data);
   w.document.open();
   w.document.write(html);
   w.document.close();
 });
 
-/* ======= Convenience / initial sanity: try to start sync immediately if online ======= */
+/* ======= DOWNLOAD PDF (Real file) ======= */
+const downloadPdfLink = document.getElementById("downloadPdfLink");
+let lastPdfUrl = null;
+
+async function getCandidatesData(){
+  let data = latestCandidates;
+  if(!data || Object.keys(data).length === 0){
+    const snap = await get(candidatesRef);
+    data = snap.val() || {};
+  }
+  return data;
+}
+
+function buildRowsForPdf(candidatesObj){
+  const groups = groupCandidatesByBase(candidatesObj || {});
+  const naturalOrder = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
+  const presentBases = Object.keys(groups);
+
+  const ordered = [];
+  naturalOrder.forEach(b => { if(presentBases.includes(b)) ordered.push(b); });
+  presentBases.forEach(b => { if(!ordered.includes(b)) ordered.push(b); });
+
+  const sections = [];
+  for(const base of ordered){
+    const grp = groups[base];
+    if(!grp) continue;
+
+    const all = [...(grp.girls||[]), ...(grp.boys||[])];
+    const rows = all.map((c, i) => {
+      const fullname = `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.trim();
+      return [
+        String(i + 1),
+        fullname || "-",
+        (c.gender || "-"),
+        (c.classSelect || "-"),
+        (c.position || prettyTitle(base) || "-")
+      ];
+    });
+
+    sections.push({
+      title: prettyTitle(base),
+      rows
+    });
+  }
+  return sections;
+}
+
+downloadPdfLink.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  // revoke old blob if exists
+  if(lastPdfUrl){
+    URL.revokeObjectURL(lastPdfUrl);
+    lastPdfUrl = null;
+  }
+
+  try{
+    const data = await getCandidatesData();
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+    const now = new Date().toLocaleString();
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("UKSS VOTING", 40, 45);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    doc.text(`Candidates List • ${now}`, 40, 65);
+
+    const total = Object.keys(data || {}).length;
+    doc.text(`Total Candidates: ${total}`, 40, 82);
+
+    let y = 105;
+
+    const sections = buildRowsForPdf(data);
+    if(sections.length === 0){
+      doc.text("No candidates registered yet.", 40, y);
+    } else {
+      for(const sec of sections){
+        // Section title
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text(String(sec.title || "Position"), 40, y);
+        y += 8;
+
+        // Table
+        doc.autoTable({
+          startY: y,
+          head: [["#", "Full Name", "Gender", "Class", "Position"]],
+          body: sec.rows.length ? sec.rows : [["-", "No candidates", "-", "-", "-"]],
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 4 },
+          headStyles: { fontStyle: "bold" },
+          margin: { left: 40, right: 40 }
+        });
+
+        y = doc.lastAutoTable.finalY + 18;
+        if(y > 760){
+          doc.addPage();
+          y = 60;
+        }
+      }
+    }
+
+    // Create downloadable blob link
+    const blob = doc.output("blob");
+    const url = URL.createObjectURL(blob);
+    lastPdfUrl = url;
+
+    // set href then trigger download
+    downloadPdfLink.href = url;
+    downloadPdfLink.download = "UKSS_Candidates_List.pdf";
+    downloadPdfLink.click();
+  } catch(err){
+    console.error(err);
+    alert("Failed to generate PDF. Make sure you are online (or candidates already loaded).");
+  }
+});
+
+/* ============== Keep UI updated for network status (poll) ============== */
+setInterval(updateNetworkUI, 2000);
+
+/* ======= Convenience / initial sanity ======= */
 (async () => {
   if(navigator.onLine) startSyncLoop();
   updateNetworkUI();
