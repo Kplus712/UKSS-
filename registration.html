@@ -25,21 +25,79 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
     background: var(--bg);
     color:#123;
-    padding:18px;
   }
 
-  .wrap{
-    max-width:1100px;
-    margin:18px auto;
-    display:grid;
-    grid-template-columns: 420px 1fr;
-    gap:16px;
+  /* ===== Top menu ===== */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:#fff;
+    border-bottom:1px solid rgba(0,0,0,.06);
+    box-shadow:0 6px 18px rgba(0,0,0,.05);
+  }
+  .topbar .inner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:12px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .brand{
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .brand b{
+    color:var(--accent2);
+    letter-spacing:.6px;
+    font-size:16px;
+  }
+  .brand small{
+    color:var(--muted);
+    font-weight:700;
+  }
+  .menu{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+  }
+  .chip{
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(46,125,50,.08);
+    border:1px solid rgba(46,125,50,.18);
+    color:var(--accent2);
+    font-weight:900;
+    font-size:12px;
+    cursor:pointer;
+    user-select:none;
+    text-decoration:none;
+  }
+  .chip.primary{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
   }
 
+  /* ===== Layout ===== */
+  .page{
+    max-width:1180px;
+    margin:0 auto;
+    padding:18px 16px 30px;
+  }
+
+  /* Registration form centered */
+  .centerRow{
+    display:flex;
+    justify-content:center;
+    margin-top:14px;
+  }
   .card{
+    width:min(720px, 100%);
     background:var(--card);
     border:2px solid var(--border);
-    border-radius:16px;
+    border-radius:18px;
     box-shadow:var(--shadow);
     overflow:hidden;
   }
@@ -51,22 +109,12 @@
     justify-content:space-between;
     gap:10px;
   }
-  .brand{
-    display:flex; flex-direction:column; gap:2px;
-  }
-  .brand h2{
+  .cardHead h2{
     margin:0;
     color:var(--accent2);
-    letter-spacing:.6px;
-    font-weight:900;
-    font-size:18px;
+    font-size:16px;
+    letter-spacing:.5px;
   }
-  .brand .sub{
-    font-size:12px;
-    color:var(--muted);
-    font-weight:700;
-  }
-
   .pill{
     font-size:12px;
     font-weight:900;
@@ -77,19 +125,11 @@
     border-radius:999px;
     white-space:nowrap;
   }
-
   .cardBody{ padding:14px 16px; }
-
-  .grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:10px;
-  }
-  .grid.one{ grid-template-columns:1fr; }
 
   label{
     display:block;
-    font-weight:800;
+    font-weight:900;
     color:#1c4a22;
     font-size:12px;
     margin:4px 0 6px;
@@ -106,6 +146,21 @@
   input:focus, select:focus{
     border-color: rgba(46,125,50,.55);
     box-shadow: 0 0 0 4px rgba(46,125,50,.12);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+  .grid.one{ grid-template-columns:1fr; }
+
+  .unlockBox{
+    background:rgba(46,125,50,.06);
+    border:1px dashed rgba(46,125,50,.35);
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:12px;
   }
 
   .btnRow{
@@ -132,14 +187,6 @@
   .btnGhost{ background:rgba(46,125,50,.10); color:var(--accent2); border:1px solid rgba(46,125,50,.25); }
   .btnDanger{ background:#c62828; color:#fff; }
 
-  .unlockBox{
-    background:rgba(46,125,50,.06);
-    border:1px dashed rgba(46,125,50,.35);
-    border-radius:14px;
-    padding:12px;
-    margin-bottom:12px;
-  }
-
   .preview{
     display:flex;
     align-items:center;
@@ -151,8 +198,8 @@
     margin-top:10px;
   }
   .preview img{
-    width:64px; height:64px;
-    border-radius:14px;
+    width:70px; height:70px;
+    border-radius:16px;
     border:2px solid rgba(46,125,50,.40);
     object-fit:cover;
     display:none;
@@ -160,63 +207,111 @@
   .preview .txt{
     font-size:12px;
     color:var(--muted);
-    font-weight:700;
+    font-weight:800;
     line-height:1.3;
   }
 
-  /* Right side table area */
-  .tableTop{
+  /* ===== Candidates grouped by position ===== */
+  .sectionTitle{
+    margin:22px 0 10px;
     display:flex;
-    align-items:center;
+    align-items:flex-end;
     justify-content:space-between;
     gap:10px;
     flex-wrap:wrap;
   }
-  .searchBox{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex:1;
-    min-width:240px;
-  }
-  .searchBox input{ flex:1; }
-
-  table{
-    width:100%;
-    border-collapse:separate;
-    border-spacing:0;
-    margin-top:12px;
-    overflow:hidden;
-    border:1px solid rgba(0,0,0,.10);
-    border-radius:14px;
-  }
-  th, td{
-    padding:10px;
-    font-size:13px;
-    border-bottom:1px solid rgba(0,0,0,.06);
-    vertical-align:middle;
-  }
-  th{
-    background:rgba(46,125,50,.10);
+  .sectionTitle h3{
+    margin:0;
     color:var(--accent2);
-    font-weight:900;
-    text-transform:uppercase;
-    letter-spacing:.4px;
+    letter-spacing:.5px;
+  }
+  .sectionTitle .sub{
+    color:var(--muted);
+    font-weight:800;
     font-size:12px;
   }
-  tr:last-child td{ border-bottom:none; }
-  td img{
-    width:52px; height:52px;
-    border-radius:12px;
+
+  .positionsGrid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+  }
+  .posCard{
+    background:#fff;
+    border:2px solid rgba(0,0,0,.06);
+    border-radius:16px;
+    box-shadow:0 10px 22px rgba(0,0,0,.05);
+    overflow:hidden;
+  }
+  .posHead{
+    padding:12px 12px;
+    background:rgba(46,125,50,.08);
+    border-bottom:1px solid rgba(0,0,0,.06);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .posHead b{
+    color:var(--accent2);
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    font-size:12px;
+  }
+  .posHead span{
+    font-size:12px;
+    font-weight:900;
+    color:var(--accent2);
+    background:#fff;
+    border:1px solid rgba(46,125,50,.20);
+    padding:4px 8px;
+    border-radius:999px;
+  }
+
+  .candList{
+    padding:12px;
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:10px;
+  }
+
+  .candRow{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    padding:10px;
+    border-radius:14px;
+    border:1px solid rgba(0,0,0,.08);
+    background:#fbfffb;
+  }
+  .candRow img{
+    width:56px; height:56px;
+    border-radius:14px;
     border:2px solid rgba(46,125,50,.35);
     object-fit:cover;
+    background:#fff;
   }
-  .actionBtns{
-    display:flex; gap:8px; flex-wrap:wrap;
+  .candRow .name{
+    font-weight:900;
+    color:#183a1e;
+    font-size:13px;
+    line-height:1.2;
+  }
+  .candRow .meta{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:800;
+    margin-top:3px;
+  }
+  .candRow .actions{
+    margin-left:auto;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
   }
   .miniBtn{
     padding:8px 10px;
-    border-radius:10px;
+    border-radius:12px;
     border:none;
     cursor:pointer;
     font-weight:900;
@@ -225,31 +320,26 @@
   .miniEdit{ background:#0277bd; color:#fff; }
   .miniDel{ background:#c62828; color:#fff; }
 
-  .note{
-    margin-top:10px;
-    font-size:12px;
+  .empty{
     color:var(--muted);
-    font-weight:700;
+    font-weight:800;
+    font-style:italic;
+    padding:10px;
+    text-align:center;
   }
 
-  /* Print view (for browser print) */
-  .printArea{
-    display:none;
-  }
+  /* Print-only (browser print) */
+  .printArea{ display:none; }
   @media print{
-    body{ background:#fff; padding:0; }
-    .wrap{ display:none; }
-    .printArea{
-      display:block;
-      padding:14mm;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-      color:#111;
-    }
+    .topbar, .page{ display:none !important; }
+    .printArea{ display:block; padding:14mm; }
     .printHead{
       text-align:center;
       border-bottom:2px solid #111;
       padding-bottom:10px;
       margin-bottom:12px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      color:#111;
     }
     .printHead h1{ margin:0; font-size:18px; letter-spacing:1px; }
     .printHead .meta{ margin-top:6px; font-size:12px; font-weight:700; color:#333; }
@@ -257,6 +347,7 @@
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:10px;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
     }
     .posSection{
       border:1px solid #111;
@@ -274,24 +365,6 @@
       font-size:12px;
       letter-spacing:.6px;
     }
-    .twoCols{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-    .colBox{
-      border:1px solid #aaa;
-      border-radius:10px;
-      padding:8px;
-      min-height:70px;
-    }
-    .colHeader{
-      font-weight:900;
-      font-size:11px;
-      border-bottom:1px dashed #bbb;
-      padding-bottom:6px;
-      margin-bottom:6px;
-    }
     .rowItem{
       font-size:11px;
       padding:3px 0;
@@ -299,16 +372,32 @@
     }
     .rowItem:last-child{ border-bottom:none; }
     .muted{ color:#555; font-weight:700; }
-    .empty{ color:#666; font-style:italic; font-size:11px; padding:4px 0; }
   }
 
   @media (max-width:980px){
-    .wrap{ grid-template-columns: 1fr; }
+    .positionsGrid{ grid-template-columns: 1fr; }
+    .grid{ grid-template-columns: 1fr; }
   }
 </style>
 </head>
 
 <body>
+
+<div class="topbar">
+  <div class="inner">
+    <div class="brand">
+      <b>UKSS VOTING</b>
+      <small>Candidate Registration & Export</small>
+    </div>
+    <div class="menu">
+      <a class="chip" href="#register">Registration</a>
+      <a class="chip" href="#candidates">Candidates</a>
+      <button class="chip" id="printBtn" type="button">Print List</button>
+      <button class="chip primary" id="downloadPdfBtn" type="button">Download PDF (with photos)</button>
+      <span class="pill" id="totalPill">Total: 0</span>
+    </div>
+  </div>
+</div>
 
 <!-- PRINT ONLY AREA (browser print uses this) -->
 <div class="printArea" id="printArea">
@@ -319,196 +408,166 @@
   <div id="printContent"></div>
 </div>
 
-<div class="wrap">
+<div class="page">
 
-  <!-- LEFT: Registration -->
-  <div class="card">
-    <div class="cardHead">
-      <div class="brand">
-        <h2>UKSS Candidate Registration</h2>
-        <div class="sub">Add / edit candidates (admin only)</div>
-      </div>
-      <div class="pill" id="totalPill">Total: 0</div>
-    </div>
-
-    <div class="cardBody">
-
-      <div class="unlockBox">
-        <label>Admin Password</label>
-        <div class="grid">
-          <input type="password" id="adminPass" placeholder="Enter admin password" />
-          <button class="btn btnPrimary" onclick="unlockForm()">UNLOCK</button>
-        </div>
-        <div class="note">Tip: After unlock, you can register candidates and print/download the full list for flyers.</div>
+  <!-- ===== Registration (Centered) ===== -->
+  <div id="register" class="centerRow">
+    <div class="card">
+      <div class="cardHead">
+        <h2>Register School Candidate</h2>
+        <span class="pill" id="formStatusPill">Locked</span>
       </div>
 
-      <!-- FORM AREA -->
-      <div id="formArea" style="display:none;">
+      <div class="cardBody">
 
-        <input type="hidden" id="editMode" value="none" />
-        <input type="hidden" id="editID" />
-
-        <div class="grid">
-          <div>
-            <label>First Name</label>
-            <input type="text" id="firstName" placeholder="e.g. John" />
+        <div class="unlockBox">
+          <label>Admin Password</label>
+          <div class="grid">
+            <input type="password" id="adminPass" placeholder="Enter admin password to unlock form" />
+            <button class="btn btnPrimary" onclick="unlockForm()">UNLOCK</button>
           </div>
-          <div>
-            <label>Middle Name</label>
-            <input type="text" id="middleName" placeholder="e.g. Peter" />
+          <div style="margin-top:8px;font-size:12px;color:var(--muted);font-weight:800;">
+            After unlocking, you can add, edit, delete candidates and export the full list for flyers.
           </div>
         </div>
 
-        <div class="grid">
-          <div>
-            <label>Last Name</label>
-            <input type="text" id="lastName" placeholder="e.g. Mushi" />
+        <div id="formArea" style="display:none;">
+          <input type="hidden" id="editMode" value="none" />
+          <input type="hidden" id="editID" />
+
+          <div class="grid">
+            <div>
+              <label>First Name</label>
+              <input type="text" id="firstName" placeholder="e.g. John" />
+            </div>
+            <div>
+              <label>Middle Name</label>
+              <input type="text" id="middleName" placeholder="e.g. Peter" />
+            </div>
           </div>
-          <div>
-            <label>Gender</label>
-            <select id="gender">
-              <option value="">--Select Gender--</option>
-              <option>Male</option>
-              <option>Female</option>
-            </select>
+
+          <div class="grid">
+            <div>
+              <label>Last Name</label>
+              <input type="text" id="lastName" placeholder="e.g. Mushi" />
+            </div>
+            <div>
+              <label>Gender</label>
+              <select id="gender">
+                <option value="">--Select Gender--</option>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+            </div>
           </div>
-        </div>
 
-        <div class="grid">
-          <div>
-            <label>Class</label>
-            <select id="classSelect">
-              <option value="">--Select Class--</option>
-              <option>Form One</option>
-              <option>Form Two</option>
-              <option>Form Three</option>
-              <option>Form Four</option>
-            </select>
+          <div class="grid">
+            <div>
+              <label>Class</label>
+              <select id="classSelect">
+                <option value="">--Select Class--</option>
+                <option>Form One</option>
+                <option>Form Two</option>
+                <option>Form Three</option>
+                <option>Form Four</option>
+              </select>
+            </div>
+            <div>
+              <label>Position</label>
+              <select id="position">
+                <option value="">-- Select Position --</option>
+
+                <optgroup label="Head Boy & Head Girl">
+                  <option value="headBoy">Head Boy</option>
+                  <option value="headGirl">Head Girl</option>
+                </optgroup>
+
+                <optgroup label="General Secretary">
+                  <option value="generalSecretaryBoy">General Secretary (Male)</option>
+                  <option value="generalSecretaryGirl">General Secretary (Female)</option>
+                </optgroup>
+
+                <optgroup label="Sports & Games">
+                  <option value="sportsBoy">Sports & Games (Male)</option>
+                  <option value="sportsGirl">Sports & Games (Female)</option>
+                </optgroup>
+
+                <optgroup label="Food Prefect">
+                  <option value="foodBoy">Food Prefect (Male)</option>
+                  <option value="foodGirl">Food Prefect (Female)</option>
+                </optgroup>
+
+                <optgroup label="Environmental">
+                  <option value="environmentBoy">Environmental (Male)</option>
+                  <option value="environmentGirl">Environmental (Female)</option>
+                </optgroup>
+
+                <optgroup label="Health">
+                  <option value="healthBoy">Health (Male)</option>
+                  <option value="healthGirl">Health (Female)</option>
+                </optgroup>
+
+                <optgroup label="Maintenance">
+                  <option value="maintenanceBoy">Maintenance (Male)</option>
+                  <option value="maintenanceGirl">Maintenance (Female)</option>
+                </optgroup>
+
+                <optgroup label="Store Keeper">
+                  <option value="storeBoy">Store Keeper (Male)</option>
+                  <option value="storeGirl">Store Keeper (Female)</option>
+                </optgroup>
+
+                <optgroup label="Academic">
+                  <option value="academicBoy">Academic (Male)</option>
+                  <option value="academicGirl">Academic (Female)</option>
+                </optgroup>
+
+                <optgroup label="Discipline">
+                  <option value="disciplineBoy">Discipline (Male)</option>
+                  <option value="disciplineGirl">Discipline (Female)</option>
+                </optgroup>
+              </select>
+            </div>
           </div>
-          <div>
-            <label>Position</label>
-            <select id="position">
-              <option value="">-- Select Position --</option>
 
-              <optgroup label="Head Boy & Head Girl">
-                <option value="headBoy">Head Boy</option>
-                <option value="headGirl">Head Girl</option>
-              </optgroup>
-
-              <optgroup label="General Secretary">
-                <option value="generalSecretaryBoy">General Secretary (Male)</option>
-                <option value="generalSecretaryGirl">General Secretary (Female)</option>
-              </optgroup>
-
-              <optgroup label="Sports & Games">
-                <option value="sportsBoy">Sports & Games (Male)</option>
-                <option value="sportsGirl">Sports & Games (Female)</option>
-              </optgroup>
-
-              <optgroup label="Food Prefect">
-                <option value="foodBoy">Food Prefect (Male)</option>
-                <option value="foodGirl">Food Prefect (Female)</option>
-              </optgroup>
-
-              <optgroup label="Environmental">
-                <option value="environmentBoy">Environmental (Male)</option>
-                <option value="environmentGirl">Environmental (Female)</option>
-              </optgroup>
-
-              <optgroup label="Health">
-                <option value="healthBoy">Health (Male)</option>
-                <option value="healthGirl">Health (Female)</option>
-              </optgroup>
-
-              <optgroup label="Maintenance">
-                <option value="maintenanceBoy">Maintenance (Male)</option>
-                <option value="maintenanceGirl">Maintenance (Female)</option>
-              </optgroup>
-
-              <optgroup label="Store Keeper">
-                <option value="storeBoy">Store Keeper (Male)</option>
-                <option value="storeGirl">Store Keeper (Female)</option>
-              </optgroup>
-
-              <optgroup label="Academic">
-                <option value="academicBoy">Academic (Male)</option>
-                <option value="academicGirl">Academic (Female)</option>
-              </optgroup>
-
-              <optgroup label="Discipline">
-                <option value="disciplineBoy">Discipline (Male)</option>
-                <option value="disciplineGirl">Discipline (Female)</option>
-              </optgroup>
-            </select>
+          <div class="grid one">
+            <div>
+              <label>Upload Candidate Picture</label>
+              <input type="file" id="photo" accept="image/*" />
+            </div>
           </div>
-        </div>
 
-        <div class="grid one">
-          <div>
-            <label>Upload Candidate Picture</label>
-            <input type="file" id="photo" accept="image/*" />
+          <div class="preview">
+            <img id="previewImg" alt="preview" />
+            <div class="txt" id="previewTxt">Upload photo to preview. If no photo, PDF will use gender placeholder (boy/girl).</div>
           </div>
-        </div>
 
-        <div class="preview">
-          <img id="previewImg" alt="preview" />
-          <div class="txt" id="previewTxt">Upload photo to preview. Recommended: clear face photo.</div>
-        </div>
-
-        <div class="btnRow">
-          <button class="btn btnPrimary" onclick="saveCandidate()">SAVE CANDIDATE</button>
-          <button class="btn btnGhost" onclick="resetForm()">RESET</button>
+          <div class="btnRow">
+            <button class="btn btnPrimary" onclick="saveCandidate()">SAVE CANDIDATE</button>
+            <button class="btn btnGhost" onclick="resetForm()">RESET</button>
+          </div>
         </div>
 
       </div>
     </div>
   </div>
 
-  <!-- RIGHT: Candidate list + Print/Download -->
-  <div class="card">
-    <div class="cardHead">
-      <div class="brand">
-        <h2>Registered Candidates</h2>
-        <div class="sub">Search, edit, delete, and export the full list</div>
-      </div>
-      <div class="btnRow" style="margin:0">
-        <button class="btn btnGhost" id="printBtn" type="button">PRINT LIST</button>
-        <button class="btn btnPrimary" id="downloadPdfBtn" type="button">DOWNLOAD PDF</button>
-      </div>
+  <!-- ===== Candidates by Position ===== -->
+  <div id="candidates" class="sectionTitle">
+    <div>
+      <h3>Candidates by Position</h3>
+      <div class="sub">Each position shows all competitors. Use menu to print/download.</div>
     </div>
+    <div class="pill" id="updatedPill">Updated: —</div>
+  </div>
 
-    <div class="cardBody">
-      <div class="tableTop">
-        <div class="searchBox">
-          <input type="text" id="searchInput" placeholder="Search by name, class, gender, position..." />
-          <button class="btn btnGhost" id="clearSearchBtn" type="button">Clear</button>
-        </div>
-        <div class="pill" id="shownPill">Shown: 0</div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Photo</th>
-            <th>Name</th>
-            <th>Gender</th>
-            <th>Class</th>
-            <th>Position</th>
-            <th style="width:160px">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="candidateTable"></tbody>
-      </table>
-
-      <div class="note">
-        Exports are designed for printing and distributing flyers to students. Use <b>PRINT LIST</b> for direct printing or <b>DOWNLOAD PDF</b> for sharing.
-      </div>
-    </div>
+  <div class="positionsGrid" id="positionsGrid">
+    <!-- filled by JS -->
   </div>
 
 </div>
 
-<!-- Firebase -->
+<!-- Firebase + Logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
   import { getDatabase, ref, set, remove, onValue, get }
@@ -530,20 +589,19 @@
   const db = getDatabase(app);
   const storage = getStorage(app);
 
-  // ====== UI refs
+  // ===== UI refs
   const totalPill = document.getElementById("totalPill");
-  const shownPill = document.getElementById("shownPill");
-  const searchInput = document.getElementById("searchInput");
-  const clearSearchBtn = document.getElementById("clearSearchBtn");
-  const candidateTable = document.getElementById("candidateTable");
+  const updatedPill = document.getElementById("updatedPill");
+  const formStatusPill = document.getElementById("formStatusPill");
+
+  const positionsGrid = document.getElementById("positionsGrid");
 
   const printBtn = document.getElementById("printBtn");
   const downloadPdfBtn = document.getElementById("downloadPdfBtn");
-
   const printMeta = document.getElementById("printMeta");
   const printContent = document.getElementById("printContent");
 
-  // ====== Form refs
+  // ===== Form refs
   const adminPass = document.getElementById("adminPass");
   const formArea = document.getElementById("formArea");
   const editMode = document.getElementById("editMode");
@@ -560,37 +618,26 @@
   const previewImg = document.getElementById("previewImg");
   const previewTxt = document.getElementById("previewTxt");
 
-  // ====== Store all candidates in memory for search/export
+  // ===== In-memory candidates
   let allCandidates = {}; // { id: candidate }
 
-  // ====== Position ordering (for print/pdf)
-  const ORDER = [
-    "headBoy","headGirl",
-    "generalSecretaryBoy","generalSecretaryGirl",
-    "sportsBoy","sportsGirl",
-    "foodBoy","foodGirl",
-    "environmentBoy","environmentGirl",
-    "healthBoy","healthGirl",
-    "maintenanceBoy","maintenanceGirl",
-    "storeBoy","storeGirl",
-    "academicBoy","academicGirl",
-    "disciplineBoy","disciplineGirl"
-  ];
+  // ===== Position order (base)
+  const BASES = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
 
-  function prettyPosition(key){
+  function prettyTitle(base){
     const map = {
-      headBoy:"Head Boy", headGirl:"Head Girl",
-      generalSecretaryBoy:"General Secretary (Male)", generalSecretaryGirl:"General Secretary (Female)",
-      sportsBoy:"Sports & Games (Male)", sportsGirl:"Sports & Games (Female)",
-      foodBoy:"Food Prefect (Male)", foodGirl:"Food Prefect (Female)",
-      environmentBoy:"Environmental (Male)", environmentGirl:"Environmental (Female)",
-      healthBoy:"Health (Male)", healthGirl:"Health (Female)",
-      maintenanceBoy:"Maintenance (Male)", maintenanceGirl:"Maintenance (Female)",
-      storeBoy:"Store Keeper (Male)", storeGirl:"Store Keeper (Female)",
-      academicBoy:"Academic (Male)", academicGirl:"Academic (Female)",
-      disciplineBoy:"Discipline (Male)", disciplineGirl:"Discipline (Female)"
+      head:"Head Prefect",
+      generalSecretary:"General Secretary",
+      sports:"Sports & Games Prefect",
+      food:"Food Prefect",
+      environment:"Environmental Prefect",
+      health:"Health Prefect",
+      maintenance:"Maintenance Prefect",
+      store:"Store Keeper",
+      academic:"Academic Prefect",
+      discipline:"Discipline Prefect"
     };
-    return map[key] || key || "-";
+    return map[base] || base;
   }
 
   function fullName(c){
@@ -606,10 +653,29 @@
       .replaceAll("'","&#039;");
   }
 
+  function placeholderDataUrl(gen){
+    const isMale = String(gen||"").toLowerCase().startsWith("m");
+    const bg = isMale ? "#e8f5e9" : "#f3f1e6";
+    const stroke = isMale ? "#2e7d32" : "#3b6b43";
+    const label = isMale ? "Boy" : "Girl";
+
+    // simple silhouette SVG
+    const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 100 100">
+      <rect width="100" height="100" rx="14" fill="${bg}"/>
+      <circle cx="50" cy="36" r="16" fill="${stroke}" fill-opacity="0.18"/>
+      <path d="M25 86c2-18 17-28 25-28s23 10 25 28" fill="${stroke}" fill-opacity="0.16"/>
+      <circle cx="50" cy="34" r="7" fill="${stroke}"/>
+      <text x="50" y="93" font-size="7" fill="${stroke}" text-anchor="middle" font-family="Arial" font-weight="700">${label}</text>
+    </svg>`;
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  }
+
   // ===== UNLOCK
   window.unlockForm = function(){
     if(adminPass.value === "ukss2025"){
       formArea.style.display = "block";
+      formStatusPill.textContent = "Unlocked";
     } else alert("Incorrect admin password!");
   };
 
@@ -629,62 +695,71 @@
   // ===== LOAD CANDIDATES
   onValue(ref(db,"candidates"), snap=>{
     allCandidates = snap.val() || {};
-    renderTable();
-    updatePills();
+    const total = Object.keys(allCandidates).length;
+    totalPill.textContent = `Total: ${total}`;
+    updatedPill.textContent = `Updated: ${new Date().toLocaleString()}`;
+    renderCandidatesByPosition();
   });
 
-  function updatePills(){
-    const total = Object.keys(allCandidates||{}).length;
-    totalPill.textContent = `Total: ${total}`;
-
-    const shown = candidateTable.querySelectorAll("tr").length;
-    shownPill.textContent = `Shown: ${shown}`;
+  function baseOfPosition(pos=""){
+    if(/Boy$/i.test(pos) || /Girl$/i.test(pos)) return pos.replace(/(Boy|Girl)$/i,"");
+    if(/generalSecretary/i.test(pos)) return "generalSecretary";
+    return pos || "";
   }
 
-  // ===== Search filter
-  function renderTable(){
-    const q = (searchInput.value || "").toLowerCase().trim();
-    candidateTable.innerHTML = "";
+  function groupCandidates(){
+    const groups = {};
+    BASES.forEach(b => groups[b] = []);
+    Object.entries(allCandidates || {}).forEach(([id, c])=>{
+      const base = baseOfPosition(c.position || "");
+      if(!groups[base]) groups[base] = [];
+      groups[base].push({ id, ...c });
+    });
+    // sort by position then name
+    Object.values(groups).forEach(arr => arr.sort((a,b)=>fullName(a).localeCompare(fullName(b))));
+    return groups;
+  }
 
-    const entries = Object.entries(allCandidates||{});
+  function renderCandidatesByPosition(){
+    const groups = groupCandidates();
+    let html = "";
 
-    for(const [id, c] of entries){
-      const hay = [
-        fullName(c),
-        c.gender || "",
-        c.classSelect || "",
-        prettyPosition(c.position || ""),
-        c.position || ""
-      ].join(" ").toLowerCase();
-
-      if(q && !hay.includes(q)) continue;
-
-      const photoURL = c.photoURL || "";
-      candidateTable.innerHTML += `
-        <tr>
-          <td>${photoURL ? `<img src="${escapeHtml(photoURL)}" alt="photo">` : "-"}</td>
-          <td>${escapeHtml(fullName(c))}</td>
-          <td>${escapeHtml(c.gender || "-")}</td>
-          <td>${escapeHtml(c.classSelect || "-")}</td>
-          <td>${escapeHtml(prettyPosition(c.position || "-"))}</td>
-          <td>
-            <div class="actionBtns">
-              <button class="miniBtn miniEdit" onclick="editCandidate('${id}')">Edit</button>
-              <button class="miniBtn miniDel" onclick="deleteCandidate('${id}')">Delete</button>
-            </div>
-          </td>
-        </tr>
+    for(const base of BASES){
+      const list = groups[base] || [];
+      html += `
+        <div class="posCard">
+          <div class="posHead">
+            <b>${escapeHtml(prettyTitle(base))}</b>
+            <span>${list.length} candidate(s)</span>
+          </div>
+          <div class="candList">
+            ${
+              list.length
+              ? list.map(c=>{
+                  const img = c.photoURL || placeholderDataUrl(c.gender);
+                  return `
+                    <div class="candRow">
+                      <img src="${escapeHtml(img)}" alt="photo">
+                      <div>
+                        <div class="name">${escapeHtml(fullName(c) || "-")}</div>
+                        <div class="meta">${escapeHtml(c.classSelect || "-")} • ${escapeHtml(c.gender || "-")} • ${escapeHtml(c.position || "-")}</div>
+                      </div>
+                      <div class="actions">
+                        <button class="miniBtn miniEdit" onclick="editCandidate('${c.id}')">Edit</button>
+                        <button class="miniBtn miniDel" onclick="deleteCandidate('${c.id}')">Delete</button>
+                      </div>
+                    </div>
+                  `;
+                }).join("")
+              : `<div class="empty">No candidates registered for this position.</div>`
+            }
+          </div>
+        </div>
       `;
     }
 
-    updatePills();
+    positionsGrid.innerHTML = html;
   }
-
-  searchInput.addEventListener("input", renderTable);
-  clearSearchBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    renderTable();
-  });
 
   // ===== EDIT
   window.editCandidate = async function(id){
@@ -702,16 +777,17 @@
     classSelect.value = c.classSelect || "";
     position.value = c.position || "";
 
-    if(c.photoURL){
-      previewImg.src = c.photoURL;
+    const img = c.photoURL || "";
+    if(img){
+      previewImg.src = img;
       previewImg.style.display = "block";
       previewTxt.textContent = "Existing photo loaded. Upload a new one only if you want to replace.";
-    } else {
+    }else{
       previewImg.style.display = "none";
-      previewTxt.textContent = "No photo yet. Upload to preview.";
+      previewTxt.textContent = "Upload photo to preview. If no photo, PDF uses gender placeholder.";
     }
 
-    // scroll to top on mobile
+    location.hash = "#register";
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -723,7 +799,7 @@
     }
   };
 
-  // ===== RESET FORM
+  // ===== RESET
   window.resetForm = function(){
     editMode.value = "none";
     editID.value = "";
@@ -735,7 +811,7 @@
     position.value = "";
     photo.value = "";
     previewImg.style.display = "none";
-    previewTxt.textContent = "Upload photo to preview. Recommended: clear face photo.";
+    previewTxt.textContent = "Upload photo to preview. If no photo, PDF will use gender placeholder (boy/girl).";
   };
 
   // ===== SAVE
@@ -784,93 +860,31 @@
     }
   };
 
-  // ===================== EXPORT: PRINT (browser) =====================
-  function groupForPrint(data){
-    // group by base (head, generalSecretary, sports, ...) then split girls/boys
-    const groups = {};
-    function baseOf(pos=""){
-      if(/Boy$/i.test(pos) || /Girl$/i.test(pos)) return pos.replace(/(Boy|Girl)$/i,"");
-      if(/generalSecretary/i.test(pos)) return "generalSecretary";
-      return pos;
-    }
-    for(const base of ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"]){
-      groups[base] = { girls:[], boys:[] };
-    }
-
-    Object.values(data || {}).forEach(c => {
-      const p = c.position || "";
-      const base = baseOf(p);
-      if(!groups[base]) groups[base] = { girls:[], boys:[] };
-
-      const g = (c.gender||"").toLowerCase();
-      const isGirl = /female|girl|f/i.test(g) || /Girl$/i.test(p);
-
-      (isGirl ? groups[base].girls : groups[base].boys).push(c);
-    });
-
-    // sort each list by name
-    Object.values(groups).forEach(gr => {
-      gr.girls.sort((a,b)=>fullName(a).localeCompare(fullName(b)));
-      gr.boys.sort((a,b)=>fullName(a).localeCompare(fullName(b)));
-    });
-
-    return groups;
-  }
-
-  function prettyTitle(base){
-    const map = {
-      head:"Head Prefect",
-      generalSecretary:"General Secretary",
-      sports:"Sports & Games Prefect",
-      food:"Food Prefect",
-      environment:"Environmental Prefect",
-      health:"Health Prefect",
-      maintenance:"Maintenance Prefect",
-      store:"Store Keeper",
-      academic:"Academic Prefect",
-      discipline:"Discipline Prefect"
-    };
-    return map[base] || base;
-  }
-
+  /* ===================== PRINT (browser) ===================== */
   function buildPrintHTML(){
-    const groups = groupForPrint(allCandidates);
-
     const now = new Date().toLocaleString();
     const total = Object.keys(allCandidates||{}).length;
-
     printMeta.textContent = `Prepared: ${now} • Total candidates: ${total}`;
 
-    const bases = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
-
+    const groups = groupCandidates();
     let html = `<div class="printGrid">`;
-    for(const base of bases){
-      const gr = groups[base] || { girls:[], boys:[] };
 
-      const girls = gr.girls.map((c,i)=>(
-        `<div class="rowItem">${i+1}. ${escapeHtml(fullName(c))}${c.classSelect?` <span class="muted">(${escapeHtml(c.classSelect)})</span>`:""}</div>`
-      )).join("") || `<div class="empty">No female candidates</div>`;
-
-      const boys = gr.boys.map((c,i)=>(
-        `<div class="rowItem">${i+1}. ${escapeHtml(fullName(c))}${c.classSelect?` <span class="muted">(${escapeHtml(c.classSelect)})</span>`:""}</div>`
-      )).join("") || `<div class="empty">No male candidates</div>`;
+    for(const base of BASES){
+      const list = groups[base] || [];
+      const rows = list.length
+        ? list.map((c,i)=>(
+            `<div class="rowItem">${i+1}. ${escapeHtml(fullName(c))} <span class="muted">(${escapeHtml(c.classSelect||"-")} • ${escapeHtml(c.gender||"-")})</span></div>`
+          )).join("")
+        : `<div class="rowItem"><i>No candidates</i></div>`;
 
       html += `
         <div class="posSection">
           <div class="posTitle">${escapeHtml(prettyTitle(base))}</div>
-          <div class="twoCols">
-            <div class="colBox">
-              <div class="colHeader">GIRLS</div>
-              ${girls}
-            </div>
-            <div class="colBox">
-              <div class="colHeader">BOYS</div>
-              ${boys}
-            </div>
-          </div>
+          ${rows}
         </div>
       `;
     }
+
     html += `</div>`;
     printContent.innerHTML = html;
   }
@@ -880,65 +894,170 @@
     window.print();
   });
 
-  // ===================== EXPORT: DOWNLOAD PDF (modern) =====================
-  function buildTwoColumnRows(girls, boys){
-    const maxLen = Math.max(girls.length, boys.length);
-    const rows = [];
-    for(let i=0;i<maxLen;i++){
-      const g = girls[i] ? `${i+1}. ${fullName(girls[i])}${girls[i].classSelect ? " ("+girls[i].classSelect+")" : ""}` : "";
-      const b = boys[i]  ? `${i+1}. ${fullName(boys[i])}${boys[i].classSelect ? " ("+boys[i].classSelect+")" : ""}` : "";
-      rows.push([g, b]);
-    }
-    return rows.length ? rows : [["No female candidates", "No male candidates"]];
+  /* ===================== PDF DOWNLOAD (with photos/placeholders) ===================== */
+  async function fetchAsDataURL(url){
+    const res = await fetch(url, { mode: "cors" });
+    if(!res.ok) throw new Error("Image fetch failed");
+    const blob = await res.blob();
+    return await new Promise((resolve, reject)=>{
+      const r = new FileReader();
+      r.onload = ()=>resolve(String(r.result));
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
   }
 
-  downloadPdfBtn.addEventListener("click", () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:"pt", format:"a4" });
+  async function svgToPngDataUrl(svgDataUrl){
+    // Convert SVG data URL -> PNG data URL using canvas (works without external libs)
+    return await new Promise((resolve, reject)=>{
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = ()=>{
+        const canvas = document.createElement("canvas");
+        canvas.width = 120;
+        canvas.height = 120;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = svgDataUrl;
+    });
+  }
 
-    const now = new Date().toLocaleString();
-    const total = Object.keys(allCandidates||{}).length;
+  function buildPdfRowsForBase(list){
+    // We'll fill image later in didDrawCell
+    return list.map(c => ([
+      c.__imgKey,                  // Photo cell marker
+      fullName(c) || "-",
+      c.gender || "-",
+      c.classSelect || "-"
+    ]));
+  }
 
-    doc.setFont("helvetica","bold");
-    doc.setFontSize(16);
-    doc.text("UKSS VOTING — Candidates List", 40, 48);
+  downloadPdfBtn.addEventListener("click", async () => {
+    const btn = downloadPdfBtn;
+    const originalText = btn.textContent;
+    btn.textContent = "Preparing PDF...";
+    btn.disabled = true;
 
-    doc.setFont("helvetica","normal");
-    doc.setFontSize(11);
-    doc.text(`Prepared: ${now}`, 40, 68);
-    doc.text(`Total Candidates: ${total}`, 40, 84);
+    try{
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:"pt", format:"a4" });
 
-    let y = 110;
-
-    const groups = groupForPrint(allCandidates);
-    const bases = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
-
-    for(const base of bases){
-      const gr = groups[base] || { girls:[], boys:[] };
+      const now = new Date().toLocaleString();
+      const total = Object.keys(allCandidates||{}).length;
 
       doc.setFont("helvetica","bold");
-      doc.setFontSize(12);
-      doc.text(prettyTitle(base).toUpperCase(), 40, y);
-      y += 8;
+      doc.setFontSize(16);
+      doc.text("UKSS VOTING — Candidates List", 40, 48);
 
-      doc.autoTable({
-        startY: y,
-        head: [["GIRLS", "BOYS"]],
-        body: buildTwoColumnRows(gr.girls, gr.boys),
-        margin: { left: 40, right: 40 },
-        styles: { font: "helvetica", fontSize: 9, cellPadding: 4, overflow: "linebreak" },
-        headStyles: { fontStyle: "bold" },
-        theme: "grid"
-      });
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(11);
+      doc.text(`Prepared: ${now}`, 40, 68);
+      doc.text(`Total Candidates: ${total}`, 40, 84);
 
-      y = doc.lastAutoTable.finalY + 18;
-      if(y > 760){
-        doc.addPage();
-        y = 60;
+      let y = 110;
+
+      const groups = groupCandidates();
+
+      // 1) Collect all candidates (flatten) and preload images to avoid blank photos
+      const imgMap = new Map(); // key -> dataURL (png/jpg)
+      const all = [];
+      for(const base of BASES){
+        for(const c of (groups[base] || [])){
+          // set image key
+          c.__imgKey = `img_${c.id}`;
+          all.push(c);
+        }
       }
-    }
 
-    doc.save("UKSS_Candidates_List.pdf");
+      // Preload with safe fallbacks
+      for(const c of all){
+        let dataUrl = "";
+        try{
+          if(c.photoURL){
+            // fetch actual photo (firebase storage url)
+            dataUrl = await fetchAsDataURL(c.photoURL);
+          } else {
+            // build placeholder svg -> png
+            const svg = placeholderDataUrl(c.gender);
+            dataUrl = await svgToPngDataUrl(svg);
+          }
+        }catch(e){
+          // fallback always to placeholder
+          const svg = placeholderDataUrl(c.gender);
+          try { dataUrl = await svgToPngDataUrl(svg); } catch(_) { dataUrl = ""; }
+        }
+        imgMap.set(c.__imgKey, dataUrl);
+      }
+
+      // 2) Render per position section as a table with image column
+      for(const base of BASES){
+        const list = groups[base] || [];
+
+        doc.setFont("helvetica","bold");
+        doc.setFontSize(12);
+        doc.text(prettyTitle(base).toUpperCase(), 40, y);
+        y += 8;
+
+        const rows = list.length ? buildPdfRowsForBase(list) : [["", "No candidates", "-", "-"]];
+
+        doc.autoTable({
+          startY: y,
+          head: [["PHOTO", "FULL NAME", "GENDER", "CLASS"]],
+          body: rows,
+          margin: { left: 40, right: 40 },
+          theme: "grid",
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 6, overflow: "linebreak", valign: "middle" },
+          headStyles: { fontStyle: "bold" },
+          columnStyles: {
+            0: { cellWidth: 54 },
+            1: { cellWidth: 210 },
+            2: { cellWidth: 90 },
+            3: { cellWidth: 90 }
+          },
+          didDrawCell: (data) => {
+            // draw image in PHOTO column (body only)
+            if(data.section === "body" && data.column.index === 0){
+              const key = data.cell.raw;
+              if(!key) return;
+              const img = imgMap.get(String(key));
+              if(!img) return;
+
+              const x = data.cell.x + 6;
+              const y = data.cell.y + 6;
+              const w = 40;
+              const h = 40;
+
+              // Add image (jpg/png dataURL)
+              try{
+                doc.addImage(img, "PNG", x, y, w, h);
+              }catch(e){
+                // If img is JPEG dataURL, try JPEG
+                try{ doc.addImage(img, "JPEG", x, y, w, h); }catch(_){}
+              }
+            }
+          }
+        });
+
+        y = doc.lastAutoTable.finalY + 18;
+        if(y > 760){
+          doc.addPage();
+          y = 60;
+        }
+      }
+
+      doc.save("UKSS_Candidates_List_With_Photos.pdf");
+
+    } catch(err){
+      console.error(err);
+      alert("Failed to generate PDF. Tip: Make sure candidate photos are accessible, or rely on placeholders.");
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
   });
 </script>
 
