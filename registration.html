@@ -2,21 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Candidate Registration — UKSS</title>
+<title>UKSS — Candidate Registration</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- ✅ jsPDF (Download PDF + Tables) -->
+<!-- jsPDF + AutoTable -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <style>
   :root{
     --accent:#2e7d32;
-    --bg:#f6fff6;
+    --bg:#f7fff7;
     --text:#123;
-    --muted:#5a6a60;
-    --border:rgba(0,0,0,.10);
-    --soft:rgba(46,125,50,.08);
+    --muted:#5b6b60;
+    --border:rgba(0,0,0,.12);
   }
   *{box-sizing:border-box}
   body{
@@ -24,44 +23,36 @@
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
     background:var(--bg);
     color:var(--text);
+    padding:16px;
   }
 
-  /* ===== Simple top menu ===== */
-  .topbar{
-    position:sticky; top:0; z-index:50;
+  /* simple header */
+  .header{
+    max-width:980px;
+    margin:0 auto 12px;
     background:#fff;
-    border-bottom:1px solid rgba(0,0,0,.07);
-  }
-  .topbar .inner{
-    max-width:1100px;
-    margin:0 auto;
-    padding:12px 16px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:10px;
     flex-wrap:wrap;
   }
-  .brand{
-    display:flex;
-    flex-direction:column;
-    gap:2px;
+  .header .brand{
+    display:flex; flex-direction:column; gap:2px;
   }
-  .brand b{
+  .header .brand b{
     color:var(--accent);
     letter-spacing:.6px;
-    font-size:15px;
   }
-  .brand small{
+  .header .brand small{
     color:var(--muted);
     font-weight:700;
-    font-size:12px;
   }
-  .menu{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    align-items:center;
+  .actions{
+    display:flex; gap:8px; flex-wrap:wrap;
   }
   .btn{
     border:none;
@@ -69,7 +60,7 @@
     font-weight:900;
     border-radius:10px;
     padding:10px 12px;
-    background:var(--soft);
+    background:rgba(46,125,50,.10);
     color:#1b5e20;
   }
   .btn.primary{
@@ -86,42 +77,27 @@
     font-size:12px;
   }
 
-  /* ===== Page ===== */
-  .page{
-    max-width:1100px;
+  /* main container */
+  .wrap{
+    max-width:980px;
     margin:0 auto;
-    padding:16px;
+    display:grid;
+    grid-template-columns: 360px 1fr;
+    gap:12px;
   }
 
-  /* ===== Simple cards ===== */
   .card{
     background:#fff;
     border:1px solid var(--border);
     border-radius:12px;
-    padding:14px;
-  }
-  .cardTitle{
-    margin:0 0 10px;
-    color:#1b5e20;
-    font-weight:900;
-    font-size:14px;
-    letter-spacing:.4px;
-  }
-  .hint{
-    margin:6px 0 0;
-    color:var(--muted);
-    font-weight:700;
-    font-size:12px;
+    padding:12px;
   }
 
-  /* ===== Registration centered ===== */
-  .centerBox{
-    display:flex;
-    justify-content:center;
-    margin-top:10px;
-  }
-  .registerCard{
-    width:min(720px, 100%);
+  h2{
+    margin:0 0 10px;
+    font-size:14px;
+    color:#1b5e20;
+    letter-spacing:.4px;
   }
 
   label{
@@ -129,7 +105,7 @@
     font-weight:900;
     color:#1b5e20;
     font-size:12px;
-    margin:4px 0 6px;
+    margin:6px 0 6px;
   }
   input, select{
     width:100%;
@@ -138,110 +114,79 @@
     border:1px solid rgba(0,0,0,.12);
     outline:none;
     font-size:14px;
-    background:#fff;
   }
   input:focus, select:focus{
     border-color: rgba(46,125,50,.55);
     box-shadow: 0 0 0 4px rgba(46,125,50,.10);
   }
-  .grid{
+
+  .row{
     display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:10px;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
   }
-  .grid.one{ grid-template-columns:1fr; }
+  .row.one{ grid-template-columns:1fr; }
 
-  .rowBtns{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-top:10px;
-  }
-  .rowBtns .btn{
-    flex:1;
-    justify-content:center;
-    display:inline-flex;
-    align-items:center;
+  .note{
+    margin-top:8px;
+    font-size:12px;
+    color:var(--muted);
+    font-weight:700;
   }
 
-  .unlockBox{
+  .unlock{
     background:rgba(46,125,50,.06);
-    border:1px dashed rgba(46,125,50,.30);
+    border:1px dashed rgba(46,125,50,.28);
     border-radius:12px;
-    padding:12px;
-    margin-bottom:12px;
+    padding:10px;
+    margin-bottom:10px;
   }
 
   .preview{
     display:flex;
     align-items:center;
-    gap:12px;
+    gap:10px;
     padding:10px;
-    border-radius:12px;
     border:1px solid rgba(0,0,0,.08);
-    background:#fbfffb;
+    border-radius:12px;
     margin-top:10px;
   }
   .preview img{
-    width:64px; height:64px;
+    width:56px; height:56px;
     border-radius:12px;
-    border:1px solid rgba(46,125,50,.35);
+    border:1px solid rgba(46,125,50,.30);
     object-fit:cover;
     display:none;
   }
-  .preview .txt{
-    font-size:12px;
-    color:var(--muted);
-    font-weight:800;
-    line-height:1.3;
+  .smallBtns{
+    display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;
   }
+  .smallBtns .btn{ flex:1; }
 
-  /* ===== Candidates by position ===== */
-  .sectionHead{
+  /* candidate list */
+  .list{
     display:flex;
-    align-items:flex-end;
-    justify-content:space-between;
+    flex-direction:column;
     gap:10px;
-    flex-wrap:wrap;
-    margin:18px 0 10px;
-  }
-  .sectionHead h3{
-    margin:0;
-    color:#1b5e20;
-    font-weight:900;
-    letter-spacing:.4px;
-    font-size:14px;
-  }
-  .sectionHead .sub{
-    color:var(--muted);
-    font-weight:800;
-    font-size:12px;
-  }
-
-  .positions{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:12px;
   }
   .posBox{
-    background:#fff;
     border:1px solid rgba(0,0,0,.10);
     border-radius:12px;
     overflow:hidden;
+    background:#fff;
   }
   .posTop{
     padding:10px 12px;
     background:rgba(46,125,50,.08);
     display:flex;
-    align-items:center;
     justify-content:space-between;
+    align-items:center;
     gap:10px;
-    border-bottom:1px solid rgba(0,0,0,.06);
   }
   .posTop b{
-    font-size:12px;
-    letter-spacing:.5px;
     text-transform:uppercase;
+    letter-spacing:.6px;
+    font-size:12px;
     color:#1b5e20;
   }
   .posTop span{
@@ -249,15 +194,15 @@
     font-weight:900;
     color:#1b5e20;
     background:#fff;
-    border:1px solid rgba(46,125,50,.22);
+    border:1px solid rgba(46,125,50,.20);
     padding:4px 8px;
     border-radius:999px;
   }
-  .posList{
+  .candList{
     padding:10px 12px;
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:8px;
   }
   .cand{
     display:flex;
@@ -266,11 +211,10 @@
     border:1px solid rgba(0,0,0,.08);
     border-radius:12px;
     padding:10px;
-    background:#fff;
   }
   .cand img{
-    width:54px; height:54px;
-    border-radius:12px;
+    width:46px; height:46px;
+    border-radius:10px;
     border:1px solid rgba(46,125,50,.30);
     object-fit:cover;
     background:#fff;
@@ -306,183 +250,174 @@
   .mini.del{ background:#c62828; }
 
   .empty{
-    padding:12px;
-    text-align:center;
     color:var(--muted);
     font-weight:800;
     font-style:italic;
+    padding:10px;
+    text-align:center;
   }
 
-  @media (max-width:980px){
-    .positions{ grid-template-columns: 1fr; }
-    .grid{ grid-template-columns: 1fr; }
+  @media (max-width:900px){
+    .wrap{ grid-template-columns:1fr; }
+    .row{ grid-template-columns:1fr; }
   }
 </style>
 </head>
 
 <body>
-  <div class="topbar">
-    <div class="inner">
-      <div class="brand">
-        <b>UKSS VOTING</b>
-        <small>Candidate Registration & Export</small>
-      </div>
 
-      <div class="menu">
-        <a class="btn" href="#register" style="text-decoration:none; display:inline-block;">Registration</a>
-        <a class="btn" href="#candidates" style="text-decoration:none; display:inline-block;">Candidates</a>
-        <button class="btn" id="printBtn" type="button">Print List</button>
-        <button class="btn primary" id="downloadPdfBtn" type="button">Download PDF</button>
-        <span class="pill" id="totalPill">Total: 0</span>
-      </div>
+  <div class="header">
+    <div class="brand">
+      <b>UKSS VOTING</b>
+      <small>Candidate Registration</small>
+    </div>
+    <div class="actions">
+      <button class="btn" id="printBtn" type="button">Print</button>
+      <button class="btn primary" id="downloadPdfBtn" type="button">Download PDF</button>
+      <span class="pill" id="totalPill">Total: 0</span>
     </div>
   </div>
 
-  <div class="page">
+  <div class="wrap">
 
-    <!-- ===== Registration (center) ===== -->
-    <div id="register" class="centerBox">
-      <div class="card registerCard">
-        <h2 class="cardTitle">Register School Candidate</h2>
+    <!-- Left: Form -->
+    <div class="card">
+      <h2>Registration Form</h2>
 
-        <div class="unlockBox">
-          <label>Admin Password</label>
-          <div class="grid">
-            <input type="password" id="adminPass" placeholder="Enter admin password to unlock form" />
-            <button class="btn primary" onclick="unlockForm()">UNLOCK</button>
+      <div class="unlock">
+        <label>Admin Password</label>
+        <div class="row">
+          <input type="password" id="adminPass" placeholder="Password" />
+          <button class="btn primary" onclick="unlockForm()">Unlock</button>
+        </div>
+        <div class="note" id="formStatusText">Status: Locked</div>
+      </div>
+
+      <div id="formArea" style="display:none;">
+        <input type="hidden" id="editMode" value="none" />
+        <input type="hidden" id="editID" />
+
+        <div class="row">
+          <div>
+            <label>First Name</label>
+            <input type="text" id="firstName" />
           </div>
-          <div class="hint" id="formStatusText">Status: Locked</div>
+          <div>
+            <label>Middle Name</label>
+            <input type="text" id="middleName" />
+          </div>
         </div>
 
-        <div id="formArea" style="display:none;">
-          <input type="hidden" id="editMode" value="none" />
-          <input type="hidden" id="editID" />
-
-          <div class="grid">
-            <div>
-              <label>First Name</label>
-              <input type="text" id="firstName" placeholder="e.g. John" />
-            </div>
-            <div>
-              <label>Middle Name</label>
-              <input type="text" id="middleName" placeholder="e.g. Peter" />
-            </div>
+        <div class="row">
+          <div>
+            <label>Last Name</label>
+            <input type="text" id="lastName" />
           </div>
-
-          <div class="grid">
-            <div>
-              <label>Last Name</label>
-              <input type="text" id="lastName" placeholder="e.g. Mushi" />
-            </div>
-            <div>
-              <label>Gender</label>
-              <select id="gender">
-                <option value="">--Select Gender--</option>
-                <option>Male</option>
-                <option>Female</option>
-              </select>
-            </div>
+          <div>
+            <label>Gender</label>
+            <select id="gender">
+              <option value="">--Select--</option>
+              <option>Male</option>
+              <option>Female</option>
+            </select>
           </div>
+        </div>
 
-          <div class="grid">
-            <div>
-              <label>Class</label>
-              <select id="classSelect">
-                <option value="">--Select Class--</option>
-                <option>Form One</option>
-                <option>Form Two</option>
-                <option>Form Three</option>
-                <option>Form Four</option>
-              </select>
-            </div>
-            <div>
-              <label>Position</label>
-              <select id="position">
-                <option value="">-- Select Position --</option>
-
-                <optgroup label="Head Boy & Head Girl">
-                  <option value="headBoy">Head Boy</option>
-                  <option value="headGirl">Head Girl</option>
-                </optgroup>
-
-                <optgroup label="General Secretary">
-                  <option value="generalSecretaryBoy">General Secretary (Male)</option>
-                  <option value="generalSecretaryGirl">General Secretary (Female)</option>
-                </optgroup>
-
-                <optgroup label="Sports & Games">
-                  <option value="sportsBoy">Sports & Games (Male)</option>
-                  <option value="sportsGirl">Sports & Games (Female)</option>
-                </optgroup>
-
-                <optgroup label="Food Prefect">
-                  <option value="foodBoy">Food Prefect (Male)</option>
-                  <option value="foodGirl">Food Prefect (Female)</option>
-                </optgroup>
-
-                <optgroup label="Environmental">
-                  <option value="environmentBoy">Environmental (Male)</option>
-                  <option value="environmentGirl">Environmental (Female)</option>
-                </optgroup>
-
-                <optgroup label="Health">
-                  <option value="healthBoy">Health (Male)</option>
-                  <option value="healthGirl">Health (Female)</option>
-                </optgroup>
-
-                <optgroup label="Maintenance">
-                  <option value="maintenanceBoy">Maintenance (Male)</option>
-                  <option value="maintenanceGirl">Maintenance (Female)</option>
-                </optgroup>
-
-                <optgroup label="Store Keeper">
-                  <option value="storeBoy">Store Keeper (Male)</option>
-                  <option value="storeGirl">Store Keeper (Female)</option>
-                </optgroup>
-
-                <optgroup label="Academic">
-                  <option value="academicBoy">Academic (Male)</option>
-                  <option value="academicGirl">Academic (Female)</option>
-                </optgroup>
-
-                <optgroup label="Discipline">
-                  <option value="disciplineBoy">Discipline (Male)</option>
-                  <option value="disciplineGirl">Discipline (Female)</option>
-                </optgroup>
-              </select>
-            </div>
+        <div class="row">
+          <div>
+            <label>Class</label>
+            <select id="classSelect">
+              <option value="">--Select--</option>
+              <option>Form One</option>
+              <option>Form Two</option>
+              <option>Form Three</option>
+              <option>Form Four</option>
+            </select>
           </div>
+          <div>
+            <label>Position</label>
+            <select id="position">
+              <option value="">--Select--</option>
 
-          <div class="grid one">
-            <div>
-              <label>Upload Candidate Picture</label>
-              <input type="file" id="photo" accept="image/*" />
-            </div>
-          </div>
+              <optgroup label="Head Boy & Head Girl">
+                <option value="headBoy">Head Boy</option>
+                <option value="headGirl">Head Girl</option>
+              </optgroup>
 
-          <div class="preview">
-            <img id="previewImg" alt="preview" />
-            <div class="txt" id="previewTxt">Upload photo to preview. If no photo, PDF uses boy/girl placeholder.</div>
-          </div>
+              <optgroup label="General Secretary">
+                <option value="generalSecretaryBoy">General Secretary (Male)</option>
+                <option value="generalSecretaryGirl">General Secretary (Female)</option>
+              </optgroup>
 
-          <div class="rowBtns">
-            <button class="btn primary" onclick="saveCandidate()">SAVE CANDIDATE</button>
-            <button class="btn" onclick="resetForm()">RESET</button>
+              <optgroup label="Sports & Games">
+                <option value="sportsBoy">Sports & Games (Male)</option>
+                <option value="sportsGirl">Sports & Games (Female)</option>
+              </optgroup>
+
+              <optgroup label="Food Prefect">
+                <option value="foodBoy">Food Prefect (Male)</option>
+                <option value="foodGirl">Food Prefect (Female)</option>
+              </optgroup>
+
+              <optgroup label="Environmental">
+                <option value="environmentBoy">Environmental (Male)</option>
+                <option value="environmentGirl">Environmental (Female)</option>
+              </optgroup>
+
+              <optgroup label="Health">
+                <option value="healthBoy">Health (Male)</option>
+                <option value="healthGirl">Health (Female)</option>
+              </optgroup>
+
+              <optgroup label="Maintenance">
+                <option value="maintenanceBoy">Maintenance (Male)</option>
+                <option value="maintenanceGirl">Maintenance (Female)</option>
+              </optgroup>
+
+              <optgroup label="Store Keeper">
+                <option value="storeBoy">Store Keeper (Male)</option>
+                <option value="storeGirl">Store Keeper (Female)</option>
+              </optgroup>
+
+              <optgroup label="Academic">
+                <option value="academicBoy">Academic (Male)</option>
+                <option value="academicGirl">Academic (Female)</option>
+              </optgroup>
+
+              <optgroup label="Discipline">
+                <option value="disciplineBoy">Discipline (Male)</option>
+                <option value="disciplineGirl">Discipline (Female)</option>
+              </optgroup>
+            </select>
           </div>
+        </div>
+
+        <div class="row one">
+          <div>
+            <label>Photo</label>
+            <input type="file" id="photo" accept="image/*" />
+          </div>
+        </div>
+
+        <div class="preview">
+          <img id="previewImg" alt="preview" />
+          <div class="note" id="previewTxt">If no photo, PDF will use boy/girl placeholder.</div>
+        </div>
+
+        <div class="smallBtns">
+          <button class="btn primary" onclick="saveCandidate()">Save</button>
+          <button class="btn" onclick="resetForm()">Reset</button>
         </div>
       </div>
     </div>
 
-    <!-- ===== Candidates ===== -->
-    <div id="candidates" class="sectionHead">
-      <div>
-        <h3>Candidates by Position</h3>
-        <div class="sub">All competitors grouped per position</div>
-      </div>
-      <span class="pill" id="updatedPill">Updated: —</span>
+    <!-- Right: Candidates -->
+    <div class="card">
+      <h2>Candidates</h2>
+      <div class="note">Grouped by position.</div>
+      <div style="height:10px"></div>
+      <div class="list" id="positionsGrid"></div>
     </div>
-
-    <div class="positions" id="positionsGrid"></div>
 
   </div>
 
@@ -509,9 +444,6 @@
 
   // UI refs
   const totalPill = document.getElementById("totalPill");
-  const updatedPill = document.getElementById("updatedPill");
-  const formStatusText = document.getElementById("formStatusText");
-
   const positionsGrid = document.getElementById("positionsGrid");
   const printBtn = document.getElementById("printBtn");
   const downloadPdfBtn = document.getElementById("downloadPdfBtn");
@@ -519,6 +451,7 @@
   // Form refs
   const adminPass = document.getElementById("adminPass");
   const formArea = document.getElementById("formArea");
+  const formStatusText = document.getElementById("formStatusText");
   const editMode = document.getElementById("editMode");
   const editID = document.getElementById("editID");
 
@@ -533,7 +466,7 @@
   const previewImg = document.getElementById("previewImg");
   const previewTxt = document.getElementById("previewTxt");
 
-  // data
+  // Data
   let allCandidates = {};
 
   const BASES = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
@@ -583,7 +516,7 @@
     return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
   }
 
-  // unlock
+  // Unlock
   window.unlockForm = function(){
     if(adminPass.value === "ukss2025"){
       formArea.style.display = "block";
@@ -591,7 +524,7 @@
     } else alert("Incorrect admin password!");
   };
 
-  // preview
+  // Preview
   photo.addEventListener("change", function(){
     const file = this.files[0];
     if(!file) return;
@@ -599,16 +532,15 @@
     reader.onload = e => {
       previewImg.src = e.target.result;
       previewImg.style.display = "block";
-      previewTxt.textContent = "Preview ready. Saving uploads photo to Firebase Storage.";
+      previewTxt.textContent = "Preview ready.";
     };
     reader.readAsDataURL(file);
   });
 
-  // load candidates
+  // Load candidates
   onValue(ref(db,"candidates"), snap=>{
     allCandidates = snap.val() || {};
     totalPill.textContent = `Total: ${Object.keys(allCandidates).length}`;
-    updatedPill.textContent = `Updated: ${new Date().toLocaleString()}`;
     renderCandidatesByPosition();
   });
 
@@ -642,7 +574,7 @@
             <b>${escapeHtml(prettyTitle(base))}</b>
             <span>${list.length}</span>
           </div>
-          <div class="posList">
+          <div class="candList">
             ${
               list.length
               ? list.map(c=>{
@@ -652,7 +584,7 @@
                       <img src="${escapeHtml(img)}" alt="photo">
                       <div>
                         <div class="name">${escapeHtml(fullName(c) || "-")}</div>
-                        <div class="meta">${escapeHtml(c.classSelect || "-")} • ${escapeHtml(c.gender || "-")} • ${escapeHtml(c.position || "-")}</div>
+                        <div class="meta">${escapeHtml(c.classSelect || "-")} • ${escapeHtml(c.gender || "-")}</div>
                       </div>
                       <div class="act">
                         <button class="mini edit" onclick="editCandidate('${c.id}')">Edit</button>
@@ -661,7 +593,7 @@
                     </div>
                   `;
                 }).join("")
-              : `<div class="empty">No candidates registered.</div>`
+              : `<div class="empty">No candidates</div>`
             }
           </div>
         </div>
@@ -671,7 +603,7 @@
     positionsGrid.innerHTML = html;
   }
 
-  // edit
+  // Edit
   window.editCandidate = async function(id){
     const snap = await get(ref(db,"candidates/"+id));
     if(!snap.exists()) return;
@@ -690,17 +622,16 @@
     if(c.photoURL){
       previewImg.src = c.photoURL;
       previewImg.style.display = "block";
-      previewTxt.textContent = "Existing photo loaded. Upload a new one only if you want to replace.";
-    }else{
+      previewTxt.textContent = "Existing photo loaded.";
+    } else {
       previewImg.style.display = "none";
-      previewTxt.textContent = "Upload photo to preview. If no photo, PDF uses boy/girl placeholder.";
+      previewTxt.textContent = "If no photo, PDF uses placeholder.";
     }
 
-    location.hash = "#register";
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // delete
+  // Delete
   window.deleteCandidate = async function(id){
     if(confirm("Delete this candidate?")){
       await remove(ref(db,"candidates/"+id));
@@ -708,7 +639,7 @@
     }
   };
 
-  // reset
+  // Reset
   window.resetForm = function(){
     editMode.value = "none";
     editID.value = "";
@@ -720,10 +651,10 @@
     position.value = "";
     photo.value = "";
     previewImg.style.display = "none";
-    previewTxt.textContent = "Upload photo to preview. If no photo, PDF uses boy/girl placeholder.";
+    previewTxt.textContent = "If no photo, PDF uses placeholder.";
   };
 
-  // save
+  // Save
   window.saveCandidate = async function(){
     const first = firstName.value.trim();
     const middle = middleName.value.trim();
@@ -761,21 +692,17 @@
         photoURL
       });
 
-      alert("Candidate saved!");
+      alert("Saved!");
       resetForm();
-
     }catch(err){
       alert("Error: " + err.message);
     }
   };
 
-  /* ===== PRINT (simple) ===== */
-  printBtn.addEventListener("click", () => {
-    // simplest: open browser print of current page
-    window.print();
-  });
+  // Print
+  printBtn.addEventListener("click", () => window.print());
 
-  /* ===== PDF DOWNLOAD (center heading + subheading + better photos) ===== */
+  // ===== PDF (fit images in box + full table width) =====
   async function fetchAsDataURL(url){
     const res = await fetch(url, { mode: "cors" });
     if(!res.ok) throw new Error("Image fetch failed");
@@ -794,8 +721,8 @@
       img.crossOrigin = "anonymous";
       img.onload = ()=>{
         const canvas = document.createElement("canvas");
-        canvas.width = 140;
-        canvas.height = 140;
+        canvas.width = 200;
+        canvas.height = 200;
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0,0,canvas.width,canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -809,32 +736,32 @@
   downloadPdfBtn.addEventListener("click", async () => {
     const btn = downloadPdfBtn;
     const old = btn.textContent;
-    btn.textContent = "Preparing PDF...";
+    btn.textContent = "Preparing...";
     btn.disabled = true;
 
     try{
       const groups = groupCandidates();
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"pt", format:"a4" });
-
       const pageW = doc.internal.pageSize.getWidth();
+
       const now = new Date().toLocaleString();
       const total = Object.keys(allCandidates||{}).length;
 
-      // ===== Center heading + subheading
+      // Center heading + subheading
       doc.setFont("helvetica","bold");
       doc.setFontSize(18);
-      doc.text("UKSS VOTING", pageW/2, 52, { align:"center" });
+      doc.text("UKSS VOTING", pageW/2, 50, { align:"center" });
 
       doc.setFont("helvetica","normal");
       doc.setFontSize(11);
-      doc.text("CANDIDATES LIST", pageW/2, 72, { align:"center" });
-      doc.text(`Prepared: ${now}  •  Total: ${total}`, pageW/2, 88, { align:"center" });
+      doc.text("CANDIDATES LIST", pageW/2, 70, { align:"center" });
+      doc.text(`Prepared: ${now} • Total: ${total}`, pageW/2, 86, { align:"center" });
 
-      let y = 115;
+      let y = 110;
 
       // preload images
-      const imgMap = new Map(); // key -> dataURL
+      const imgMap = new Map();
       const flat = [];
       for(const base of BASES){
         for(const c of (groups[base] || [])){
@@ -846,18 +773,14 @@
       for(const c of flat){
         let dataUrl = "";
         try{
-          if(c.photoURL){
-            dataUrl = await fetchAsDataURL(c.photoURL);
-          } else {
-            dataUrl = await svgToPngDataUrl(placeholderDataUrl(c.gender));
-          }
-        } catch(e){
-          try { dataUrl = await svgToPngDataUrl(placeholderDataUrl(c.gender)); } catch(_) { dataUrl = ""; }
+          if(c.photoURL) dataUrl = await fetchAsDataURL(c.photoURL);
+          else dataUrl = await svgToPngDataUrl(placeholderDataUrl(c.gender));
+        }catch(e){
+          dataUrl = await svgToPngDataUrl(placeholderDataUrl(c.gender));
         }
         imgMap.set(c.__imgKey, dataUrl);
       }
 
-      // helper rows
       function rowsFor(list){
         return list.map(c => ([
           c.__imgKey,
@@ -867,14 +790,13 @@
         ]));
       }
 
-      // draw each position section
       for(const base of BASES){
         const list = groups[base] || [];
 
         doc.setFont("helvetica","bold");
         doc.setFontSize(12);
         doc.text(prettyTitle(base).toUpperCase(), 40, y);
-        y += 8;
+        y += 6;
 
         const body = list.length ? rowsFor(list) : [["", "No candidates", "-", "-"]];
 
@@ -884,41 +806,57 @@
           body,
           margin: { left: 40, right: 40 },
           theme: "grid",
-          styles: { font: "helvetica", fontSize: 9, cellPadding: 6, valign:"middle" },
+          styles: {
+            font: "helvetica",
+            fontSize: 9,
+            cellPadding: 6,
+            valign: "middle",
+            overflow: "linebreak"
+          },
           headStyles: { fontStyle: "bold" },
+          // Make table use page nicely
+          tableWidth: "auto",
           columnStyles: {
-            0: { cellWidth: 60 },
-            1: { cellWidth: 240 },
-            2: { cellWidth: 90 },
-            3: { cellWidth: 90 }
+            0: { cellWidth: 64, halign: "center" },
+            1: { cellWidth: 260 },
+            2: { cellWidth: 85 },
+            3: { cellWidth: 85 }
           },
           didDrawCell: (data) => {
+            // draw images in PHOTO column
             if(data.section === "body" && data.column.index === 0){
               const key = data.cell.raw;
               if(!key) return;
+
               const img = imgMap.get(String(key));
               if(!img) return;
 
-              const x = data.cell.x + 9;
-              const y = data.cell.y + 6;
-              const w = 42;
-              const h = 42;
+              // box area inside the cell
+              const pad = 6;
+              const boxX = data.cell.x + pad;
+              const boxY = data.cell.y + pad;
+              const boxW = data.cell.width - pad*2;
+              const boxH = data.cell.height - pad*2;
 
-              // draw a light border box behind photo (clean look)
-              doc.setDrawColor(200);
-              doc.rect(data.cell.x + 6, data.cell.y + 6, 48, 48);
+              // square image to fit (centered)
+              const size = Math.min(boxW, boxH);
+              const x = boxX + (boxW - size)/2;
+              const y = boxY + (boxH - size)/2;
 
-              // add image
-              try{ doc.addImage(img, "PNG", x, y, w, h); }
+              // border box
+              doc.setDrawColor(210);
+              doc.rect(boxX, boxY, boxW, boxH);
+
+              // image inside (fit)
+              try{ doc.addImage(img, "PNG", x, y, size, size); }
               catch(e){
-                try{ doc.addImage(img, "JPEG", x, y, w, h); }catch(_){}
+                try{ doc.addImage(img, "JPEG", x, y, size, size); }catch(_){}
               }
             }
           }
         });
 
-        y = doc.lastAutoTable.finalY + 16;
-
+        y = doc.lastAutoTable.finalY + 14;
         if(y > 760){
           doc.addPage();
           y = 60;
@@ -928,7 +866,7 @@
       doc.save("UKSS_Candidates_List_With_Photos.pdf");
     }catch(err){
       console.error(err);
-      alert("Failed to generate PDF. If some photos are blocked, placeholders will be used.");
+      alert("PDF generation failed.");
     }finally{
       btn.textContent = old;
       btn.disabled = false;
