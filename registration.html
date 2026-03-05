@@ -2,426 +2,613 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>UKSS — Candidate Registration</title>
+<title>UKSS • Candidate Registration System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <!-- jsPDF + AutoTable -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <style>
-  :root{
-    --accent:#2e7d32;
-    --bg:#f7fff7;
-    --text:#123;
-    --muted:#5b6b60;
-    --border:rgba(0,0,0,.12);
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-    background:var(--bg);
-    color:var(--text);
-    padding:16px;
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
 
-  /* simple header */
-  .header{
-    max-width:980px;
-    margin:0 auto 12px;
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:12px 14px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    flex-wrap:wrap;
+  :root {
+    --primary: #1b5e20;      /* Dark green */
+    --primary-light: #2e7d32; /* Medium green */
+    --primary-soft: #e8f5e9;  /* Very light green */
+    --accent: #ffb74d;        /* Warm orange accent */
+    --accent-light: #ffe0b2;
+    --dark: #1f2a1f;
+    --gray: #5b6b60;
+    --light-gray: #f0f4f0;
+    --white: #ffffff;
+    --border: rgba(0, 40, 0, 0.12);
+    --shadow: 0 10px 30px -10px rgba(27, 94, 32, 0.2);
+    --shadow-sm: 0 4px 10px rgba(0, 30, 0, 0.08);
+    --radius: 16px;
+    --radius-sm: 12px;
   }
-  .header .brand{
-    display:flex; flex-direction:column; gap:2px;
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(145deg, #f5faf5 0%, #eef5ee 100%);
+    color: var(--dark);
+    padding: 24px 20px;
+    min-height: 100vh;
   }
-  .header .brand b{
-    color:var(--accent);
-    letter-spacing:.6px;
+
+  /* header pro styling */
+  .header {
+    max-width: 1200px;
+    margin: 0 auto 24px;
+    background: var(--white);
+    border-radius: 30px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(46, 125, 50, 0.15);
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.95);
   }
-  .header .brand small{
-    color:var(--muted);
-    font-weight:700;
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
-  .actions{
-    display:flex; gap:8px; flex-wrap:wrap;
+
+  .brand-icon {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    width: 48px;
+    height: 48px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    box-shadow: 0 6px 12px rgba(27, 94, 32, 0.25);
   }
-  .btn{
-    border:none;
-    cursor:pointer;
-    font-weight:900;
-    border-radius:10px;
-    padding:10px 12px;
-    background:rgba(46,125,50,.10);
-    color:#1b5e20;
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
   }
-  .btn.primary{
-    background:var(--accent);
-    color:#fff;
+
+  .brand-text h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary) 0%, #3b8b3f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
   }
-  .pill{
-    padding:8px 10px;
-    border-radius:999px;
-    background:#fff;
-    border:1px solid rgba(46,125,50,.22);
-    color:#1b5e20;
-    font-weight:900;
-    font-size:12px;
+
+  .brand-text span {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gray);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 40px;
+    padding: 12px 20px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid transparent;
+  }
+
+  .btn i {
+    font-size: 16px;
+  }
+
+  .btn-outline {
+    background: white;
+    color: var(--primary);
+    border-color: var(--primary-light);
+  }
+
+  .btn-outline:hover {
+    background: var(--primary-soft);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(46, 125, 50, 0.2);
+  }
+
+  .btn-primary {
+    background: linear-gradient(145deg, var(--primary), var(--primary-light));
+    color: white;
+    box-shadow: 0 8px 18px rgba(27, 94, 32, 0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 22px rgba(27, 94, 32, 0.4);
+  }
+
+  .pill {
+    background: var(--primary-soft);
+    padding: 8px 18px;
+    border-radius: 60px;
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid rgba(46, 125, 50, 0.3);
+  }
+
+  .pill i {
+    font-size: 16px;
   }
 
   /* main container */
-  .wrap{
-    max-width:980px;
-    margin:0 auto;
-    display:grid;
-    grid-template-columns: 360px 1fr;
-    gap:12px;
+  .wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 22px;
   }
 
-  .card{
-    background:#fff;
-    border:1px solid var(--border);
-    border-radius:12px;
-    padding:12px;
+  .card {
+    background: var(--white);
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(46, 125, 50, 0.12);
+    backdrop-filter: blur(4px);
+    transition: transform 0.2s;
   }
 
-  h2{
-    margin:0 0 10px;
-    font-size:14px;
-    color:#1b5e20;
-    letter-spacing:.4px;
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 30px -10px rgba(27, 94, 32, 0.25);
   }
 
-  label{
-    display:block;
-    font-weight:900;
-    color:#1b5e20;
-    font-size:12px;
-    margin:6px 0 6px;
-  }
-  input, select{
-    width:100%;
-    padding:10px 12px;
-    border-radius:10px;
-    border:1px solid rgba(0,0,0,.12);
-    outline:none;
-    font-size:14px;
-  }
-  input:focus, select:focus{
-    border-color: rgba(46,125,50,.55);
-    box-shadow: 0 0 0 4px rgba(46,125,50,.10);
+  .card h2 {
+    font-size: 1.2rem;
+    color: var(--primary);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    border-bottom: 2px solid var(--primary-soft);
+    padding-bottom: 12px;
   }
 
-  .row{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px;
-  }
-  .row.one{ grid-template-columns:1fr; }
-
-  .note{
-    margin-top:8px;
-    font-size:12px;
-    color:var(--muted);
-    font-weight:700;
+  .card h2 i {
+    color: var(--primary-light);
+    font-size: 1.4rem;
   }
 
-  .unlock{
-    background:rgba(46,125,50,.06);
-    border:1px dashed rgba(46,125,50,.28);
-    border-radius:12px;
-    padding:10px;
-    margin-bottom:10px;
+  .unlock-card {
+    background: linear-gradient(145deg, #f9fff9, #edf7ed);
+    border: 1px solid var(--primary-light);
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 20px;
   }
 
-  .preview{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:10px;
-    border:1px solid rgba(0,0,0,.08);
-    border-radius:12px;
-    margin-top:10px;
-  }
-  .preview img{
-    width:56px; height:56px;
-    border-radius:12px;
-    border:1px solid rgba(46,125,50,.30);
-    object-fit:cover;
-    display:none;
-  }
-  .smallBtns{
-    display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;
-  }
-  .smallBtns .btn{ flex:1; }
-
-  /* candidate list */
-  .list{
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
-  .posBox{
-    border:1px solid rgba(0,0,0,.10);
-    border-radius:12px;
-    overflow:hidden;
-    background:#fff;
-  }
-  .posTop{
-    padding:10px 12px;
-    background:rgba(46,125,50,.08);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-  }
-  .posTop b{
-    text-transform:uppercase;
-    letter-spacing:.6px;
-    font-size:12px;
-    color:#1b5e20;
-  }
-  .posTop span{
-    font-size:12px;
-    font-weight:900;
-    color:#1b5e20;
-    background:#fff;
-    border:1px solid rgba(46,125,50,.20);
-    padding:4px 8px;
-    border-radius:999px;
-  }
-  .candList{
-    padding:10px 12px;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-  }
-  .cand{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    border:1px solid rgba(0,0,0,.08);
-    border-radius:12px;
-    padding:10px;
-  }
-  .cand img{
-    width:46px; height:46px;
-    border-radius:10px;
-    border:1px solid rgba(46,125,50,.30);
-    object-fit:cover;
-    background:#fff;
-  }
-  .cand .name{
-    font-weight:900;
-    font-size:13px;
-    color:#17341b;
-    line-height:1.2;
-  }
-  .cand .meta{
-    font-size:12px;
-    color:var(--muted);
-    font-weight:800;
-    margin-top:3px;
-  }
-  .cand .act{
-    margin-left:auto;
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-  .mini{
-    border:none;
-    cursor:pointer;
-    border-radius:10px;
-    padding:8px 10px;
-    font-weight:900;
-    font-size:12px;
-    color:#fff;
-  }
-  .mini.edit{ background:#0277bd; }
-  .mini.del{ background:#c62828; }
-
-  .empty{
-    color:var(--muted);
-    font-weight:800;
-    font-style:italic;
-    padding:10px;
-    text-align:center;
+  .label {
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
-  @media (max-width:900px){
-    .wrap{ grid-template-columns:1fr; }
-    .row{ grid-template-columns:1fr; }
+  .input-wrapper {
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  .input-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray);
+    font-size: 1rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 14px 18px 14px 42px;
+    border-radius: 50px;
+    border: 2px solid #e0e8e0;
+    font-size: 14px;
+    transition: all 0.15s;
+    background: white;
+    font-weight: 500;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 5px rgba(46, 125, 50, 0.15);
+    outline: none;
+  }
+
+  .row-duo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .photo-preview-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: var(--light-gray);
+    border-radius: 20px;
+    padding: 16px;
+    margin: 16px 0;
+  }
+
+  .photo-preview-area img {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    object-fit: cover;
+    border: 3px solid white;
+    box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+    display: none;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .btn-group .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* candidate list premium */
+  .list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .pos-box {
+    background: white;
+    border-radius: 24px;
+    overflow: hidden;
+    border: 1px solid rgba(46, 125, 50, 0.2);
+    transition: all 0.2s;
+  }
+
+  .pos-header {
+    background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .pos-header b {
+    font-size: 1rem;
+    color: var(--primary);
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pos-header b i {
+    color: var(--accent);
+  }
+
+  .badge-count {
+    background: white;
+    color: var(--primary);
+    font-weight: 800;
+    padding: 5px 12px;
+    border-radius: 60px;
+    font-size: 0.85rem;
+    border: 1px solid rgba(46, 125, 50, 0.3);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+
+  .cand-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cand-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fafefa;
+    border-radius: 18px;
+    padding: 12px 14px;
+    border: 1px solid rgba(0,30,0,0.06);
+    transition: all 0.15s;
+  }
+
+  .cand-item:hover {
+    background: white;
+    border-color: var(--primary-light);
+    box-shadow: 0 6px 12px rgba(27,94,32,0.08);
+  }
+
+  .cand-item img {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 4px 8px rgba(0, 20, 0, 0.1);
+  }
+
+  .cand-info {
+    flex: 1;
+  }
+
+  .cand-name {
+    font-weight: 700;
+    color: var(--dark);
+    font-size: 0.95rem;
+  }
+
+  .cand-meta {
+    font-size: 0.75rem;
+    color: var(--gray);
+    font-weight: 600;
+    margin-top: 2px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .cand-meta span {
+    background: var(--primary-soft);
+    padding: 3px 8px;
+    border-radius: 30px;
+    color: var(--primary);
+  }
+
+  .action-btns {
+    display: flex;
+    gap: 5px;
+  }
+
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    border: none;
+    background: white;
+    color: var(--primary);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    border: 1px solid rgba(46,125,50,0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .icon-btn.edit:hover {
+    background: #e3f2fd;
+    color: #0277bd;
+    border-color: #0277bd;
+  }
+
+  .icon-btn.del:hover {
+    background: #ffebee;
+    color: #c62828;
+    border-color: #c62828;
+  }
+
+  .empty-state {
+    color: var(--gray);
+    font-weight: 500;
+    text-align: center;
+    padding: 30px 20px;
+    background: #f8faf8;
+    border-radius: 20px;
+    font-style: italic;
+  }
+
+  /* status indicator */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff3e0;
+    border-radius: 60px;
+    padding: 6px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #bf5e00;
+    border-left: 3px solid #ffb74d;
+  }
+
+  .status-badge i {
+    color: #ff9800;
+  }
+
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; }
+    .row-duo { grid-template-columns: 1fr; }
   }
 </style>
 </head>
-
 <body>
 
-  <div class="header">
-    <div class="brand">
-      <b>UKSS VOTING</b>
-      <small>Candidate Registration</small>
+<div class="header">
+  <div class="brand">
+    <div class="brand-icon">
+      <i class="fas fa-check-double"></i>
     </div>
-    <div class="actions">
-      <button class="btn" id="printBtn" type="button">Print</button>
-      <button class="btn primary" id="downloadPdfBtn" type="button">Download PDF</button>
-      <span class="pill" id="totalPill">Total: 0</span>
+    <div class="brand-text">
+      <h1>UKSS · VOTING</h1>
+      <span>CANDIDATE REGISTRATION PORTAL</span>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-outline" id="printBtn"><i class="fas fa-print"></i> Print</button>
+    <button class="btn btn-primary" id="downloadPdfBtn"><i class="fas fa-file-pdf"></i> PDF Report</button>
+    <span class="pill" id="totalPill"><i class="fas fa-users"></i> Total: 0</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- LEFT: FORM CARD -->
+  <div class="card">
+    <h2><i class="fas fa-pen-alt"></i> Registration Form</h2>
+
+    <div class="unlock-card">
+      <div class="label"><i class="fas fa-lock"></i> Admin Access</div>
+      <div class="row-duo">
+        <div class="input-wrapper">
+          <i class="fas fa-key"></i>
+          <input type="password" id="adminPass" placeholder="Enter password" />
+        </div>
+        <button class="btn btn-primary" onclick="unlockForm()" style="padding:12px"><i class="fas fa-unlock-alt"></i> Unlock</button>
+      </div>
+      <div class="status-badge" id="formStatusText"><i class="fas fa-lock"></i> Locked</div>
+    </div>
+
+    <div id="formArea" style="display:none;">
+      <input type="hidden" id="editMode" value="none" />
+      <input type="hidden" id="editID" />
+
+      <div class="row-duo">
+        <div class="input-wrapper"><i class="fas fa-user"></i><input type="text" id="firstName" placeholder="First name" /></div>
+        <div class="input-wrapper"><i class="fas fa-user-circle"></i><input type="text" id="middleName" placeholder="Middle name" /></div>
+      </div>
+      <div class="row-duo">
+        <div class="input-wrapper"><i class="fas fa-user-tie"></i><input type="text" id="lastName" placeholder="Last name" /></div>
+        <div class="input-wrapper"><i class="fas fa-venus-mars"></i>
+          <select id="gender">
+            <option value="">Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row-duo">
+        <div class="input-wrapper"><i class="fas fa-graduation-cap"></i>
+          <select id="classSelect">
+            <option value="">Class</option>
+            <option>Form One</option>
+            <option>Form Two</option>
+            <option>Form Three</option>
+            <option>Form Four</option>
+          </select>
+        </div>
+        <div class="input-wrapper"><i class="fas fa-tag"></i>
+          <select id="position">
+            <option value="">Position</option>
+            <optgroup label="Head Boy & Head Girl">
+              <option value="headBoy">Head Boy</option>
+              <option value="headGirl">Head Girl</option>
+            </optgroup>
+            <optgroup label="General Secretary">
+              <option value="generalSecretaryBoy">General Secretary (Male)</option>
+              <option value="generalSecretaryGirl">General Secretary (Female)</option>
+            </optgroup>
+            <optgroup label="Sports & Games">
+              <option value="sportsBoy">Sports & Games (Male)</option>
+              <option value="sportsGirl">Sports & Games (Female)</option>
+            </optgroup>
+            <optgroup label="Food Prefect">
+              <option value="foodBoy">Food Prefect (Male)</option>
+              <option value="foodGirl">Food Prefect (Female)</option>
+            </optgroup>
+            <optgroup label="Environmental">
+              <option value="environmentBoy">Environmental (Male)</option>
+              <option value="environmentGirl">Environmental (Female)</option>
+            </optgroup>
+            <optgroup label="Health">
+              <option value="healthBoy">Health (Male)</option>
+              <option value="healthGirl">Health (Female)</option>
+            </optgroup>
+            <optgroup label="Maintenance">
+              <option value="maintenanceBoy">Maintenance (Male)</option>
+              <option value="maintenanceGirl">Maintenance (Female)</option>
+            </optgroup>
+            <optgroup label="Store Keeper">
+              <option value="storeBoy">Store Keeper (Male)</option>
+              <option value="storeGirl">Store Keeper (Female)</option>
+            </optgroup>
+            <optgroup label="Academic">
+              <option value="academicBoy">Academic (Male)</option>
+              <option value="academicGirl">Academic (Female)</option>
+            </optgroup>
+            <optgroup label="Discipline">
+              <option value="disciplineBoy">Discipline (Male)</option>
+              <option value="disciplineGirl">Discipline (Female)</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+
+      <div class="input-wrapper" style="margin-top: 6px;">
+        <i class="fas fa-camera"></i>
+        <input type="file" id="photo" accept="image/*" style="padding-left: 42px;" />
+      </div>
+
+      <div class="photo-preview-area">
+        <img id="previewImg" alt="preview" />
+        <div class="label" id="previewTxt"><i class="fas fa-image"></i> No photo (placeholder will be used)</div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveCandidate()"><i class="fas fa-save"></i> Save</button>
+        <button class="btn btn-outline" onclick="resetForm()"><i class="fas fa-undo-alt"></i> Reset</button>
+      </div>
     </div>
   </div>
 
-  <div class="wrap">
-
-    <!-- Left: Form -->
-    <div class="card">
-      <h2>Registration Form</h2>
-
-      <div class="unlock">
-        <label>Admin Password</label>
-        <div class="row">
-          <input type="password" id="adminPass" placeholder="Password" />
-          <button class="btn primary" onclick="unlockForm()">Unlock</button>
-        </div>
-        <div class="note" id="formStatusText">Status: Locked</div>
-      </div>
-
-      <div id="formArea" style="display:none;">
-        <input type="hidden" id="editMode" value="none" />
-        <input type="hidden" id="editID" />
-
-        <div class="row">
-          <div>
-            <label>First Name</label>
-            <input type="text" id="firstName" />
-          </div>
-          <div>
-            <label>Middle Name</label>
-            <input type="text" id="middleName" />
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>Last Name</label>
-            <input type="text" id="lastName" />
-          </div>
-          <div>
-            <label>Gender</label>
-            <select id="gender">
-              <option value="">--Select--</option>
-              <option>Male</option>
-              <option>Female</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label>Class</label>
-            <select id="classSelect">
-              <option value="">--Select--</option>
-              <option>Form One</option>
-              <option>Form Two</option>
-              <option>Form Three</option>
-              <option>Form Four</option>
-            </select>
-          </div>
-          <div>
-            <label>Position</label>
-            <select id="position">
-              <option value="">--Select--</option>
-
-              <optgroup label="Head Boy & Head Girl">
-                <option value="headBoy">Head Boy</option>
-                <option value="headGirl">Head Girl</option>
-              </optgroup>
-
-              <optgroup label="General Secretary">
-                <option value="generalSecretaryBoy">General Secretary (Male)</option>
-                <option value="generalSecretaryGirl">General Secretary (Female)</option>
-              </optgroup>
-
-              <optgroup label="Sports & Games">
-                <option value="sportsBoy">Sports & Games (Male)</option>
-                <option value="sportsGirl">Sports & Games (Female)</option>
-              </optgroup>
-
-              <optgroup label="Food Prefect">
-                <option value="foodBoy">Food Prefect (Male)</option>
-                <option value="foodGirl">Food Prefect (Female)</option>
-              </optgroup>
-
-              <optgroup label="Environmental">
-                <option value="environmentBoy">Environmental (Male)</option>
-                <option value="environmentGirl">Environmental (Female)</option>
-              </optgroup>
-
-              <optgroup label="Health">
-                <option value="healthBoy">Health (Male)</option>
-                <option value="healthGirl">Health (Female)</option>
-              </optgroup>
-
-              <optgroup label="Maintenance">
-                <option value="maintenanceBoy">Maintenance (Male)</option>
-                <option value="maintenanceGirl">Maintenance (Female)</option>
-              </optgroup>
-
-              <optgroup label="Store Keeper">
-                <option value="storeBoy">Store Keeper (Male)</option>
-                <option value="storeGirl">Store Keeper (Female)</option>
-              </optgroup>
-
-              <optgroup label="Academic">
-                <option value="academicBoy">Academic (Male)</option>
-                <option value="academicGirl">Academic (Female)</option>
-              </optgroup>
-
-              <optgroup label="Discipline">
-                <option value="disciplineBoy">Discipline (Male)</option>
-                <option value="disciplineGirl">Discipline (Female)</option>
-              </optgroup>
-            </select>
-          </div>
-        </div>
-
-        <div class="row one">
-          <div>
-            <label>Photo</label>
-            <input type="file" id="photo" accept="image/*" />
-          </div>
-        </div>
-
-        <div class="preview">
-          <img id="previewImg" alt="preview" />
-          <div class="note" id="previewTxt">If no photo, PDF will use boy/girl placeholder.</div>
-        </div>
-
-        <div class="smallBtns">
-          <button class="btn primary" onclick="saveCandidate()">Save</button>
-          <button class="btn" onclick="resetForm()">Reset</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right: Candidates -->
-    <div class="card">
-      <h2>Candidates</h2>
-      <div class="note">Grouped by position.</div>
-      <div style="height:10px"></div>
-      <div class="list" id="positionsGrid"></div>
-    </div>
-
+  <!-- RIGHT: CANDIDATES LIST -->
+  <div class="card">
+    <h2><i class="fas fa-list-ul"></i> Registered Candidates</h2>
+    <div class="list-container" id="positionsGrid"></div>
   </div>
+</div>
 
 <script type="module">
+  // Firebase config (same as original)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
   import { getDatabase, ref, set, remove, onValue, get }
     from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
@@ -442,13 +629,12 @@
   const db = getDatabase(app);
   const storage = getStorage(app);
 
-  // UI refs
+  // DOM elements
   const totalPill = document.getElementById("totalPill");
   const positionsGrid = document.getElementById("positionsGrid");
   const printBtn = document.getElementById("printBtn");
   const downloadPdfBtn = document.getElementById("downloadPdfBtn");
 
-  // Form refs
   const adminPass = document.getElementById("adminPass");
   const formArea = document.getElementById("formArea");
   const formStatusText = document.getElementById("formStatusText");
@@ -466,12 +652,12 @@
   const previewImg = document.getElementById("previewImg");
   const previewTxt = document.getElementById("previewTxt");
 
-  // Data
   let allCandidates = {};
 
+  // Helpers
   const BASES = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
 
-  function prettyTitle(base){
+  function prettyTitle(base) {
     const map = {
       head:"Head Prefect",
       generalSecretary:"General Secretary",
@@ -487,17 +673,12 @@
     return map[base] || base;
   }
 
-  function fullName(c){
+  function fullName(c) {
     return `${c.firstName||""} ${c.middleName||""} ${c.lastName||""}`.replace(/\s+/g," ").trim();
   }
 
   function escapeHtml(str=""){
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
+    return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
   }
 
   function placeholderDataUrl(gen){
@@ -505,26 +686,21 @@
     const bg = isMale ? "#e8f5e9" : "#f3f1e6";
     const stroke = isMale ? "#2e7d32" : "#3b6b43";
     const label = isMale ? "Boy" : "Girl";
-    const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 100 100">
-      <rect width="100" height="100" rx="14" fill="${bg}"/>
-      <circle cx="50" cy="36" r="16" fill="${stroke}" fill-opacity="0.18"/>
-      <path d="M25 86c2-18 17-28 25-28s23 10 25 28" fill="${stroke}" fill-opacity="0.16"/>
-      <circle cx="50" cy="34" r="7" fill="${stroke}"/>
-      <text x="50" y="93" font-size="7" fill="${stroke}" text-anchor="middle" font-family="Arial" font-weight="700">${label}</text>
-    </svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${bg}"/><circle cx="50" cy="36" r="16" fill="${stroke}" fill-opacity="0.18"/><path d="M25 86c2-18 17-28 25-28s23 10 25 28" fill="${stroke}" fill-opacity="0.16"/><circle cx="50" cy="34" r="7" fill="${stroke}"/><text x="50" y="93" font-size="9" fill="${stroke}" text-anchor="middle" font-family="Arial" font-weight="bold">${label}</text></svg>`;
     return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
   }
 
   // Unlock
-  window.unlockForm = function(){
-    if(adminPass.value === "ukss2025"){
+  window.unlockForm = function() {
+    if(adminPass.value === "ukss2025") {
       formArea.style.display = "block";
-      formStatusText.textContent = "Status: Unlocked";
+      formStatusText.innerHTML = '<i class="fas fa-unlock"></i> Unlocked · Editing enabled';
+      formStatusText.style.background = "#e8f5e9";
+      formStatusText.style.color = "#1b5e20";
+      formStatusText.style.borderLeftColor = "#2e7d32";
     } else alert("Incorrect admin password!");
   };
 
-  // Preview
   photo.addEventListener("change", function(){
     const file = this.files[0];
     if(!file) return;
@@ -532,7 +708,7 @@
     reader.onload = e => {
       previewImg.src = e.target.result;
       previewImg.style.display = "block";
-      previewTxt.textContent = "Preview ready.";
+      previewTxt.innerHTML = '<i class="fas fa-check-circle" style="color:#2e7d32"></i> Photo ready';
     };
     reader.readAsDataURL(file);
   });
@@ -540,7 +716,7 @@
   // Load candidates
   onValue(ref(db,"candidates"), snap=>{
     allCandidates = snap.val() || {};
-    totalPill.textContent = `Total: ${Object.keys(allCandidates).length}`;
+    totalPill.innerHTML = `<i class="fas fa-users"></i> Total: ${Object.keys(allCandidates).length}`;
     renderCandidatesByPosition();
   });
 
@@ -569,49 +745,44 @@
     for(const base of BASES){
       const list = groups[base] || [];
       html += `
-        <div class="posBox">
-          <div class="posTop">
-            <b>${escapeHtml(prettyTitle(base))}</b>
-            <span>${list.length}</span>
+        <div class="pos-box">
+          <div class="pos-header">
+            <b><i class="fas fa-star"></i> ${escapeHtml(prettyTitle(base))}</b>
+            <span class="badge-count">${list.length}</span>
           </div>
-          <div class="candList">
-            ${
-              list.length
-              ? list.map(c=>{
-                  const img = c.photoURL || placeholderDataUrl(c.gender);
-                  return `
-                    <div class="cand">
-                      <img src="${escapeHtml(img)}" alt="photo">
-                      <div>
-                        <div class="name">${escapeHtml(fullName(c) || "-")}</div>
-                        <div class="meta">${escapeHtml(c.classSelect || "-")} • ${escapeHtml(c.gender || "-")}</div>
-                      </div>
-                      <div class="act">
-                        <button class="mini edit" onclick="editCandidate('${c.id}')">Edit</button>
-                        <button class="mini del" onclick="deleteCandidate('${c.id}')">Delete</button>
-                      </div>
+          <div class="cand-list">
+            ${list.length ? list.map(c=>{
+              const img = c.photoURL || placeholderDataUrl(c.gender);
+              return `
+                <div class="cand-item">
+                  <img src="${escapeHtml(img)}" alt="photo">
+                  <div class="cand-info">
+                    <div class="cand-name">${escapeHtml(fullName(c) || "-")}</div>
+                    <div class="cand-meta">
+                      <i class="fas fa-layer-group"></i> ${escapeHtml(c.classSelect || "-")}
+                      <span><i class="fas fa-${c.gender==='Male'?'mars':'venus'}"></i> ${escapeHtml(c.gender || "-")}</span>
                     </div>
-                  `;
-                }).join("")
-              : `<div class="empty">No candidates</div>`
-            }
+                  </div>
+                  <div class="action-btns">
+                    <button class="icon-btn edit" onclick="editCandidate('${c.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="icon-btn del" onclick="deleteCandidate('${c.id}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </div>
+              `;
+            }).join("") : `<div class="empty-state"><i class="fas fa-inbox"></i> No candidates yet</div>`}
           </div>
         </div>
       `;
     }
-
     positionsGrid.innerHTML = html;
   }
 
-  // Edit
   window.editCandidate = async function(id){
     const snap = await get(ref(db,"candidates/"+id));
     if(!snap.exists()) return;
     const c = snap.val();
-
     editMode.value = "edit";
     editID.value = id;
-
     firstName.value = c.firstName || "";
     middleName.value = c.middleName || "";
     lastName.value = c.lastName || "";
@@ -622,39 +793,30 @@
     if(c.photoURL){
       previewImg.src = c.photoURL;
       previewImg.style.display = "block";
-      previewTxt.textContent = "Existing photo loaded.";
+      previewTxt.innerHTML = '<i class="fas fa-check-circle" style="color:#2e7d32"></i> Existing photo loaded';
     } else {
       previewImg.style.display = "none";
-      previewTxt.textContent = "If no photo, PDF uses placeholder.";
+      previewTxt.innerHTML = '<i class="fas fa-image"></i> No photo (placeholder)';
     }
-
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Delete
   window.deleteCandidate = async function(id){
     if(confirm("Delete this candidate?")){
       await remove(ref(db,"candidates/"+id));
-      alert("Deleted.");
     }
   };
 
-  // Reset
   window.resetForm = function(){
     editMode.value = "none";
     editID.value = "";
-    firstName.value = "";
-    middleName.value = "";
-    lastName.value = "";
-    gender.value = "";
-    classSelect.value = "";
-    position.value = "";
+    firstName.value = ""; middleName.value = ""; lastName.value = "";
+    gender.value = ""; classSelect.value = ""; position.value = "";
     photo.value = "";
     previewImg.style.display = "none";
-    previewTxt.textContent = "If no photo, PDF uses placeholder.";
+    previewTxt.innerHTML = '<i class="fas fa-image"></i> No photo (placeholder)';
   };
 
-  // Save
   window.saveCandidate = async function(){
     const first = firstName.value.trim();
     const middle = middleName.value.trim();
@@ -669,10 +831,7 @@
       return;
     }
 
-    const id = editMode.value==="edit"
-      ? editID.value
-      : (first+"_"+last+"_"+pos).toLowerCase().replace(/\s+/g,"_");
-
+    const id = editMode.value==="edit" ? editID.value : (first+"_"+last+"_"+pos).toLowerCase().replace(/\s+/g,"_");
     let photoURL = previewImg.src || "";
 
     try{
@@ -683,13 +842,8 @@
       }
 
       await set(ref(db,"candidates/"+id),{
-        firstName:first,
-        middleName:middle,
-        lastName:last,
-        gender:gen,
-        classSelect:cls,
-        position:pos,
-        photoURL
+        firstName:first, middleName:middle, lastName:last,
+        gender:gen, classSelect:cls, position:pos, photoURL
       });
 
       alert("Saved!");
@@ -702,7 +856,7 @@
   // Print
   printBtn.addEventListener("click", () => window.print());
 
-  // ===== PDF (fit images in box + full table width) =====
+  // ========== PDF GENERATION (kept original logic, works with new design) ==========
   async function fetchAsDataURL(url){
     const res = await fetch(url, { mode: "cors" });
     if(!res.ok) throw new Error("Image fetch failed");
@@ -735,8 +889,8 @@
 
   downloadPdfBtn.addEventListener("click", async () => {
     const btn = downloadPdfBtn;
-    const old = btn.textContent;
-    btn.textContent = "Preparing...";
+    const old = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Preparing...';
     btn.disabled = true;
 
     try{
@@ -748,15 +902,12 @@
       const now = new Date().toLocaleString();
       const total = Object.keys(allCandidates||{}).length;
 
-      // Center heading + subheading
       doc.setFont("helvetica","bold");
-      doc.setFontSize(18);
+      doc.setFontSize(22);
       doc.text("UKSS VOTING", pageW/2, 50, { align:"center" });
-
-      doc.setFont("helvetica","normal");
-      doc.setFontSize(11);
+      doc.setFontSize(12);
       doc.text("CANDIDATES LIST", pageW/2, 70, { align:"center" });
-      doc.text(`Prepared: ${now} • Total: ${total}`, pageW/2, 86, { align:"center" });
+      doc.text(`Generated: ${now}  •  Total: ${total}`, pageW/2, 86, { align:"center" });
 
       let y = 110;
 
@@ -792,9 +943,8 @@
 
       for(const base of BASES){
         const list = groups[base] || [];
-
         doc.setFont("helvetica","bold");
-        doc.setFontSize(12);
+        doc.setFontSize(13);
         doc.text(prettyTitle(base).toUpperCase(), 40, y);
         y += 6;
 
@@ -806,72 +956,44 @@
           body,
           margin: { left: 40, right: 40 },
           theme: "grid",
-          styles: {
-            font: "helvetica",
-            fontSize: 9,
-            cellPadding: 6,
-            valign: "middle",
-            overflow: "linebreak"
-          },
-          headStyles: { fontStyle: "bold" },
-          // Make table use page nicely
-          tableWidth: "auto",
-          columnStyles: {
-            0: { cellWidth: 64, halign: "center" },
-            1: { cellWidth: 260 },
-            2: { cellWidth: 85 },
-            3: { cellWidth: 85 }
-          },
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 6, valign: "middle", overflow: "linebreak" },
+          headStyles: { fillColor: [46,125,50], textColor: [255,255,255], fontStyle:"bold" },
+          columnStyles: { 0: { cellWidth: 64, halign: "center" }, 1: { cellWidth: 260 }, 2: { cellWidth: 85 }, 3: { cellWidth: 85 } },
           didDrawCell: (data) => {
-            // draw images in PHOTO column
             if(data.section === "body" && data.column.index === 0){
               const key = data.cell.raw;
               if(!key) return;
-
               const img = imgMap.get(String(key));
               if(!img) return;
-
-              // box area inside the cell
               const pad = 6;
               const boxX = data.cell.x + pad;
               const boxY = data.cell.y + pad;
               const boxW = data.cell.width - pad*2;
               const boxH = data.cell.height - pad*2;
-
-              // square image to fit (centered)
               const size = Math.min(boxW, boxH);
               const x = boxX + (boxW - size)/2;
-              const y = boxY + (boxH - size)/2;
-
-              // border box
-              doc.setDrawColor(210);
+              const yImg = boxY + (boxH - size)/2;
+              doc.setDrawColor(100);
               doc.rect(boxX, boxY, boxW, boxH);
-
-              // image inside (fit)
-              try{ doc.addImage(img, "PNG", x, y, size, size); }
-              catch(e){
-                try{ doc.addImage(img, "JPEG", x, y, size, size); }catch(_){}
-              }
+              try{ doc.addImage(img, "PNG", x, yImg, size, size); }
+              catch(e){ try{ doc.addImage(img, "JPEG", x, yImg, size, size); }catch(_){} }
             }
           }
         });
-
         y = doc.lastAutoTable.finalY + 14;
-        if(y > 760){
-          doc.addPage();
-          y = 60;
-        }
+        if(y > 760){ doc.addPage(); y = 60; }
       }
-
-      doc.save("UKSS_Candidates_List_With_Photos.pdf");
-    }catch(err){
-      console.error(err);
-      alert("PDF generation failed.");
-    }finally{
-      btn.textContent = old;
-      btn.disabled = false;
-    }
+      doc.save("UKSS_Candidates_List.pdf");
+    } catch(err){ console.error(err); alert("PDF generation failed."); }
+    finally { btn.innerHTML = old; btn.disabled = false; }
   });
+
+  // Expose functions globally
+  window.unlockForm = unlockForm;
+  window.editCandidate = editCandidate;
+  window.deleteCandidate = deleteCandidate;
+  window.resetForm = resetForm;
+  window.saveCandidate = saveCandidate;
 </script>
 
 </body>
