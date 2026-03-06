@@ -260,6 +260,18 @@ tr:hover {
     background: var(--primary-light);
 }
 
+.voter-id {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #0d3d0d;
+    background: #f0f7f0;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    display: inline-block;
+    font-size: 13px;
+}
+
 .class-badge {
     background: #e0f2e0;
     color: var(--primary-dark);
@@ -514,7 +526,7 @@ function loadVotersRealtime() {
         
         if (data) {
             allVoters = Object.entries(data).map(([id, v]) => ({
-                id,
+                id: id, // Full ID without truncation
                 firstName: v.firstName || '',
                 middleName: v.middleName || '',
                 lastName: v.lastName || '',
@@ -615,7 +627,7 @@ function renderTable(voters) {
         
         html += `
             <tr>
-                <td><code>${v.id.substring(0, 8)}...</code></td>
+                <td><span class="voter-id">${v.id}</span></td>
                 <td><strong>${fullName}</strong></td>
                 <td><span class="class-badge">${v.class}</span></td>
                 <td><span class="gender-badge ${genderClass}">${v.gender}</span></td>
@@ -705,8 +717,12 @@ window.printClassPDF = function() {
     rows.forEach(row => {
         const cols = row.querySelectorAll('td');
         if (cols.length >= 5) {
+            // Get full ID without truncation
+            const idSpan = cols[0].querySelector('.voter-id');
+            const voterId = idSpan ? idSpan.textContent : cols[0].textContent.trim();
+            
             tableData.push([
-                cols[0].textContent.trim(),
+                voterId,
                 cols[1].textContent.trim(),
                 cols[2].textContent.trim(),
                 cols[3].textContent.trim(),
@@ -721,7 +737,10 @@ window.printClassPDF = function() {
         body: tableData,
         theme: 'grid',
         headStyles: { fillColor: [46, 125, 50], textColor: 255 },
-        styles: { fontSize: 9, cellPadding: 4 }
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+            0: { cellWidth: 70, font: 'courier', fontStyle: 'bold' } // Make ID column stand out
+        }
     });
     
     doc.save(`UKSS_Voters_${currentFilter}_${Date.now()}.pdf`);
@@ -746,7 +765,7 @@ window.exportAllClassesPDF = function() {
         doc.text(`Total: ${classVoters.length} voters`, 14, 35);
         
         const tableData = classVoters.map(v => [
-            v.id.substring(0, 8) + '...',
+            v.id, // Full ID without truncation
             `${v.firstName} ${v.middleName} ${v.lastName}`.trim(),
             v.class,
             v.gender,
@@ -758,7 +777,10 @@ window.exportAllClassesPDF = function() {
             head: [['Voter ID', 'Full Name', 'Class', 'Gender', 'Registered']],
             body: tableData,
             theme: 'grid',
-            headStyles: { fillColor: [46, 125, 50], textColor: 255 }
+            headStyles: { fillColor: [46, 125, 50], textColor: 255 },
+            columnStyles: {
+                0: { cellWidth: 70, font: 'courier', fontStyle: 'bold' }
+            }
         });
         
         doc.save(`UKSS_${className.replace(' ', '_')}_Voters_${Date.now()}.pdf`);
