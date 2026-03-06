@@ -3,35 +3,69 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Certificate of Appreciation — UKSS</title>
+<title>Certificate of Victory — UKSS Leadership</title>
 
 <!-- Libraries for PDF generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
+<!-- Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 <style>
 :root{
-  --green: #265a2f;
-  --gold: #c5a106;
-  --text: #05320f;
+  --primary: #1e4a2b;
+  --secondary: #2e7d32;
+  --gold: #c5a028;
+  --gold-light: #e4c580;
+  --cream: #fff9e6;
+  --border-gold: #b8860b;
+  --text-dark: #2c3e2c;
+  --accent-red: #a0522d;
 }
 
 body{
   margin:0;
-  padding:25px;
-  background:#f6fff6;
-  font-family:"Georgia", serif;
+  padding:30px;
+  background: linear-gradient(145deg, #2a4b2a, #1a331a);
+  font-family: 'Times New Roman', 'Georgia', serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container-wrapper {
+  max-width: 1000px;
+  margin: auto;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .container{
-  width:900px;
-  margin:auto;
-  background:white;
-  border:12px solid var(--gold);
-  border-radius:12px;
-  padding:20px;
+  width: 100%;
+  background: var(--cream);
+  border: 8px solid var(--gold);
+  border-radius: 15px;
+  padding: 30px 20px 20px 20px;
   position:relative;
   overflow:hidden;
+  box-shadow: inset 0 0 30px rgba(197, 161, 6, 0.3);
+}
+
+/* Decorative border */
+.container::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  border: 2px solid var(--gold-light);
+  border-radius: 10px;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Watermark */
@@ -40,9 +74,10 @@ body{
   top:50%;
   left:50%;
   transform:translate(-50%, -50%);
-  opacity:0.18;
-  width:70%;
+  opacity:0.1;
+  width: 60%;
   z-index:0;
+  filter: sepia(100%);
 }
 
 /* Header */
@@ -50,16 +85,21 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  border-bottom:3px double var(--green);
-  padding-bottom:10px;
+  border-bottom: 3px double var(--gold);
+  padding-bottom:15px;
   margin-bottom:15px;
   position:relative;
   z-index:5;
 }
 
 .logo{
-  width:120px;
-  height:120px;
+  width:100px;
+  height:100px;
+  object-fit: contain;
+  background: rgba(255,255,255,0.5);
+  border-radius: 50%;
+  padding: 5px;
+  border: 2px solid var(--gold);
 }
 
 .header-center{
@@ -68,88 +108,194 @@ body{
 }
 
 .header-center h2{
-  color:var(--green);
+  color: var(--primary);
   margin:0;
-  font-size:24px;
-  letter-spacing:1px;
+  font-size:26px;
+  letter-spacing:2px;
+  font-weight:800;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0 var(--gold-light);
+}
+
+.header-center .subtitle {
+  color: var(--accent-red);
+  font-size: 16px;
+  font-style: italic;
+  margin-top: 5px;
 }
 
 /* Title */
 .title{
   text-align:center;
-  margin:20px 0;
+  margin: 15px 0 20px;
   position:relative;
   z-index:5;
 }
+
 .title h1{
   margin:0;
-  font-size:32px;
-  color:var(--green);
-  font-weight:700;
+  font-size:48px;
+  background: linear-gradient(145deg, #b8860b, #8b6910);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight:900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 #f0e68c;
 }
 
-/* Body text */
+.title .seal-icon {
+  font-size: 40px;
+  color: var(--gold);
+  margin: 5px 0;
+}
+
+/* Body */
 .body{
   font-size:18px;
-  line-height:1.7;
+  line-height:1.8;
   padding:10px 30px;
   position:relative;
   z-index:5;
+  color: var(--text-dark);
+}
+
+.victory-message {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 15px 0;
+  padding: 10px;
+  background: rgba(197, 161, 6, 0.1);
+  border-radius: 50px;
+  border-left: 5px solid var(--gold);
+  border-right: 5px solid var(--gold);
+}
+
+.victory-message i {
+  color: var(--gold);
+  margin: 0 10px;
 }
 
 /* Info table */
 .info-table{
   width:100%;
-  margin-top:15px;
+  margin:20px 0;
   border-collapse:collapse;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
+
 .info-table td{
-  padding:7px 4px;
-  font-size:17px;
+  padding: 12px 15px;
+  font-size:18px;
+  border-bottom: 1px solid var(--gold-light);
 }
+
+.info-table tr:last-child td {
+  border-bottom: none;
+}
+
 .label{
   font-weight:700;
-  color:#2b5530;
-  width:200px;
+  color: var(--primary);
+  width: 220px;
+  background: rgba(197, 161, 6, 0.1);
+  letter-spacing: 0.5px;
+}
+
+.label i {
+  margin-right: 8px;
+  color: var(--gold);
+}
+
+.value {
+  font-weight: 600;
+  color: #1e3a1e;
 }
 
 /* Signature block */
 .signature-block{
   display:flex;
   justify-content:space-between;
-  margin-top:40px;
-  padding:0 30px;
+  margin-top: 40px;
+  padding:0 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.signature-item {
+  text-align: center;
+  width: 200px;
 }
 
 .sign-img{
-  width:200px;
-  height:90px;
+  width:180px;
+  height: 80px;
+  object-fit: contain;
+  border-bottom: 2px solid var(--primary);
+  margin-bottom: 5px;
 }
 
-/* Loading indicator */
+.signature-title {
+  font-size: 16px;
+  color: var(--primary);
+  font-weight: 700;
+  margin-top: 5px;
+}
+
+.signature-sub {
+  font-size: 14px;
+  color: #5a4e3a;
+}
+
+.date-block {
+  text-align: right;
+  padding-right: 20px;
+}
+
+.date-label {
+  font-size: 16px;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.date-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gold);
+  border-bottom: 2px solid var(--gold);
+  padding-bottom: 5px;
+}
+
+/* Loading overlay */
 .loading-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.85);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   flex-direction: column;
   color: white;
+  backdrop-filter: blur(5px);
 }
 
 .loading-spinner {
   border: 8px solid #f3f3f3;
-  border-top: 8px solid #265a2f;
+  border-top: 8px solid var(--gold);
   border-radius: 50%;
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   animation: spin 1s linear infinite;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 @keyframes spin {
@@ -157,37 +303,77 @@ body{
   100% { transform: rotate(360deg); }
 }
 
-/* Actions */
-.actions{
-  text-align:right;
-  margin-top:20px;
-}
-.btn{
-  padding:10px 14px;
-  border-radius:6px;
-  border:none;
-  cursor:pointer;
-  font-weight:bold;
-  margin-left:10px;
-  transition: all 0.3s;
-}
-.btn:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-.print-btn{ 
-  background:var(--green); 
-  color:white; 
-}
-.download-btn{ 
-  background:var(--gold); 
-  color:white; 
+.loading-text {
+  font-size: 20px;
+  font-weight: 600;
+  background: linear-gradient(145deg, #fff, var(--gold-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
+/* Actions */
+.actions{
+  text-align:center;
+  margin-top: 30px;
+  position: relative;
+  z-index: 10;
+}
+
+.btn{
+  padding: 14px 28px;
+  border-radius: 60px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  margin: 0 10px;
+  transition: all 0.3s;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+.btn i {
+  font-size: 18px;
+}
+
+.btn:hover{
+  transform: translateY(-4px);
+  box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+}
+
+.print-btn{ 
+  background: var(--primary); 
+  color: white; 
+  border: 2px solid var(--gold);
+}
+
+.download-btn{ 
+  background: var(--gold); 
+  color: var(--primary); 
+  border: 2px solid var(--primary);
+}
+
+/* Certificate number */
+.cert-number {
+  position: absolute;
+  bottom: 15px;
+  right: 25px;
+  font-size: 14px;
+  color: var(--gold);
+  font-family: monospace;
+  letter-spacing: 1px;
+  z-index: 10;
+}
+
+/* Print styles */
 @media print{
-  .actions{ display:none; }
-  body{ padding:0; background:white; }
-  .container{ margin:0; border:none; }
+  .actions, .loading-overlay { display:none; }
+  body{ padding:0; background: white; }
+  .container-wrapper { box-shadow: none; }
+  .container{ border: 4px solid #b8860b; }
+  .container::before { border: 1px solid #e4c580; }
 }
 </style>
 </head>
@@ -197,67 +383,85 @@ body{
 <!-- Loading overlay -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
-  <div>Generating Certificate PDF...</div>
+  <div class="loading-text">Generating Your Victory Certificate...</div>
+  <div style="margin-top: 15px; font-size: 14px; opacity: 0.8;">Please wait a moment</div>
 </div>
 
-<div class="container">
+<div class="container-wrapper">
+  <div class="container">
 
-  <!-- Watermark -->
-  <img class="watermark" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
+    <!-- Watermark -->
+    <img class="watermark" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" alt="Watermark">
 
-  <!-- Header -->
-  <div class="header">
-    <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
-    <div class="header-center">
-      <h2>UMOJA KING'ORI SECONDARY SCHOOL</h2>
-      <div style="color:#355b3a; font-size:14px;">Official Student Leadership Appreciation Certificate</div>
+    <!-- Header -->
+    <div class="header">
+      <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" alt="School Logo">
+      <div class="header-center">
+        <h2>UMOJA KING'ORI SECONDARY SCHOOL</h2>
+        <div class="subtitle">"Discipline · Integrity · Excellence"</div>
+      </div>
+      <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" alt="School Logo">
     </div>
-    <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png">
-  </div>
 
-  <!-- Title -->
-  <div class="title">
-    <h1>CERTIFICATE OF APPRECIATION</h1>
-  </div>
+    <!-- Title with seal -->
+    <div class="title">
+      <div class="seal-icon"><i class="fas fa-certificate"></i></div>
+      <h1>CERTIFICATE OF VICTORY</h1>
+      <div class="seal-icon"><i class="fas fa-crown"></i></div>
+    </div>
 
-  <!-- Body -->
-  <div class="body">
-    <p id="contentParagraph"></p>
+    <!-- Body -->
+    <div class="body">
+      
+      <!-- Victory Message -->
+      <div class="victory-message">
+        <i class="fas fa-star"></i> PONGEZI! HONGERA! CONGRATULATIONS! <i class="fas fa-star"></i>
+      </div>
 
-    <table class="info-table">
-      <tr><td class="label">Student Name:</td><td id="studentName"></td></tr>
-      <tr><td class="label">Position:</td><td id="positionName"></td></tr>
-      <tr><td class="label">Class:</td><td id="studentClass"></td></tr>
-      <tr><td class="label">Gender:</td><td id="studentGender"></td></tr>
-      <tr><td class="label">Votes Received:</td><td id="votesCount"></td></tr>
-      <tr><td class="label">Certificate Serial:</td><td id="serialNumber"></td></tr>
-      <tr><td class="label">Election Year:</td><td id="yearLabel"></td></tr>
-    </table>
+      <p id="contentParagraph" style="text-align: center; font-style: italic;"></p>
 
-    <!-- Signature block -->
-    <div class="signature-block">
-      <div>
-        <img class="sign-img" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg">
-        <div style="font-size:14px; color:#2d4d2b; margin-top:-6px;">
-          <b>Headmaster</b><br>
-          Umoja King'ori Secondary School
+      <table class="info-table">
+        <tr><td class="label"><i class="fas fa-user-graduate"></i> Student Name:</td><td class="value" id="studentName"></td></tr>
+        <tr><td class="label"><i class="fas fa-tag"></i> Position:</td><td class="value" id="positionName"></td></tr>
+        <tr><td class="label"><i class="fas fa-layer-group"></i> Class:</td><td class="value" id="studentClass"></td></tr>
+        <tr><td class="label"><i class="fas fa-venus-mars"></i> Gender:</td><td class="value" id="studentGender"></td></tr>
+        <tr><td class="label"><i class="fas fa-vote-yea"></i> Votes Received:</td><td class="value" id="votesCount"></td></tr>
+        <tr><td class="label"><i class="fas fa-hashtag"></i> Certificate Serial:</td><td class="value" id="serialNumber"></td></tr>
+        <tr><td class="label"><i class="fas fa-calendar-alt"></i> Election Year:</td><td class="value" id="yearLabel"></td></tr>
+      </table>
+
+      <!-- Signature block -->
+      <div class="signature-block">
+        <div class="signature-item">
+          <img class="sign-img" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg" alt="Headmaster Signature">
+          <div class="signature-title">Mr. Fred Lubida</div>
+          <div class="signature-sub">Headmaster</div>
+        </div>
+
+        <div class="signature-item">
+          <img class="sign-img" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg" alt="Chairperson Signature">
+          <div class="signature-title">Ms. Sarah Mwangi</div>
+          <div class="signature-sub">Electoral Chairperson</div>
+        </div>
+
+        <div class="date-block">
+          <div class="date-label">Date Issued:</div>
+          <div class="date-value" id="todayDate"></div>
         </div>
       </div>
 
-      <div style="text-align:right;">
-        <div>Date:</div>
-        <div id="todayDate" style="font-weight:bold; font-size:18px;"></div>
-      </div>
+    </div>
+
+    <!-- Certificate Number (bottom right) -->
+    <div class="cert-number" id="certificateRef"></div>
+
+    <!-- Buttons -->
+    <div class="actions">
+      <button class="btn print-btn" onclick="window.print()"><i class="fas fa-print"></i> Print Certificate</button>
+      <button class="btn download-btn" id="downloadBtn"><i class="fas fa-download"></i> Download PDF</button>
     </div>
 
   </div>
-
-  <!-- Buttons -->
-  <div class="actions">
-    <button class="btn print-btn" onclick="window.print()">Print Certificate</button>
-    <button class="btn download-btn" id="downloadBtn">Download PDF</button>
-  </div>
-
 </div>
 
 <script>
@@ -280,17 +484,18 @@ const POS_CODES = {
 function formatPosition(pos){
   let p = pos.toLowerCase().trim();
 
-  if(p.includes("head boy")) return "Head Boy";
-  if(p.includes("headgirl") || p.includes("head girl")) return "Head Girl";
+  if(p.includes("head boy") || p.includes("headboy")) return "Head Boy";
+  if(p.includes("head girl") || p.includes("headgirl")) return "Head Girl";
   if(p.includes("general")) return "General Secretary";
 
-  // prevent double 'Prefect'
+  // Handle "prefect" cases
   if(p.includes("prefect")){
     let clean = p.replace("prefect","").trim();
     return clean.charAt(0).toUpperCase() + clean.slice(1) + " Prefect";
   }
 
-  return p.charAt(0).toUpperCase() + p.slice(1) + " Prefect";
+  // Default formatting
+  return p.charAt(0).toUpperCase() + p.slice(1) + (p.includes("secretary") ? "" : " Prefect");
 }
 
 // Normalize for serial code
@@ -300,46 +505,55 @@ function positionKey(raw){
             .replace(/girl/g,"")
             .replace(/boy/g,"")
             .replace(/general secretary/,"generalsecretary")
-            .replace(/\s+/g,"")
+            .replace(/[^a-z]/g,"")
             .trim();
 }
 
 function getParams(){
   const p = new URLSearchParams(window.location.search);
   return {
-    name: p.get("name") || "",
-    position: p.get("position") || "",
-    votes: p.get("votes") || "",
-    class: p.get("candidateClass") || "",
-    gender: p.get("candidateGender") || "",
+    name: p.get("name") || "John Doe",
+    position: p.get("position") || "headboy",
+    votes: p.get("votes") || "245",
+    class: p.get("candidateClass") || "Form Four",
+    gender: p.get("candidateGender") || "Male",
     year: p.get("year") || new Date().getFullYear()
   };
 }
 
 function fillPage(){
   const p = getParams();
-
   const formattedPos = formatPosition(p.position);
 
+  // Fill table
   document.getElementById("studentName").textContent = p.name;
   document.getElementById("positionName").textContent = formattedPos;
   document.getElementById("votesCount").textContent = p.votes;
   document.getElementById("studentClass").textContent = p.class;
   document.getElementById("studentGender").textContent = p.gender;
   document.getElementById("yearLabel").textContent = p.year;
-  document.getElementById("todayDate").textContent = new Date().toLocaleDateString();
+  
+  // Today's date
+  const today = new Date();
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById("todayDate").textContent = today.toLocaleDateString('en-US', options);
 
   // Serial Generator
   const key = positionKey(p.position);
   const code = POS_CODES[key] || "XX";
-  const serial = `UKSS/${p.year}/${code}/${String(Math.floor(Math.random()*9999)).padStart(4,'0')}`;
+  const randomNum = String(Math.floor(Math.random()*9999)).padStart(4,'0');
+  const serial = `UKSS/${p.year}/${code}/${randomNum}`;
   document.getElementById("serialNumber").textContent = serial;
+  
+  // Certificate reference (bottom)
+  document.getElementById("certificateRef").textContent = `Certificate No: ${serial}`;
 
-  // Content paragraph
-  document.getElementById("contentParagraph").innerHTML =
-    `This certificate is proudly awarded to <strong>${p.name}</strong> for demonstrating outstanding 
-     leadership, discipline, and integrity while serving as the <strong>${formattedPos}</strong> 
-     during the ${p.year} UKSS elections. Your dedication and exemplary conduct are highly appreciated.`;
+  // Content paragraph with victory message
+  const victoryMsg = `This prestigious Certificate of Victory is awarded to <strong>${p.name}</strong> for emerging victorious in the UKSS ${p.year} elections. 
+  Your peers have spoken, and you have been chosen to lead as <strong>${formattedPos}</strong>. 
+  May your leadership bring honor, progress, and inspiration to Umoja King'ori Secondary School.`;
+  
+  document.getElementById("contentParagraph").innerHTML = victoryMsg;
 }
 
 // Function to download certificate as PDF
@@ -364,21 +578,24 @@ async function downloadCertificate() {
     containerClone.style.position = 'absolute';
     containerClone.style.left = '-9999px';
     containerClone.style.top = '0';
+    containerClone.style.width = '1000px'; // Fixed width for consistency
     document.body.appendChild(containerClone);
     
-    // Use html2canvas to capture the certificate as an image
+    // Use html2canvas to capture the certificate
     const canvas = await html2canvas(containerClone, {
-      scale: 2, // Higher quality
-      useCORS: true, // Allow cross-origin images
-      backgroundColor: '#ffffff'
+      scale: 2.5, // Higher quality for printing
+      useCORS: true,
+      backgroundColor: '#fff9e6',
+      logging: false,
+      windowWidth: 1000
     });
     
-    // Remove the clone from DOM
+    // Remove clone from DOM
     document.body.removeChild(containerClone);
     
     // Get certificate info for filename
     const params = getParams();
-    const fileName = `UKSS_Certificate_${params.name.replace(/\s+/g, '_')}_${params.year}.pdf`;
+    const fileName = `UKSS_Victory_Certificate_${params.name.replace(/\s+/g, '_')}_${params.year}.pdf`;
     
     // Convert canvas to image data
     const imgData = canvas.toDataURL('image/jpeg', 1.0);
@@ -391,23 +608,33 @@ async function downloadCertificate() {
       format: 'a4'
     });
     
-    // Calculate dimensions to fit certificate in A4
+    // Calculate dimensions to fit certificate nicely
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     const imgWidth = canvas.width;
     const imgHeight = canvas.height;
+    
+    // Calculate ratio to fit with margins
     const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight) * 0.95;
     const imgX = (pdfWidth - imgWidth * ratio) / 2;
     const imgY = (pdfHeight - imgHeight * ratio) / 2;
     
-    // Add the image to PDF
+    // Add image to PDF
     pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
     
-    // Save the PDF
+    // Add decorative border (optional)
+    pdf.setDrawColor(184, 134, 11); // Golden color
+    pdf.setLineWidth(1.5);
+    pdf.rect(5, 5, pdfWidth - 10, pdfHeight - 10);
+    
+    // Save PDF
     pdf.save(fileName);
     
     // Hide loading overlay
     loadingOverlay.style.display = 'none';
+    
+    // Show success message
+    alert('✅ Certificate downloaded successfully! Check your downloads folder.');
     
   } catch (error) {
     console.error('Error generating PDF:', error);
@@ -423,10 +650,14 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add event listener to download button
   document.getElementById('downloadBtn').addEventListener('click', downloadCertificate);
   
-  // Also allow triggering download via URL parameter
+  // Check URL parameter for auto-download
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('download') === 'true') {
-    setTimeout(downloadCertificate, 1000);
+    setTimeout(() => {
+      if (confirm('Download your Victory Certificate?')) {
+        downloadCertificate();
+      }
+    }, 1500);
   }
 });
 </script>
