@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Certificate of Victory — UKSS Leadership</title>
+<title>Certificate of Victory — UKSS Leadership (Full A4 Portrait)</title>
 
 <!-- Libraries for PDF generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -24,9 +24,15 @@
   --accent-red: #a0522d;
 }
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body{
   margin:0;
-  padding:30px;
+  padding:0;
   background: linear-gradient(145deg, #2a4b2a, #1a331a);
   font-family: 'Times New Roman', 'Georgia', serif;
   min-height: 100vh;
@@ -35,49 +41,54 @@ body{
   justify-content: center;
 }
 
+/* Container exactly A4 portrait size - NO MARGINS */
 .container-wrapper {
-  max-width: 1000px;
-  margin: auto;
+  width: 210mm;
+  height: 297mm;
+  margin: 0;
+  padding: 0;
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
-  border-radius: 20px;
   overflow: hidden;
+  background: var(--cream);
 }
 
+/* Main certificate container - fills exactly */
 .container{
   width: 100%;
+  height: 100%;
   background: var(--cream);
-  border: 8px solid var(--gold);
-  border-radius: 15px;
-  padding: 30px 20px 20px 20px;
+  border: 20px solid var(--gold); /* Thick border right at the edge */
+  padding: 20px 25px;
   position:relative;
-  overflow:hidden;
-  box-shadow: inset 0 0 30px rgba(197, 161, 6, 0.3);
+  overflow: hidden;
+  box-shadow: inset 0 0 50px rgba(197, 161, 6, 0.2);
+  display: flex;
+  flex-direction: column;
 }
-
-/* Decorative border */
-.container::before {
+/* Inner decorative line - just inside the gold border */
+.container::after {
   content: '';
   position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  border: 2px solid var(--gold-light);
-  border-radius: 10px;
+  top: 18px;
+  left: 15px;
+  right: 18px;
+  bottom: 19px;
+  border: 3px solid var(--gold-light);
+  border-radius: 8px;
   pointer-events: none;
-  z-index: 1;
+  z-index: 2;
+  opacity: 0.9;
 }
-
-/* Watermark */
+/* Watermark - full size, centered */
 .watermark{
   position:absolute;
   top:50%;
   left:50%;
   transform:translate(-50%, -50%);
-  opacity:0.1;
-  width: 60%;
+  opacity:0.12;
+  width: 70%;
   z-index:0;
-  filter: sepia(100%);
+  filter: sepia(80%);
 }
 
 /* Header */
@@ -85,21 +96,22 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  border-bottom: 3px double var(--gold);
-  padding-bottom:15px;
-  margin-bottom:15px;
+  border-bottom: 4px double var(--gold);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  margin-top: 0;
   position:relative;
   z-index:5;
 }
 
 .logo{
-  width:100px;
-  height:100px;
+  width: 90px;
+  height: 90px;
   object-fit: contain;
-  background: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.8);
   border-radius: 50%;
-  padding: 5px;
-  border: 2px solid var(--gold);
+  padding: 4px;
+  border: 3px solid var(--gold);
 }
 
 .header-center{
@@ -110,64 +122,69 @@ body{
 .header-center h2{
   color: var(--primary);
   margin:0;
-  font-size:26px;
-  letter-spacing:2px;
-  font-weight:800;
+  font-size: 24px;
+  letter-spacing: 1.5px;
+  font-weight: 900;
   text-transform: uppercase;
-  text-shadow: 1px 1px 0 var(--gold-light);
+  text-shadow: 2px 2px 0 var(--gold-light);
 }
 
 .header-center .subtitle {
   color: var(--accent-red);
   font-size: 16px;
   font-style: italic;
-  margin-top: 5px;
+  margin-top: 4px;
+  font-weight: 600;
 }
 
 /* Title */
 .title{
   text-align:center;
-  margin: 15px 0 20px;
+  margin: 0px 0 8px;
   position:relative;
   z-index:5;
 }
 
 .title h1{
   margin:0;
-  font-size:48px;
+  font-size: 42px;
   background: linear-gradient(145deg, #b8860b, #8b6910);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight:900;
+  font-weight: 900;
   letter-spacing: 3px;
   text-transform: uppercase;
-  text-shadow: 2px 2px 0 #f0e68c;
+  text-shadow: 3px 3px 0 #f0e68c;
 }
 
 .title .seal-icon {
-  font-size: 40px;
+  font-size: 36px;
   color: var(--gold);
-  margin: 5px 0;
+  margin: 0;
 }
 
-/* Body */
+/* Body - takes all remaining space */
 .body{
-  font-size:18px;
-  line-height:1.8;
-  padding:10px 30px;
+  flex: 1;
+  font-size: 18px;
+  line-height: 1.7;
+  padding: 0 10px;
   position:relative;
   z-index:5;
   color: var(--text-dark);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .victory-message {
   text-align: center;
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--primary);
-  margin: 15px 0;
-  padding: 10px;
-  background: rgba(197, 161, 6, 0.1);
+  margin: 5px 0 8px;
+  padding: 6px;
+  background: rgba(197, 161, 6, 0.15);
   border-radius: 50px;
   border-left: 5px solid var(--gold);
   border-right: 5px solid var(--gold);
@@ -175,23 +192,24 @@ body{
 
 .victory-message i {
   color: var(--gold);
-  margin: 0 10px;
+  margin: 0 12px;
+  font-size: 26px;
 }
 
-/* Info table */
+/* Info table - full width */
 .info-table{
-  width:100%;
-  margin:20px 0;
+  width: 100%;
+  margin: 5px 0 10px;
   border-collapse:collapse;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .info-table td{
-  padding: 12px 15px;
-  font-size:18px;
+  padding: 10px 15px;
+  font-size: 18px;
   border-bottom: 1px solid var(--gold-light);
 }
 
@@ -200,16 +218,19 @@ body{
 }
 
 .label{
-  font-weight:700;
+  font-weight: 800;
   color: var(--primary);
-  width: 220px;
-  background: rgba(197, 161, 6, 0.1);
+  width: 180px;
+  background: rgba(197, 161, 6, 0.15);
   letter-spacing: 0.5px;
 }
 
 .label i {
-  margin-right: 8px;
+  margin-right: 10px;
   color: var(--gold);
+  width: 22px;
+  text-align: center;
+  font-size: 20px;
 }
 
 .value {
@@ -217,58 +238,62 @@ body{
   color: #1e3a1e;
 }
 
-/* Signature block */
+/* Signature block - SINGLE SIGNATURE (Headmaster only) */
 .signature-block{
-  display:flex;
-  justify-content:space-between;
-  margin-top: 40px;
-  padding:0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  padding: 0 5px;
   position: relative;
   z-index: 5;
 }
 
 .signature-item {
-  text-align: center;
-  width: 200px;
+  text-align: left;
+  width: 250px;
 }
 
 .sign-img{
-  width:180px;
-  height: 80px;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
-  border-bottom: 2px solid var(--primary);
-  margin-bottom: 5px;
+  border-bottom: 3px solid var(--primary);
+  margin-bottom: 6px;
 }
 
 .signature-title {
-  font-size: 16px;
+  font-size: 10px;
   color: var(--primary);
-  font-weight: 700;
-  margin-top: 5px;
+  font-weight: 800;
+  margin-top: 10px;
 }
 
 .signature-sub {
-  font-size: 14px;
+  font-size: 16px;
   color: #5a4e3a;
+  font-weight: 600;
 }
 
 .date-block {
   text-align: right;
-  padding-right: 20px;
+  padding-right: 15px;
 }
 
 .date-label {
-  font-size: 16px;
+  font-size: 18px;
   color: var(--primary);
   font-weight: 700;
 }
 
 .date-value {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: 900;
   color: var(--gold);
-  border-bottom: 2px solid var(--gold);
-  padding-bottom: 5px;
+  border-bottom: 3px solid var(--gold);
+  padding-bottom: 4px;
+  margin-top: 10px;
 }
 
 /* Loading overlay */
@@ -292,10 +317,10 @@ body{
   border: 8px solid #f3f3f3;
   border-top: 8px solid var(--gold);
   border-radius: 50%;
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   animation: spin 1s linear infinite;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 @keyframes spin {
@@ -304,43 +329,47 @@ body{
 }
 
 .loading-text {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   background: linear-gradient(145deg, #fff, var(--gold-light));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Actions */
+/* Actions - floating outside */
 .actions{
-  text-align:center;
-  margin-top: 30px;
-  position: relative;
-  z-index: 10;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  background: rgba(0,0,0,0.6);
+  padding: 12px 20px;
+  border-radius: 60px;
+  backdrop-filter: blur(10px);
 }
 
 .btn{
-  padding: 14px 28px;
-  border-radius: 60px;
+  padding: 12px 24px;
+  border-radius: 50px;
   border: none;
   cursor: pointer;
   font-weight: bold;
-  margin: 0 10px;
+  margin: 0 8px;
   transition: all 0.3s;
-  font-size: 16px;
+  font-size: 15px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+  gap: 8px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
 }
 
 .btn i {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .btn:hover{
-  transform: translateY(-4px);
-  box-shadow: 0 15px 25px rgba(0,0,0,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 20px rgba(0,0,0,0.3);
 }
 
 .print-btn{ 
@@ -355,39 +384,62 @@ body{
   border: 2px solid var(--primary);
 }
 
-/* Certificate number */
-.cert-number {
-  position: absolute;
-  bottom: 15px;
-  right: 25px;
-  font-size: 14px;
-  color: var(--gold);
-  font-family: monospace;
-  letter-spacing: 1px;
-  z-index: 10;
+/* Footer note */
+.footer-note {
+  text-align: center;
+  font-size: 12px;
+  color: #8b7a5a;
+  margin-top: 3px;
+  border-top: 1px dashed var(--gold-light);
+  padding-top: 4px;
+  font-style: italic;
 }
 
-/* Print styles */
+/* Print styles - full bleed */
 @media print{
-  .actions, .loading-overlay { display:none; }
-  body{ padding:0; background: white; }
-  .container-wrapper { box-shadow: none; }
-  .container{ border: 4px solid #b8860b; }
-  .container::before { border: 1px solid #e4c580; }
+  body { 
+    padding: 0; 
+    margin: 0; 
+    background: white; 
+  }
+  .actions { 
+    display: none; 
+  }
+  .container-wrapper { 
+    box-shadow: none; 
+    width: 100%; 
+    height: 100%; 
+    margin: 0;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  .container { 
+    border: 20px solid #b8860b; 
+  }
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
 }
 </style>
 </head>
-
 <body>
 
 <!-- Loading overlay -->
 <div class="loading-overlay" id="loadingOverlay">
   <div class="loading-spinner"></div>
-  <div class="loading-text">Generating Your Victory Certificate...</div>
-  <div style="margin-top: 15px; font-size: 14px; opacity: 0.8;">Please wait a moment</div>
+  <div class="loading-text">Inaandaa Cheti chako...</div>
+  <div style="margin-top: 10px; font-size: 13px; opacity: 0.8;">Tafadhali subiri</div>
 </div>
 
-<div class="container-wrapper">
+<!-- Buttons - floating outside certificate -->
+<div class="actions">
+  <button class="btn print-btn" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+  <button class="btn download-btn" id="downloadBtn"><i class="fas fa-download"></i> PDF</button>
+</div>
+
+<!-- Certificate Container - Exact A4 portrait dimensions - NO MARGINS -->
+<div class="container-wrapper" id="certificateContainer">
   <div class="container">
 
     <!-- Watermark -->
@@ -398,7 +450,7 @@ body{
       <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" alt="School Logo">
       <div class="header-center">
         <h2>UMOJA KING'ORI SECONDARY SCHOOL</h2>
-        <div class="subtitle">"Discipline · Integrity · Excellence"</div>
+        <div class="subtitle">"Inter to learn ,leave to serve"</div>
       </div>
       <img class="logo" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/school_log.png" alt="School Logo">
     </div>
@@ -415,10 +467,10 @@ body{
       
       <!-- Victory Message -->
       <div class="victory-message">
-        <i class="fas fa-star"></i> PONGEZI! HONGERA! CONGRATULATIONS! <i class="fas fa-star"></i>
+        <i class="fas fa-star"></i>CONGRATULATIONS! <i class="fas fa-star"></i>
       </div>
 
-      <p id="contentParagraph" style="text-align: center; font-style: italic;"></p>
+      <p id="contentParagraph" style="text-align: center; font-style: italic; margin: 5px 0 10px; font-size: 15px;"></p>
 
       <table class="info-table">
         <tr><td class="label"><i class="fas fa-user-graduate"></i> Student Name:</td><td class="value" id="studentName"></td></tr>
@@ -430,18 +482,12 @@ body{
         <tr><td class="label"><i class="fas fa-calendar-alt"></i> Election Year:</td><td class="value" id="yearLabel"></td></tr>
       </table>
 
-      <!-- Signature block -->
+      <!-- Signature block - SINGLE SIGNATURE (Headmaster only) -->
       <div class="signature-block">
         <div class="signature-item">
           <img class="sign-img" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg" alt="Headmaster Signature">
           <div class="signature-title">Mr. Fred Lubida</div>
           <div class="signature-sub">Headmaster</div>
-        </div>
-
-        <div class="signature-item">
-          <img class="sign-img" src="https://raw.githubusercontent.com/Kplus712/UKSS-/main/hm_sign.jpeg" alt="Chairperson Signature">
-          <div class="signature-title">Ms. Sarah Mwangi</div>
-          <div class="signature-sub">Electoral Chairperson</div>
         </div>
 
         <div class="date-block">
@@ -450,15 +496,16 @@ body{
         </div>
       </div>
 
+      <!-- Official Stamp Placeholder -->
+      <div style="text-align: center; margin-top: 5px;">
+        <i class="fas fa-stamp" style="color: var(--gold); opacity: 0.6; font-size: 24px;"></i>
+      </div>
+
     </div>
-
-    <!-- Certificate Number (bottom right) -->
-    <div class="cert-number" id="certificateRef"></div>
-
-    <!-- Buttons -->
-    <div class="actions">
-      <button class="btn print-btn" onclick="window.print()"><i class="fas fa-print"></i> Print Certificate</button>
-      <button class="btn download-btn" id="downloadBtn"><i class="fas fa-download"></i> Download PDF</button>
+    
+    <!-- Footer Note -->
+    <div class="footer-note">
+      <i class="fas fa-check-circle"></i> This is an official certificate from Umoja King'ori Secondary School
     </div>
 
   </div>
@@ -480,7 +527,6 @@ const POS_CODES = {
   "maintenance": "MP"
 };
 
-// Smart position formatting
 function formatPosition(pos){
   let p = pos.toLowerCase().trim();
 
@@ -488,17 +534,14 @@ function formatPosition(pos){
   if(p.includes("head girl") || p.includes("headgirl")) return "Head Girl";
   if(p.includes("general")) return "General Secretary";
 
-  // Handle "prefect" cases
   if(p.includes("prefect")){
     let clean = p.replace("prefect","").trim();
     return clean.charAt(0).toUpperCase() + clean.slice(1) + " Prefect";
   }
 
-  // Default formatting
   return p.charAt(0).toUpperCase() + p.slice(1) + (p.includes("secretary") ? "" : " Prefect");
 }
 
-// Normalize for serial code
 function positionKey(raw){
   return raw.toLowerCase()
             .replace(/prefect/g,"")
@@ -525,7 +568,6 @@ function fillPage(){
   const p = getParams();
   const formattedPos = formatPosition(p.position);
 
-  // Fill table
   document.getElementById("studentName").textContent = p.name;
   document.getElementById("positionName").textContent = formattedPos;
   document.getElementById("votesCount").textContent = p.votes;
@@ -533,22 +575,18 @@ function fillPage(){
   document.getElementById("studentGender").textContent = p.gender;
   document.getElementById("yearLabel").textContent = p.year;
   
-  // Today's date
   const today = new Date();
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   document.getElementById("todayDate").textContent = today.toLocaleDateString('en-US', options);
 
-  // Serial Generator
   const key = positionKey(p.position);
   const code = POS_CODES[key] || "XX";
   const randomNum = String(Math.floor(Math.random()*9999)).padStart(4,'0');
   const serial = `UKSS/${p.year}/${code}/${randomNum}`;
   document.getElementById("serialNumber").textContent = serial;
   
-  // Certificate reference (bottom)
   document.getElementById("certificateRef").textContent = `Certificate No: ${serial}`;
 
-  // Content paragraph with victory message
   const victoryMsg = `This prestigious Certificate of Victory is awarded to <strong>${p.name}</strong> for emerging victorious in the UKSS ${p.year} elections. 
   Your peers have spoken, and you have been chosen to lead as <strong>${formattedPos}</strong>. 
   May your leadership bring honor, progress, and inspiration to Umoja King'ori Secondary School.`;
@@ -556,85 +594,43 @@ function fillPage(){
   document.getElementById("contentParagraph").innerHTML = victoryMsg;
 }
 
-// Function to download certificate as PDF
+// Function to download certificate as PDF - FULL A4 PORTRAIT NO MARGINS
 async function downloadCertificate() {
   const loadingOverlay = document.getElementById('loadingOverlay');
-  const container = document.querySelector('.container');
+  const container = document.getElementById('certificateContainer');
   
   try {
-    // Show loading overlay
     loadingOverlay.style.display = 'flex';
     
-    // Create a copy of the container for PDF generation
-    const containerClone = container.cloneNode(true);
-    
-    // Remove buttons from the clone
-    const actionsDiv = containerClone.querySelector('.actions');
-    if (actionsDiv) {
-      actionsDiv.remove();
-    }
-    
-    // Set the clone to be visible but off-screen
-    containerClone.style.position = 'absolute';
-    containerClone.style.left = '-9999px';
-    containerClone.style.top = '0';
-    containerClone.style.width = '1000px'; // Fixed width for consistency
-    document.body.appendChild(containerClone);
-    
-    // Use html2canvas to capture the certificate
-    const canvas = await html2canvas(containerClone, {
-      scale: 2.5, // Higher quality for printing
+    const canvas = await html2canvas(container, {
+      scale: 3,
       useCORS: true,
       backgroundColor: '#fff9e6',
       logging: false,
-      windowWidth: 1000
+      allowTaint: false,
+      windowWidth: 2480,
+      windowHeight: 3508
     });
     
-    // Remove clone from DOM
-    document.body.removeChild(containerClone);
-    
-    // Get certificate info for filename
     const params = getParams();
     const fileName = `UKSS_Victory_Certificate_${params.name.replace(/\s+/g, '_')}_${params.year}.pdf`;
     
-    // Convert canvas to image data
     const imgData = canvas.toDataURL('image/jpeg', 1.0);
     
-    // Create PDF using jsPDF
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: 'a4'
+      orientation: 'portrait',
+      unit: 'px',
+      format: [2480, 3508] // Exact A4 portrait at 300dpi
     });
     
-    // Calculate dimensions to fit certificate nicely
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
+    // Add image to fill the entire page - NO MARGINS
+    pdf.addImage(imgData, 'JPEG', 0, 0, 2480, 3508);
     
-    // Calculate ratio to fit with margins
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight) * 0.95;
-    const imgX = (pdfWidth - imgWidth * ratio) / 2;
-    const imgY = (pdfHeight - imgHeight * ratio) / 2;
-    
-    // Add image to PDF
-    pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-    
-    // Add decorative border (optional)
-    pdf.setDrawColor(184, 134, 11); // Golden color
-    pdf.setLineWidth(1.5);
-    pdf.rect(5, 5, pdfWidth - 10, pdfHeight - 10);
-    
-    // Save PDF
     pdf.save(fileName);
     
-    // Hide loading overlay
     loadingOverlay.style.display = 'none';
-    
-    // Show success message
-    alert('✅ Certificate downloaded successfully! Check your downloads folder.');
+    alert('✅ Certificate downloaded successfully!.');
     
   } catch (error) {
     console.error('Error generating PDF:', error);
@@ -643,14 +639,10 @@ async function downloadCertificate() {
   }
 }
 
-// Initialize page
 document.addEventListener('DOMContentLoaded', function() {
   fillPage();
-  
-  // Add event listener to download button
   document.getElementById('downloadBtn').addEventListener('click', downloadCertificate);
   
-  // Check URL parameter for auto-download
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('download') === 'true') {
     setTimeout(() => {
