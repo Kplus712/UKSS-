@@ -2,60 +2,389 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Manage Voters – UKSS Admin</title>
+<title>UKSS Voters Management System</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- jsPDF & AutoTable -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 <style>
-body{
-    font-family: Arial, sans-serif;
-    background:#f4fff4;
-    padding:20px;
-}
-.container{
-    max-width:1000px;
-    margin:auto;
-    background:white;
-    border-radius:10px;
-    padding:20px;
-    border:5px solid forestgreen;
-}
-h1{
-    color:forestgreen;
-    text-align:center;
-}
-input{
-    width:100%;
-    padding:10px;
-    margin:10px 0;
-    border-radius:8px;
-    border:1px solid #ccc;
-}
-button{
-    padding:10px 12px;
-    border:none;
-    background:forestgreen;
-    color:white;
-    border-radius:8px;
-    cursor:pointer;
-}
-button:hover{ opacity:0.9; }
-
-.deleteBtn{
-    background:red;
+:root {
+    --primary: #2e7d32;
+    --primary-dark: #1b5e20;
+    --primary-light: #e8f5e9;
+    --accent: #ffb74d;
+    --danger: #c62828;
+    --danger-light: #ffcdd2;
+    --text: #1f2a1f;
+    --border: rgba(46, 125, 50, 0.2);
 }
 
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
-th, td{
-    padding:10px;
-    border:1px solid #ddd;
+
+body {
+    font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    background: linear-gradient(145deg, #e8f5e9 0%, #c8e6c9 100%);
+    padding: 25px;
+    min-height: 100vh;
 }
-th{
-    background:forestgreen;
-    color:white;
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    background: white;
+    border-radius: 30px;
+    padding: 25px;
+    box-shadow: 0 20px 40px rgba(0, 40, 0, 0.3);
+    border: 2px solid var(--primary);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header h1 {
+    color: var(--primary-dark);
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header h1 i {
+    color: var(--accent);
+    font-size: 32px;
+}
+
+.stats-card {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background: linear-gradient(145deg, var(--primary-light), #ffffff);
+    border: 1px solid var(--primary);
+    border-radius: 20px;
+    padding: 15px 25px;
+    text-align: center;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+.stat-item .number {
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--primary-dark);
+    line-height: 1.2;
+}
+
+.stat-item .label {
+    font-size: 14px;
+    color: #2e4a2e;
+    font-weight: 600;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    align-items: center;
+    background: #f5faf5;
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+.search-box {
+    flex: 2;
+    min-width: 250px;
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 14px 14px 14px 45px;
+    border-radius: 40px;
+    border: 2px solid var(--border);
+    font-size: 15px;
+    transition: all 0.3s;
+}
+
+.search-box input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+}
+
+.filter-box {
+    flex: 1;
+    min-width: 180px;
+}
+
+.filter-box select {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 40px;
+    border: 2px solid var(--border);
+    font-size: 15px;
+    background: white;
+    cursor: pointer;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+.btn i {
+    font-size: 16px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(46, 125, 50, 0.3);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #b71c1c;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(198, 40, 40, 0.3);
+}
+
+.btn-success {
+    background: #2e7d32;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #1b5e20;
+}
+
+.btn-warning {
+    background: var(--accent);
+    color: #4a3a0a;
+}
+
+.table-container {
+    overflow-x: auto;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: white;
+    margin-top: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+th {
+    background: var(--primary);
+    color: white;
+    padding: 16px 12px;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+th i {
+    margin-right: 8px;
+    font-size: 14px;
+}
+
+td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+tr:hover {
+    background: var(--primary-light);
+}
+
+.class-badge {
+    background: #e0f2e0;
+    color: var(--primary-dark);
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 12px;
+    display: inline-block;
+    border: 1px solid var(--primary);
+}
+
+.gender-badge {
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.gender-male {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #1565c0;
+}
+
+.gender-female {
+    background: #fce4ec;
+    color: #c2185b;
+    border: 1px solid #c2185b;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.delete-btn:hover {
+    background: var(--danger-light);
+    color: #b71c1c;
+    transform: scale(1.1);
+}
+
+.class-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.class-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.class-card:hover {
+    background: var(--primary-light);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.class-card.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.class-card.active .class-count {
+    background: white;
+    color: var(--primary);
+}
+
+.class-name {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.class-count {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    padding: 5px 10px;
+    border-radius: 30px;
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.footer-actions {
+    margin-top: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.last-updated {
+    color: #4a6e4a;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+    }
+    .search-box, .filter-box {
+        width: 100%;
+    }
+    .action-buttons {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>
 </head>
@@ -63,45 +392,90 @@ th{
 
 <div class="container">
 
-    <h1>Manage Registered Voters</h1>
+    <div class="header">
+        <h1>
+            <i class="fas fa-users"></i>
+            Voters Management System
+        </h1>
+        <div class="stats-card">
+            <div class="stat-item">
+                <div class="number" id="totalVoters">0</div>
+                <div class="label">Total Voters</div>
+            </div>
+            <div class="stat-item">
+                <div class="number" id="totalClasses">0</div>
+                <div class="label">Classes</div>
+            </div>
+            <div class="stat-item">
+                <div class="number" id="genderRatio">0/0</div>
+                <div class="label">M/F</div>
+            </div>
+        </div>
+    </div>
 
-    <input id="searchBox" placeholder="Search by name, gender or class" oninput="searchVoter()">
+    <!-- Class Summary Cards -->
+    <div class="class-summary" id="classSummary"></div>
 
-    <button onclick="deleteAllVoters()" style="width:100%;background:red;margin-top:5px;">
-        DELETE ALL REGISTERED VOTERS
-    </button>
+    <div class="controls">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchBox" placeholder="Search by name, ID, class or gender...">
+        </div>
+        
+        <div class="filter-box">
+            <select id="classFilter">
+                <option value="all">📋 All Classes</option>
+                <option value="Form One">📚 Form One</option>
+                <option value="Form Two">📚 Form Two</option>
+                <option value="Form Three">📚 Form Three</option>
+                <option value="Form Four">📚 Form Four</option>
+            </select>
+        </div>
 
-    <table id="voterTable">
-        <thead>
-            <tr>
-                <th>Voter ID</th>
-                <th>Name</th>
-                <th>Class</th>
-                <th>Gender</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+        <div class="action-buttons">
+            <button class="btn btn-success" onclick="printClassPDF()">
+                <i class="fas fa-file-pdf"></i> Print Current View
+            </button>
+            <button class="btn btn-primary" onclick="exportAllClassesPDF()">
+                <i class="fas fa-print"></i> Export All Classes
+            </button>
+            <button class="btn btn-danger" onclick="deleteAllVoters()">
+                <i class="fas fa-trash-alt"></i> Delete All
+            </button>
+        </div>
+    </div>
 
-    <button onclick="window.location.href='admin.html'" style="width:100%;margin-top:20px;">
-        ⬅ Back to Admin Dashboard
-    </button>
+    <div class="table-container">
+        <table id="voterTable">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-id-card"></i> Voter ID</th>
+                    <th><i class="fas fa-user"></i> Full Name</th>
+                    <th><i class="fas fa-layer-group"></i> Class</th>
+                    <th><i class="fas fa-venus-mars"></i> Gender</th>
+                    <th><i class="fas fa-calendar"></i> Registered</th>
+                    <th><i class="fas fa-cog"></i> Action</th>
+                </tr>
+            </thead>
+            <tbody id="voterTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="footer-actions">
+        <div class="last-updated" id="lastUpdated">
+            <i class="fas fa-clock"></i> Loading...
+        </div>
+        <button class="btn btn-primary" onclick="window.location.href='admin.html'">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </button>
+    </div>
 
 </div>
 
-
-<!-- FIREBASE -->
 <script type="module">
-import { initializeApp } 
-    from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getDatabase, ref, get, remove, onValue } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
-import { 
-    getDatabase, ref, get, remove 
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-
-
-/* 🔥 SAME CONFIG AS YOUR ADMIN PAGE */
 const firebaseConfig = {
     apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
     authDomain: "ukss-voting-system.firebaseapp.com",
@@ -113,84 +487,289 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
+const db = getDatabase(app);
 
+// Global variables
+let allVoters = [];
+let currentFilter = 'all';
+let searchTerm = '';
 
-/* ============================
-      LOAD ALL VOTERS
-===============================*/
-async function loadVoters(){
-    const snap = await get(ref(db, "voters"));
-    const tableBody = document.querySelector("#voterTable tbody");
-    tableBody.innerHTML = "";
+// DOM elements
+const tableBody = document.getElementById('voterTableBody');
+const totalVotersEl = document.getElementById('totalVoters');
+const totalClassesEl = document.getElementById('totalClasses');
+const genderRatioEl = document.getElementById('genderRatio');
+const classSummaryEl = document.getElementById('classSummary');
+const lastUpdatedEl = document.getElementById('lastUpdated');
+const searchBox = document.getElementById('searchBox');
+const classFilter = document.getElementById('classFilter');
 
-    if(!snap.exists()){
-        tableBody.innerHTML = `<tr><td colspan="5">No registered voters.</td></tr>`;
-        return;
-    }
-
-    const data = snap.val();
-
-    Object.entries(data).forEach(([id, v]) => {
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td>${id}</td>
-            <td>${v.firstName} ${v.middleName} ${v.lastName}</td>
-            <td>${v.classSelect}</td>
-            <td>${v.gender}</td>
-            <td><button class="deleteBtn" onclick="deleteVoter('${id}')">Delete</button></td>
-        `;
-
-        tableBody.appendChild(row);
+// Load voters with realtime updates
+function loadVotersRealtime() {
+    const votersRef = ref(db, 'voters');
+    
+    onValue(votersRef, (snapshot) => {
+        const data = snapshot.val();
+        allVoters = [];
+        
+        if (data) {
+            allVoters = Object.entries(data).map(([id, v]) => ({
+                id,
+                firstName: v.firstName || '',
+                middleName: v.middleName || '',
+                lastName: v.lastName || '',
+                class: v.classSelect || 'Not Specified',
+                gender: v.gender || 'Not Specified',
+                timestamp: v.timestamp || Date.now()
+            }));
+        }
+        
+        updateUI();
+        updateLastUpdated();
     });
 }
 
+// Update all UI elements
+function updateUI() {
+    updateStats();
+    renderClassSummary();
+    filterAndRenderTable();
+}
 
-/* ============================
-     DELETE ONE VOTER
-===============================*/
-window.deleteVoter = async function(id){
-    if(!confirm("Delete voter: " + id + "?")) return;
+// Update statistics
+function updateStats() {
+    totalVotersEl.textContent = allVoters.length;
+    
+    const classes = new Set(allVoters.map(v => v.class));
+    totalClassesEl.textContent = classes.size;
+    
+    const males = allVoters.filter(v => v.gender.toLowerCase() === 'male').length;
+    const females = allVoters.filter(v => v.gender.toLowerCase() === 'female').length;
+    genderRatioEl.textContent = `${males}/${females}`;
+}
 
-    await remove(ref(db, "voters/" + id));
+// Render class summary cards
+function renderClassSummary() {
+    const classCounts = {};
+    allVoters.forEach(v => {
+        classCounts[v.class] = (classCounts[v.class] || 0) + 1;
+    });
+    
+    let html = '';
+    const classes = ['Form One', 'Form Two', 'Form Three', 'Form Four'];
+    
+    classes.forEach(className => {
+        const count = classCounts[className] || 0;
+        const isActive = currentFilter === className;
+        html += `
+            <div class="class-card ${isActive ? 'active' : ''}" onclick="filterByClass('${className}')">
+                <div class="class-name">${className}</div>
+                <div class="class-count">${count}</div>
+            </div>
+        `;
+    });
+    
+    classSummaryEl.innerHTML = html;
+}
 
-    alert("Voter deleted.");
-    loadVoters();
-};
+// Filter and render table
+function filterAndRenderTable() {
+    let filteredVoters = allVoters;
+    
+    // Apply class filter
+    if (currentFilter !== 'all') {
+        filteredVoters = filteredVoters.filter(v => v.class === currentFilter);
+    }
+    
+    // Apply search
+    if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filteredVoters = filteredVoters.filter(v => 
+            v.id.toLowerCase().includes(term) ||
+            `${v.firstName} ${v.middleName} ${v.lastName}`.toLowerCase().includes(term) ||
+            v.class.toLowerCase().includes(term) ||
+            v.gender.toLowerCase().includes(term)
+        );
+    }
+    
+    renderTable(filteredVoters);
+}
 
+// Render table with given voters
+function renderTable(voters) {
+    if (voters.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px;">
+            <i class="fas fa-user-slash" style="font-size:48px; color:#ccc;"></i>
+            <p style="color:#666; margin-top:10px;">No voters found</p>
+        </td></tr>`;
+        return;
+    }
+    
+    let html = '';
+    voters.sort((a, b) => a.class.localeCompare(b.class) || a.lastName.localeCompare(b.lastName));
+    
+    voters.forEach(v => {
+        const fullName = `${v.firstName} ${v.middleName} ${v.lastName}`.trim();
+        const genderClass = v.gender.toLowerCase() === 'male' ? 'gender-male' : 'gender-female';
+        const date = new Date(v.timestamp).toLocaleDateString();
+        
+        html += `
+            <tr>
+                <td><code>${v.id.substring(0, 8)}...</code></td>
+                <td><strong>${fullName}</strong></td>
+                <td><span class="class-badge">${v.class}</span></td>
+                <td><span class="gender-badge ${genderClass}">${v.gender}</span></td>
+                <td>${date}</td>
+                <td>
+                    <button class="delete-btn" onclick="deleteVoter('${v.id}')" title="Delete Voter">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+}
 
-/* ============================
-     DELETE ALL VOTERS
-===============================*/
-window.deleteAllVoters = async function(){
-    if(!confirm("DELETE ALL REGISTERED VOTERS? This cannot be undone!")) return;
+// Update last updated time
+function updateLastUpdated() {
+    const now = new Date();
+    lastUpdatedEl.innerHTML = `<i class="fas fa-clock"></i> Last updated: ${now.toLocaleTimeString()}`;
+}
 
-    await remove(ref(db, "voters"));
+// Search handler
+searchBox.addEventListener('input', (e) => {
+    searchTerm = e.target.value;
+    filterAndRenderTable();
+});
 
-    alert("All voters deleted.");
-    loadVoters();
-};
+// Class filter handler
+classFilter.addEventListener('change', (e) => {
+    currentFilter = e.target.value;
+    filterAndRenderTable();
+});
 
-
-/* ============================
-          SEARCH
-===============================*/
-window.searchVoter = function(){
-    const q = document.getElementById("searchBox").value.toLowerCase();
-    const rows = document.querySelectorAll("#voterTable tbody tr");
-
-    rows.forEach(r=>{
-        const text = r.textContent.toLowerCase();
-        r.style.display = text.includes(q) ? "" : "none";
+// Global filter function
+window.filterByClass = function(className) {
+    currentFilter = className;
+    classFilter.value = className;
+    filterAndRenderTable();
+    
+    // Update active state in summary cards
+    document.querySelectorAll('.class-card').forEach(card => {
+        card.classList.toggle('active', card.querySelector('.class-name').textContent === className);
     });
 };
 
+// Delete single voter
+window.deleteVoter = async function(id) {
+    if (!confirm('Are you sure you want to delete this voter?')) return;
+    
+    try {
+        await remove(ref(db, `voters/${id}`));
+        alert('Voter deleted successfully');
+    } catch (error) {
+        alert('Error deleting voter: ' + error.message);
+    }
+};
 
-/* Initial load */
-loadVoters();
+// Delete all voters
+window.deleteAllVoters = async function() {
+    if (!confirm('⚠️ DANGER: Delete ALL registered voters? This cannot be undone!')) return;
+    
+    try {
+        await remove(ref(db, 'voters'));
+        alert('All voters deleted successfully');
+    } catch (error) {
+        alert('Error deleting voters: ' + error.message);
+    }
+};
+
+// Print PDF for current view
+window.printClassPDF = function() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape');
+    
+    const title = currentFilter === 'all' ? 'ALL VOTERS' : `${currentFilter.toUpperCase()} VOTERS`;
+    
+    doc.setFontSize(18);
+    doc.text(`UKSS VOTERS REPORT - ${title}`, 14, 20);
+    doc.setFontSize(11);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+    doc.text(`Total: ${tableBody.children.length} voters`, 14, 35);
+    
+    const tableData = [];
+    const rows = tableBody.querySelectorAll('tr');
+    
+    rows.forEach(row => {
+        const cols = row.querySelectorAll('td');
+        if (cols.length >= 5) {
+            tableData.push([
+                cols[0].textContent.trim(),
+                cols[1].textContent.trim(),
+                cols[2].textContent.trim(),
+                cols[3].textContent.trim(),
+                cols[4].textContent.trim()
+            ]);
+        }
+    });
+    
+    doc.autoTable({
+        startY: 40,
+        head: [['Voter ID', 'Full Name', 'Class', 'Gender', 'Registered']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [46, 125, 50], textColor: 255 },
+        styles: { fontSize: 9, cellPadding: 4 }
+    });
+    
+    doc.save(`UKSS_Voters_${currentFilter}_${Date.now()}.pdf`);
+};
+
+// Export all classes as separate PDF
+window.exportAllClassesPDF = function() {
+    const classes = ['Form One', 'Form Two', 'Form Three', 'Form Four'];
+    const { jsPDF } = window.jspdf;
+    
+    classes.forEach(className => {
+        const classVoters = allVoters.filter(v => v.class === className);
+        
+        if (classVoters.length === 0) return;
+        
+        const doc = new jsPDF('landscape');
+        
+        doc.setFontSize(18);
+        doc.text(`UKSS VOTERS REPORT - ${className.toUpperCase()}`, 14, 20);
+        doc.setFontSize(11);
+        doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+        doc.text(`Total: ${classVoters.length} voters`, 14, 35);
+        
+        const tableData = classVoters.map(v => [
+            v.id.substring(0, 8) + '...',
+            `${v.firstName} ${v.middleName} ${v.lastName}`.trim(),
+            v.class,
+            v.gender,
+            new Date(v.timestamp).toLocaleDateString()
+        ]);
+        
+        doc.autoTable({
+            startY: 40,
+            head: [['Voter ID', 'Full Name', 'Class', 'Gender', 'Registered']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { fillColor: [46, 125, 50], textColor: 255 }
+        });
+        
+        doc.save(`UKSS_${className.replace(' ', '_')}_Voters_${Date.now()}.pdf`);
+    });
+    
+    alert('PDF reports for all classes have been generated!');
+};
+
+// Start realtime updates
+loadVotersRealtime();
 
 </script>
-
 </body>
 </html>
