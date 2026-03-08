@@ -690,6 +690,7 @@ let allVotes = [];
 let registeredVoters = [];
 let candidates = [];
 let charts = {};
+let dataLoaded = false;
 
 // DOM Elements
 const loadingOverlay = document.getElementById("loadingOverlay");
@@ -709,52 +710,65 @@ const resultsContent = document.getElementById("resultsContent");
 const classSummary = document.getElementById("classSummary");
 const statsSummary = document.getElementById("statsSummary");
 
-// Load data
-let votesLoaded = false;
-let votersLoaded = false;
-let candidatesLoaded = false;
+// Load data with Promise.all for better performance
+async function loadAllData() {
+  try {
+    // Set timeout to ensure loading doesn't hang forever
+    const timeoutPromise = new Promise(resolve => setTimeout(resolve, 8000));
+    
+    const votesPromise = new Promise(resolve => {
+      onValue(ref(db, "votes"), (snap) => {
+        const data = snap.val() || {};
+        allVotes = Object.entries(data).map(([id, v]) => ({ id, ...v }));
+        resolve();
+      }, { onlyOnce: true });
+    });
 
-function hideLoading() {
-  if (votesLoaded && votersLoaded && candidatesLoaded) {
+    const votersPromise = new Promise(resolve => {
+      onValue(ref(db, "voters"), (snap) => {
+        const data = snap.val() || {};
+        registeredVoters = Object.entries(data).map(([id, v]) => ({ id, ...v }));
+        resolve();
+      }, { onlyOnce: true });
+    });
+
+    const candidatesPromise = new Promise(resolve => {
+      onValue(ref(db, "candidates"), (snap) => {
+        const data = snap.val() || {};
+        candidates = Object.entries(data).map(([id, c]) => ({ id, ...c }));
+        resolve();
+      }, { onlyOnce: true });
+    });
+
+    // Wait for all data or timeout
+    await Promise.race([
+      Promise.all([votesPromise, votersPromise, candidatesPromise]),
+      timeoutPromise
+    ]);
+
+    dataLoaded = true;
+    populatePositionFilter();
+    processData();
+    
+  } catch (error) {
+    console.error("Error loading data:", error);
+    // Show partial data if available
+    processData();
+  } finally {
     loadingOverlay.style.display = "none";
     updateTimestamp();
   }
 }
 
-// Load votes
-onValue(ref(db, "votes"), (snap) => {
-  const data = snap.val() || {};
-  allVotes = Object.entries(data).map(([id, v]) => ({ id, ...v }));
-  votesLoaded = true;
-  processData();
-  hideLoading();
-});
-
-// Load registered voters
-onValue(ref(db, "voters"), (snap) => {
-  const data = snap.val() || {};
-  registeredVoters = Object.entries(data).map(([id, v]) => ({ id, ...v }));
-  votersLoaded = true;
-  processData();
-  hideLoading();
-});
-
-// Load candidates
-onValue(ref(db, "candidates"), (snap) => {
-  const data = snap.val() || {};
-  candidates = Object.entries(data).map(([id, c]) => ({ id, ...c }));
-  candidatesLoaded = true;
-  populatePositionFilter();
-  processData();
-  hideLoading();
-});
-
 function processData() {
   updateStats();
-  renderCharts();
-  renderPositionTabs();
-  renderClassSummary();
-  renderStatsSummary();
+  // Use setTimeout to prevent UI blocking
+  setTimeout(() => {
+    renderCharts();
+    renderPositionTabs();
+    renderClassSummary();
+    renderStatsSummary();
+  }, 100);
 }
 
 function updateStats() {
@@ -776,7 +790,9 @@ function getUniquePositions() {
   allVotes.forEach(v => {
     Object.keys(v.votes || {}).forEach(p => positions.add(p));
   });
-  candidates.forEach(c => positions.add(c.position));
+  candidates.forEach(c => {
+    if (c.position) positions.add(c.position);
+  });
   return Array.from(positions);
 }
 
@@ -896,7 +912,7 @@ function renderStatsSummary() {
   const maleVoted = allVotes.filter(v => v.voter?.gender === 'Male').length;
   const femaleVoted = allVotes.filter(v => v.voter?.gender === 'Female').length;
 
-  html = `
+  let html = `
     <div class="summary-card">
       <h4><i class="fas fa-venus-mars"></i> Gender Distribution</h4>
       <div class="winner-info">
@@ -936,14 +952,17 @@ function renderStatsSummary() {
 }
 
 function renderCharts() {
-  // Prepare data
+  // Destroy existing charts
+  Object.values(charts).forEach(chart => {
+    if (chart) chart.destroy();
+  });
+
   const positions = getUniquePositions();
   const votesPerPosition = positions.map(pos => {
     return allVotes.filter(v => v.votes && v.votes[pos]).length;
   });
 
   // Bar Chart
-  if (charts.bar) charts.bar.destroy();
   charts.bar = new Chart(document.getElementById("barChart"), {
     type: 'bar',
     data: {
@@ -956,11 +975,12 @@ function renderCharts() {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } }
     }
   });
 
-  // Pie Chart - Candidate votes
+  // Pie Chart
   const candidateVotes = {};
   allVotes.forEach(v => {
     Object.values(v.votes || {}).forEach(c => {
@@ -972,7 +992,6 @@ function renderCharts() {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
 
-  if (charts.pie) charts.pie.destroy();
   charts.pie = new Chart(document.getElementById("pieChart"), {
     type: 'pie',
     data: {
@@ -981,15 +1000,18 @@ function renderCharts() {
         data: topCandidates.map(([, votes]) => votes),
         backgroundColor: ['#2e7d32', '#4caf50', '#81c784', '#a5d6a7', '#c8e6c9']
       }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
     }
   });
 
-  // Line Chart - Timeline
+  // Line Chart
   const sortedVotes = allVotes.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   const cumulative = [];
   sortedVotes.forEach((_, i) => cumulative.push(i + 1));
   
-  if (charts.line) charts.line.destroy();
   charts.line = new Chart(document.getElementById("lineChart"), {
     type: 'line',
     data: {
@@ -1001,6 +1023,10 @@ function renderCharts() {
         tension: 0.1,
         fill: false
       }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
     }
   });
 }
@@ -1056,7 +1082,6 @@ window.generateFullPDF = function() {
 
 window.generateFilteredPDF = function() {
   alert('Generating filtered PDF...');
-  // Implement filtering logic
 };
 
 window.printResults = function() {
@@ -1102,11 +1127,13 @@ function filterData() {
     filtered = filtered.filter(v => v.votes && v.votes[posVal]);
   }
 
-  // Update display with filtered data
   votesCastEl.textContent = filtered.length;
   const turnoutCalc = registeredVoters.length ? ((filtered.length / registeredVoters.length) * 100).toFixed(1) : 0;
   turnoutEl.textContent = `${turnoutCalc}% turnout (filtered)`;
 }
+
+// Start loading
+loadAllData();
 
 // Expose functions globally
 window.showPosition = showPosition;
