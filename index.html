@@ -180,6 +180,7 @@
             const voters = votersSnap.val();
             const exists = Object.values(voters).find(v =>
               v.firstName.toLowerCase() === firstName.toLowerCase() &&
+              v.middleName.toLowerCase() === middleName.toLowerCase() &&
               v.lastName.toLowerCase() === lastName.toLowerCase() &&
               v.classSelect === classSelect
             );
