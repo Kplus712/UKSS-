@@ -10,7 +10,7 @@
     header { background: forestgreen; color: white; padding: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
     button { margin: 10px; padding: 10px 20px; border: none; background: forestgreen; color: white; border-radius: 8px; cursor: pointer; font-size: 16px; }
     button:hover { background: darkgreen; }
-    input, select { margin: 8px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
+    input, select { margin: 8px; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; width: 90%; max-width: 350px; }
     #registerForm { display: none; background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; margin: 20px auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
     .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
@@ -97,10 +97,10 @@
       <h2>✅ Registration Successful!</h2>
       <p>Your Voter ID is:</p>
       <h3 id="generatedID" style="color:forestgreen"></h3>
-      <p style="font-size:13px; color:#666;">Save this ID carefully. You’ll need it to vote.</p>
+      <p style="font-size:13px; color:#666;">Save this ID carefully. You'll need it to vote.</p>
       <button onclick="copyVoterID()">📋 Copy ID</button>
       <button onclick="proceedToVote()">➡️ Proceed to Voting</button>
-      <button onclick="closePopup()" style="background:gray;">Close</button>
+      <button onclick="closePopupAndReset()" style="background:gray;">Close</button>
     </div>
   </div>
 
@@ -127,12 +127,35 @@
     const db = getDatabase(app);
 
     // UI helpers
-    window.openRegisterForm = () => { document.getElementById("registerForm").style.display="block"; document.getElementById("mainMenu").style.display="none"; };
-    window.closeRegisterForm = () => { document.getElementById("registerForm").style.display="none"; document.getElementById("mainMenu").style.display="block"; };
+    window.openRegisterForm = () => { 
+      document.getElementById("registerForm").style.display="block"; 
+      document.getElementById("mainMenu").style.display="none"; 
+    };
+    
+    window.closeRegisterForm = () => { 
+      document.getElementById("registerForm").style.display="none"; 
+      document.getElementById("mainMenu").style.display="block"; 
+    };
+    
     window.openVoterLogin = () => document.getElementById("voterLogin").style.display="flex";
     window.closeLogin = () => document.getElementById("voterLogin").style.display="none";
     window.openRecovery = () => document.getElementById("recoveryModal").style.display="flex";
     window.closeRecovery = () => document.getElementById("recoveryModal").style.display="none";
+    
+    // ================ FIXED: New close function that resets form ================
+    window.closePopupAndReset = function() {
+      document.getElementById("idPopup").style.display = "none";
+      // Reset registration form fields
+      document.getElementById("firstName").value = "";
+      document.getElementById("middleName").value = "";
+      document.getElementById("lastName").value = "";
+      document.getElementById("classSelect").value = "";
+      document.getElementById("gender").value = "";
+      // Show registration form again
+      document.getElementById("registerForm").style.display = "block";
+    };
+
+    // Keep old closePopup for backward compatibility
     window.closePopup = () => document.getElementById("idPopup").style.display="none";
 
     // Network status badge
@@ -261,8 +284,13 @@
     };
 
     // Login unchanged
-    window.copyVoterID = () => { navigator.clipboard.writeText(document.getElementById("generatedID").textContent); alert("✅ Voter ID copied!"); };
+    window.copyVoterID = () => { 
+      navigator.clipboard.writeText(document.getElementById("generatedID").textContent); 
+      alert("✅ Voter ID copied!"); 
+    };
+    
     window.proceedToVote = () => window.location.href = "voting.html";
+    
     window.loginWithVoterID = async function() {
       const id = document.getElementById("voterIDInput").value.trim().toLowerCase();
       if (!id) return alert("Enter your ID!");
