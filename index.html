@@ -16,6 +16,8 @@
     .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     .modal-content h2 { color: forestgreen; }
     .status-badge { display:inline-block; padding:6px 10px; border-radius:20px; background:#ffeedd; color:#b55200; font-weight:700; margin-left:10px; font-size:13px; }
+    .admin-icon { font-size: 48px; color: forestgreen; margin-bottom: 10px; }
+    .error-message { color: #c62828; font-size: 14px; margin-top: 5px; display: none; }
   </style>
 </head>
 <body>
@@ -30,7 +32,7 @@
     <button onclick="openRegisterForm()">🧾 Register & Get Voter ID</button>
     <button onclick="openVoterLogin()">🔑 Login with Voter ID</button>
     <button onclick="openRecovery()">🆔 Forgot Voter ID?</button>
-    <button onclick="adminLogin()">🔐 Admin Login</button>
+    <button onclick="openAdminLogin()">🔐 Admin Login</button>
   </section>
 
   <!-- === Registration Form === -->
@@ -91,6 +93,18 @@
     </div>
   </div>
 
+  <!-- === Admin Login Modal (NEW - Like Voter Login) === -->
+  <div id="adminLoginModal" class="modal">
+    <div class="modal-content">
+      <div class="admin-icon">🔐</div>
+      <h2>Admin Login</h2>
+      <input type="password" id="adminPasswordInput" placeholder="Enter Admin Password" style="-webkit-text-security: disc;">
+      <div id="adminError" class="error-message">❌ Incorrect password!</div>
+      <button onclick="submitAdminLogin()">Login</button>
+      <button onclick="closeAdminLogin()" style="background:gray;">Close</button>
+    </div>
+  </div>
+
   <!-- === Registration Success Popup === -->
   <div id="idPopup" class="modal">
     <div class="modal-content">
@@ -139,10 +153,33 @@
     
     window.openVoterLogin = () => document.getElementById("voterLogin").style.display="flex";
     window.closeLogin = () => document.getElementById("voterLogin").style.display="none";
+    
     window.openRecovery = () => document.getElementById("recoveryModal").style.display="flex";
     window.closeRecovery = () => document.getElementById("recoveryModal").style.display="none";
     
-    // ================ FIXED: New close function that resets form ================
+    // ================ NEW: Admin Login Modal Functions ================
+    window.openAdminLogin = () => {
+      document.getElementById("adminLoginModal").style.display = "flex";
+      document.getElementById("adminPasswordInput").value = "";
+      document.getElementById("adminError").style.display = "none";
+    };
+    
+    window.closeAdminLogin = () => {
+      document.getElementById("adminLoginModal").style.display = "none";
+    };
+    
+    window.submitAdminLogin = () => {
+      const password = document.getElementById("adminPasswordInput").value;
+      if (password === "ukss2025") {
+        window.location.href = "admin.html";
+      } else {
+        document.getElementById("adminError").style.display = "block";
+        document.getElementById("adminPasswordInput").value = "";
+        document.getElementById("adminPasswordInput").focus();
+      }
+    };
+    
+    // ================ Close popup and reset form ================
     window.closePopupAndReset = function() {
       document.getElementById("idPopup").style.display = "none";
       // Reset registration form fields
@@ -258,7 +295,7 @@
       }
     };
 
-    // Recovery unchanged (but best-effort)
+    // Recovery
     window.recoverVoterID = async function() {
       const f = document.getElementById("recoverFirstName").value.trim().toLowerCase();
       const l = document.getElementById("recoverLastName").value.trim().toLowerCase();
@@ -283,7 +320,7 @@
       }
     };
 
-    // Login unchanged
+    // Login functions
     window.copyVoterID = () => { 
       navigator.clipboard.writeText(document.getElementById("generatedID").textContent); 
       alert("✅ Voter ID copied!"); 
@@ -310,18 +347,15 @@
       }
     };
 
-    window.adminLogin = () => {
-      const pass = prompt("Enter Admin Password:");
-      if (pass === "ukss2025") window.location.href = "admin.html";
-      else if (pass) alert("❌ Wrong password!");
-    };
+    // Old admin login function (replaced by popup)
+    // window.adminLogin = () => { ... } - Removed
 
     // Attempt a sync on load (if online)
     if (navigator.onLine){
       setTimeout(()=> { if(window.syncOfflineQueue) window.syncOfflineQueue(db); }, 1200);
     }
 
-    // Register service worker (optional) — file provided below
+    // Register service worker (optional)
     if ('serviceWorker' in navigator) {
       try {
         navigator.serviceWorker.register('/service-worker.js');
