@@ -579,10 +579,10 @@
               <option value="disciplineBoy">Discipline (Male)</option>
               <option value="disciplineGirl">Discipline (Female)</option>
             </optgroup>
-             <optgroup label="Time keeper">
-              <option value="Timekeeper">Time keeper (Male)</option>
-              <option value="Timekeeper">Time keeper (Female)</option>
-            </optgroup> 
+            <optgroup label="Time keeper">
+              <option value="timekeeperBoy">Time keeper (Male)</option>
+              <option value="timekeeperGirl">Time keeper (Female)</option>
+            </optgroup>
           </select>
         </div>
       </div>
@@ -612,7 +612,7 @@
 </div>
 
 <script type="module">
-  // Firebase config (same as original)
+  // Firebase config
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
   import { getDatabase, ref, set, remove, onValue, get }
     from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
@@ -658,9 +658,10 @@
 
   let allCandidates = {};
 
-  // Helpers
-  const BASES = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline"];
+  // ================ FIXED: Added timekeeper to BASES array ================
+  const BASES = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline", "timekeeper"];
 
+  // ================ FIXED: Added timekeeper to prettyTitle map ================
   function prettyTitle(base) {
     const map = {
       head:"Head Prefect",
@@ -673,7 +674,7 @@
       store:"Store Keeper",
       academic:"Academic Prefect",
       discipline:"Discipline Prefect",
-     Timekeeper:"Timekeeper prefect"
+      timekeeper:"Timekeeper Prefect"
     };
     return map[base] || base;
   }
@@ -725,9 +726,11 @@
     renderCandidatesByPosition();
   });
 
+  // ================ FIXED: Added timekeeper detection ================
   function baseOfPosition(pos=""){
     if(/Boy$/i.test(pos) || /Girl$/i.test(pos)) return pos.replace(/(Boy|Girl)$/i,"");
     if(/generalSecretary/i.test(pos)) return "generalSecretary";
+    if(/timekeeper/i.test(pos)) return "timekeeper";
     return pos || "";
   }
 
@@ -736,8 +739,13 @@
     BASES.forEach(b => groups[b] = []);
     Object.entries(allCandidates || {}).forEach(([id, c])=>{
       const base = baseOfPosition(c.position || "");
-      if(!groups[base]) groups[base] = [];
-      groups[base].push({ id, ...c });
+      if(groups[base]) {  // Only add if base exists in groups
+        groups[base].push({ id, ...c });
+      } else {
+        // If base doesn't exist, create a new group for it
+        if(!groups[base]) groups[base] = [];
+        groups[base].push({ id, ...c });
+      }
     });
     Object.values(groups).forEach(arr => arr.sort((a,b)=>fullName(a).localeCompare(fullName(b))));
     return groups;
@@ -747,7 +755,10 @@
     const groups = groupCandidates();
     let html = "";
 
-    for(const base of BASES){
+    // Get all bases that have candidates or are in BASES
+    const allBases = [...new Set([...BASES, ...Object.keys(groups)])];
+    
+    for(const base of allBases){
       const list = groups[base] || [];
       html += `
         <div class="pos-box">
@@ -861,7 +872,7 @@
   // Print
   printBtn.addEventListener("click", () => window.print());
 
-  // ========== PDF GENERATION (kept original logic, works with new design) ==========
+  // ========== PDF GENERATION ==========
   async function fetchAsDataURL(url){
     const res = await fetch(url, { mode: "cors" });
     if(!res.ok) throw new Error("Image fetch failed");
@@ -919,7 +930,7 @@
       // preload images
       const imgMap = new Map();
       const flat = [];
-      for(const base of BASES){
+      for(const base of Object.keys(groups)){
         for(const c of (groups[base] || [])){
           c.__imgKey = `img_${c.id}`;
           flat.push(c);
@@ -946,7 +957,7 @@
         ]));
       }
 
-      for(const base of BASES){
+      for(const base of Object.keys(groups)){
         const list = groups[base] || [];
         doc.setFont("helvetica","bold");
         doc.setFontSize(13);
