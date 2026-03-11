@@ -359,7 +359,40 @@
   }
 
   .modal-close:hover {
-    color: var(--danger);
+    color: #c62828;
+  }
+
+  /* Success Popup */
+  .success-popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(145deg, #1b5e20, #2e7d32);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 20000;
+    animation: slideInRight 0.3s ease;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+  }
+
+  .success-popup.show {
+    transform: translateX(0);
+  }
+
+  .success-popup i {
+    font-size: 24px;
+    color: #ffb74d;
+  }
+
+  @keyframes slideInRight {
+    from { transform: translateX(120%); }
+    to { transform: translateX(0); }
   }
 
   /* candidate list premium */
@@ -538,6 +571,12 @@
 </style>
 </head>
 <body>
+
+<!-- Success Popup -->
+<div id="successPopup" class="success-popup">
+  <i class="fas fa-check-circle"></i>
+  <span id="successMessage">Candidate updated successfully!</span>
+</div>
 
 <div class="header">
   <div class="brand">
@@ -742,7 +781,7 @@
 <script type="module">
   // Firebase config
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, set, remove, onValue, get, update }
+  import { getDatabase, ref, set, remove, onValue, get }
     from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
   import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
     from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
@@ -766,6 +805,8 @@
   const positionsGrid = document.getElementById("positionsGrid");
   const printBtn = document.getElementById("printBtn");
   const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+  const successPopup = document.getElementById("successPopup");
+  const successMessage = document.getElementById("successMessage");
 
   const adminPass = document.getElementById("adminPass");
   const formArea = document.getElementById("formArea");
@@ -798,6 +839,15 @@
   const editPreviewTxt = document.getElementById("editPreviewTxt");
 
   let allCandidates = {};
+
+  // Show success popup
+  function showSuccess(message) {
+    successMessage.textContent = message;
+    successPopup.classList.add("show");
+    setTimeout(() => {
+      successPopup.classList.remove("show");
+    }, 3000);
+  }
 
   // ================ FIXED: Position mapping ================
   const BASES = ["head", "academic", "discipline", "food", "health", "environment", "sports", "maintenance", "timekeeper"];
@@ -853,6 +903,19 @@
       previewImg.src = e.target.result;
       previewImg.style.display = "block";
       previewTxt.innerHTML = '<i class="fas fa-check-circle" style="color:#2e7d32"></i> Photo ready';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Edit photo preview
+  editPhoto.addEventListener("change", function(){
+    const file = this.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      editPreviewImg.src = e.target.result;
+      editPreviewImg.style.display = "block";
+      editPreviewTxt.innerHTML = '<i class="fas fa-check-circle" style="color:#2e7d32"></i> New photo selected';
     };
     reader.readAsDataURL(file);
   });
@@ -984,6 +1047,7 @@
     try {
       let photoURL = editPreviewImg.src || "";
       
+      // Only upload if a new file is selected
       if (file) {
         const storageRef = sRef(storage, "candidates/" + id + ".jpg");
         await uploadBytes(storageRef, file);
@@ -1000,8 +1064,8 @@
         photoURL: photoURL
       });
 
-      alert("Candidate updated successfully!");
       closeEditModal();
+      showSuccess("Candidate updated successfully! 🎉");
     } catch (err) {
       alert("Error: " + err.message);
     }
@@ -1011,6 +1075,7 @@
   window.deleteCandidate = async function(id){
     if(confirm("Are you sure you want to delete this candidate?")){
       await remove(ref(db,"candidates/"+id));
+      showSuccess("Candidate deleted successfully!");
     }
   };
 
@@ -1064,8 +1129,8 @@
         photoURL
       });
 
-      alert("Saved!");
       resetForm();
+      showSuccess("Candidate saved successfully! 🎉");
     }catch(err){
       alert("Error: " + err.message);
     }
@@ -1074,7 +1139,7 @@
   // Print
   printBtn.addEventListener("click", () => window.print());
 
-  // PDF Generation (kept same)
+  // ========== PDF GENERATION ==========
   async function fetchAsDataURL(url){
     const res = await fetch(url, { mode: "cors" });
     if(!res.ok) throw new Error("Image fetch failed");
