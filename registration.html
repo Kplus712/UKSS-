@@ -296,6 +296,72 @@
     justify-content: center;
   }
 
+  /* MODAL STYLES */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 28px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    animation: modalIn 0.3s ease;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary-soft);
+    padding-bottom: 15px;
+  }
+
+  .modal-header i {
+    font-size: 28px;
+    color: var(--accent);
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+    color: var(--primary);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--gray);
+  }
+
+  .modal-close:hover {
+    color: var(--danger);
+  }
+
   /* candidate list premium */
   .list-container {
     display: flex;
@@ -538,51 +604,25 @@
         </div>
         <div class="input-wrapper"><i class="fas fa-tag"></i>
           <select id="position">
-            <option value="">Position</option>
-            <optgroup label="Head Boy & Head Girl">
-              <option value="headBoy">Head Boy</option>
-              <option value="headGirl">Head Girl</option>
-            </optgroup>
-            <optgroup label="General Secretary">
-              <option value="generalSecretaryBoy">General Secretary (Male)</option>
-              <option value="generalSecretaryGirl">General Secretary (Female)</option>
-            </optgroup>
-            <optgroup label="Sports & Games">
-              <option value="sportsBoy">Sports & Games (Male)</option>
-              <option value="sportsGirl">Sports & Games (Female)</option>
-            </optgroup>
-            <optgroup label="Food Prefect">
-              <option value="foodBoy">Food Prefect (Male)</option>
-              <option value="foodGirl">Food Prefect (Female)</option>
-            </optgroup>
-            <optgroup label="Environmental">
-              <option value="environmentBoy">Environmental (Male)</option>
-              <option value="environmentGirl">Environmental (Female)</option>
-            </optgroup>
-            <optgroup label="Health">
-              <option value="healthBoy">Health (Male)</option>
-              <option value="healthGirl">Health (Female)</option>
-            </optgroup>
-            <optgroup label="Maintenance">
-              <option value="maintenanceBoy">Maintenance (Male)</option>
-              <option value="maintenanceGirl">Maintenance (Female)</option>
-            </optgroup>
-            <optgroup label="Store Keeper">
-              <option value="storeBoy">Store Keeper (Male)</option>
-              <option value="storeGirl">Store Keeper (Female)</option>
-            </optgroup>
-            <optgroup label="Academic">
-              <option value="academicBoy">Academic (Male)</option>
-              <option value="academicGirl">Academic (Female)</option>
-            </optgroup>
-            <optgroup label="Discipline">
-              <option value="disciplineBoy">Discipline (Male)</option>
-              <option value="disciplineGirl">Discipline (Female)</option>
-            </optgroup>
-            <optgroup label="Time keeper">
-              <option value="timekeeperBoy">Time keeper (Male)</option>
-              <option value="timekeeperGirl">Time keeper (Female)</option>
-            </optgroup>
+            <option value="">Select Position</option>
+            <option value="headBoy">HEAD BOY</option>
+            <option value="headGirl">HEAD GIRL</option>
+            <option value="academicBoy">ACADEMIC PREFECT (Male)</option>
+            <option value="academicGirl">ACADEMIC PREFECT (Female)</option>
+            <option value="disciplineBoy">DISCIPLINE PREFECT (Male)</option>
+            <option value="disciplineGirl">DISCIPLINE PREFECT (Female)</option>
+            <option value="foodBoy">FOOD & NUTRITION PREFECT (Male)</option>
+            <option value="foodGirl">FOOD & NUTRITION PREFECT (Female)</option>
+            <option value="healthBoy">HEALTH PREFECT (Male)</option>
+            <option value="healthGirl">HEALTH PREFECT (Female)</option>
+            <option value="environmentBoy">ENVIRONMENTAL PREFECT (Male)</option>
+            <option value="environmentGirl">ENVIRONMENTAL PREFECT (Female)</option>
+            <option value="sportsBoy">SPORTS & GAME PREFECT (Male)</option>
+            <option value="sportsGirl">SPORTS & GAME PREFECT (Female)</option>
+            <option value="maintenanceBoy">MAINTENANCE PREFECT (Male)</option>
+            <option value="maintenanceGirl">MAINTENANCE PREFECT (Female)</option>
+            <option value="timekeeperBoy">TIME KEEPER PREFECT (Male)</option>
+            <option value="timekeeperGirl">TIME KEEPER PREFECT (Female)</option>
           </select>
         </div>
       </div>
@@ -611,10 +651,98 @@
   </div>
 </div>
 
+<!-- EDIT CANDIDATE MODAL -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-header">
+      <i class="fas fa-edit"></i>
+      <h2>Edit Candidate</h2>
+    </div>
+    
+    <input type="hidden" id="editCandidateId" />
+    
+    <div class="input-wrapper">
+      <i class="fas fa-user"></i>
+      <input type="text" id="editFirstName" placeholder="First Name" />
+    </div>
+    
+    <div class="input-wrapper">
+      <i class="fas fa-user-circle"></i>
+      <input type="text" id="editMiddleName" placeholder="Middle Name" />
+    </div>
+    
+    <div class="input-wrapper">
+      <i class="fas fa-user-tie"></i>
+      <input type="text" id="editLastName" placeholder="Last Name" />
+    </div>
+    
+    <div class="input-wrapper">
+      <i class="fas fa-venus-mars"></i>
+      <select id="editGender">
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+    </div>
+    
+    <div class="input-wrapper">
+      <i class="fas fa-graduation-cap"></i>
+      <select id="editClass">
+        <option value="">Select Class</option>
+        <option value="Form One">Form One</option>
+        <option value="Form Two">Form Two</option>
+        <option value="Form Three">Form Three</option>
+        <option value="Form Four">Form Four</option>
+      </select>
+    </div>
+    
+    <div class="input-wrapper">
+      <i class="fas fa-tag"></i>
+      <select id="editPosition">
+        <option value="">Select Position</option>
+        <option value="headBoy">HEAD BOY</option>
+        <option value="headGirl">HEAD GIRL</option>
+        <option value="academicBoy">ACADEMIC PREFECT (Male)</option>
+        <option value="academicGirl">ACADEMIC PREFECT (Female)</option>
+        <option value="disciplineBoy">DISCIPLINE PREFECT (Male)</option>
+        <option value="disciplineGirl">DISCIPLINE PREFECT (Female)</option>
+        <option value="foodBoy">FOOD & NUTRITION PREFECT (Male)</option>
+        <option value="foodGirl">FOOD & NUTRITION PREFECT (Female)</option>
+        <option value="healthBoy">HEALTH PREFECT (Male)</option>
+        <option value="healthGirl">HEALTH PREFECT (Female)</option>
+        <option value="environmentBoy">ENVIRONMENTAL PREFECT (Male)</option>
+        <option value="environmentGirl">ENVIRONMENTAL PREFECT (Female)</option>
+        <option value="sportsBoy">SPORTS & GAME PREFECT (Male)</option>
+        <option value="sportsGirl">SPORTS & GAME PREFECT (Female)</option>
+        <option value="maintenanceBoy">MAINTENANCE PREFECT (Male)</option>
+        <option value="maintenanceGirl">MAINTENANCE PREFECT (Female)</option>
+        <option value="timekeeperBoy">TIME KEEPER PREFECT (Male)</option>
+        <option value="timekeeperGirl">TIME KEEPER PREFECT (Female)</option>
+      </select>
+    </div>
+    
+    <div class="input-wrapper">
+      <i class="fas fa-camera"></i>
+      <input type="file" id="editPhoto" accept="image/*" />
+    </div>
+    
+    <div class="photo-preview-area" style="margin: 10px 0;">
+      <img id="editPreviewImg" alt="preview" style="display:none; width:70px; height:70px; border-radius:20px; object-fit:cover;" />
+      <div class="label" id="editPreviewTxt"><i class="fas fa-image"></i> Current photo</div>
+    </div>
+    
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="updateCandidate()"><i class="fas fa-save"></i> Update</button>
+      <button class="btn btn-outline" onclick="closeEditModal()"><i class="fas fa-times"></i> Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   // Firebase config
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-  import { getDatabase, ref, set, remove, onValue, get }
+  import { getDatabase, ref, set, remove, onValue, get, update }
     from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
   import { getStorage, ref as sRef, uploadBytes, getDownloadURL }
     from "https://www.gstatic.com/firebasejs/12.5.0/firebase-storage.js";
@@ -656,25 +784,35 @@
   const previewImg = document.getElementById("previewImg");
   const previewTxt = document.getElementById("previewTxt");
 
+  // Edit modal elements
+  const editModal = document.getElementById("editModal");
+  const editCandidateId = document.getElementById("editCandidateId");
+  const editFirstName = document.getElementById("editFirstName");
+  const editMiddleName = document.getElementById("editMiddleName");
+  const editLastName = document.getElementById("editLastName");
+  const editGender = document.getElementById("editGender");
+  const editClass = document.getElementById("editClass");
+  const editPosition = document.getElementById("editPosition");
+  const editPhoto = document.getElementById("editPhoto");
+  const editPreviewImg = document.getElementById("editPreviewImg");
+  const editPreviewTxt = document.getElementById("editPreviewTxt");
+
   let allCandidates = {};
 
-  // ================ FIXED: Added timekeeper to BASES array ================
-  const BASES = ["head","generalSecretary","sports","food","environment","health","maintenance","store","academic","discipline", "timekeeper"];
+  // ================ FIXED: Position mapping ================
+  const BASES = ["head", "academic", "discipline", "food", "health", "environment", "sports", "maintenance", "timekeeper"];
 
-  // ================ FIXED: Added timekeeper to prettyTitle map ================
   function prettyTitle(base) {
     const map = {
-      head:"Head Prefect",
-      generalSecretary:"General Secretary",
-      sports:"Sports & Games Prefect",
-      food:"Food Prefect",
-      environment:"Environmental Prefect",
-      health:"Health Prefect",
-      maintenance:"Maintenance Prefect",
-      store:"Store Keeper",
-      academic:"Academic Prefect",
-      discipline:"Discipline Prefect",
-      timekeeper:"Timekeeper Prefect"
+      head: "HEAD BOY & HEAD GIRL",
+      academic: "ACADEMIC PREFECT",
+      discipline: "DISCIPLINE PREFECT",
+      food: "FOOD & NUTRITION PREFECT",
+      health: "HEALTH PREFECT",
+      environment: "ENVIRONMENTAL PREFECT",
+      sports: "SPORTS & GAME PREFECT",
+      maintenance: "MAINTENANCE PREFECT",
+      timekeeper: "TIME KEEPER PREFECT"
     };
     return map[base] || base;
   }
@@ -726,10 +864,15 @@
     renderCandidatesByPosition();
   });
 
-  // ================ FIXED: Added timekeeper detection ================
   function baseOfPosition(pos=""){
-    if(/Boy$/i.test(pos) || /Girl$/i.test(pos)) return pos.replace(/(Boy|Girl)$/i,"");
-    if(/generalSecretary/i.test(pos)) return "generalSecretary";
+    if(/head/i.test(pos)) return "head";
+    if(/academic/i.test(pos)) return "academic";
+    if(/discipline/i.test(pos)) return "discipline";
+    if(/food/i.test(pos)) return "food";
+    if(/health/i.test(pos)) return "health";
+    if(/environment/i.test(pos)) return "environment";
+    if(/sports/i.test(pos)) return "sports";
+    if(/maintenance/i.test(pos)) return "maintenance";
     if(/timekeeper/i.test(pos)) return "timekeeper";
     return pos || "";
   }
@@ -739,10 +882,9 @@
     BASES.forEach(b => groups[b] = []);
     Object.entries(allCandidates || {}).forEach(([id, c])=>{
       const base = baseOfPosition(c.position || "");
-      if(groups[base]) {  // Only add if base exists in groups
+      if(groups[base]) {
         groups[base].push({ id, ...c });
       } else {
-        // If base doesn't exist, create a new group for it
         if(!groups[base]) groups[base] = [];
         groups[base].push({ id, ...c });
       }
@@ -755,7 +897,6 @@
     const groups = groupCandidates();
     let html = "";
 
-    // Get all bases that have candidates or are in BASES
     const allBases = [...new Set([...BASES, ...Object.keys(groups)])];
     
     for(const base of allBases){
@@ -780,7 +921,7 @@
                     </div>
                   </div>
                   <div class="action-btns">
-                    <button class="icon-btn edit" onclick="editCandidate('${c.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="icon-btn edit" onclick="openEditModal('${c.id}')"><i class="fas fa-edit"></i></button>
                     <button class="icon-btn del" onclick="deleteCandidate('${c.id}')"><i class="fas fa-trash"></i></button>
                   </div>
                 </div>
@@ -793,46 +934,102 @@
     positionsGrid.innerHTML = html;
   }
 
-  window.editCandidate = async function(id){
-    const snap = await get(ref(db,"candidates/"+id));
-    if(!snap.exists()) return;
+  // ================ EDIT MODAL FUNCTIONS ================
+  window.openEditModal = async function(id) {
+    const snap = await get(ref(db, "candidates/" + id));
+    if (!snap.exists()) return;
+    
     const c = snap.val();
-    editMode.value = "edit";
-    editID.value = id;
-    firstName.value = c.firstName || "";
-    middleName.value = c.middleName || "";
-    lastName.value = c.lastName || "";
-    gender.value = c.gender || "";
-    classSelect.value = c.classSelect || "";
-    position.value = c.position || "";
-
-    if(c.photoURL){
-      previewImg.src = c.photoURL;
-      previewImg.style.display = "block";
-      previewTxt.innerHTML = '<i class="fas fa-check-circle" style="color:#2e7d32"></i> Existing photo loaded';
+    
+    editCandidateId.value = id;
+    editFirstName.value = c.firstName || "";
+    editMiddleName.value = c.middleName || "";
+    editLastName.value = c.lastName || "";
+    editGender.value = c.gender || "";
+    editClass.value = c.classSelect || "";
+    editPosition.value = c.position || "";
+    
+    if (c.photoURL) {
+      editPreviewImg.src = c.photoURL;
+      editPreviewImg.style.display = "block";
+      editPreviewTxt.innerHTML = '<i class="fas fa-check-circle" style="color:#2e7d32"></i> Current photo';
     } else {
-      previewImg.style.display = "none";
-      previewTxt.innerHTML = '<i class="fas fa-image"></i> No photo (placeholder)';
+      editPreviewImg.style.display = "none";
+      editPreviewTxt.innerHTML = '<i class="fas fa-image"></i> No photo';
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    
+    editModal.style.display = "flex";
   };
 
+  window.closeEditModal = function() {
+    editModal.style.display = "none";
+    editPhoto.value = "";
+  };
+
+  window.updateCandidate = async function() {
+    const id = editCandidateId.value;
+    const first = editFirstName.value.trim();
+    const middle = editMiddleName.value.trim();
+    const last = editLastName.value.trim();
+    const gen = editGender.value;
+    const cls = editClass.value;
+    const pos = editPosition.value;
+    const file = editPhoto.files[0];
+
+    if (!first || !last || !gen || !cls || !pos) {
+      alert("Please fill all required fields!");
+      return;
+    }
+
+    try {
+      let photoURL = editPreviewImg.src || "";
+      
+      if (file) {
+        const storageRef = sRef(storage, "candidates/" + id + ".jpg");
+        await uploadBytes(storageRef, file);
+        photoURL = await getDownloadURL(storageRef);
+      }
+
+      await set(ref(db, "candidates/" + id), {
+        firstName: first,
+        middleName: middle,
+        lastName: last,
+        gender: gen,
+        classSelect: cls,
+        position: pos,
+        photoURL: photoURL
+      });
+
+      alert("Candidate updated successfully!");
+      closeEditModal();
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  // Delete candidate
   window.deleteCandidate = async function(id){
-    if(confirm("Delete this candidate?")){
+    if(confirm("Are you sure you want to delete this candidate?")){
       await remove(ref(db,"candidates/"+id));
     }
   };
 
+  // Reset form
   window.resetForm = function(){
     editMode.value = "none";
     editID.value = "";
-    firstName.value = ""; middleName.value = ""; lastName.value = "";
-    gender.value = ""; classSelect.value = ""; position.value = "";
+    firstName.value = ""; 
+    middleName.value = ""; 
+    lastName.value = "";
+    gender.value = ""; 
+    classSelect.value = ""; 
+    position.value = "";
     photo.value = "";
     previewImg.style.display = "none";
     previewTxt.innerHTML = '<i class="fas fa-image"></i> No photo (placeholder)';
   };
 
+  // Save candidate
   window.saveCandidate = async function(){
     const first = firstName.value.trim();
     const middle = middleName.value.trim();
@@ -858,8 +1055,13 @@
       }
 
       await set(ref(db,"candidates/"+id),{
-        firstName:first, middleName:middle, lastName:last,
-        gender:gen, classSelect:cls, position:pos, photoURL
+        firstName:first, 
+        middleName:middle, 
+        lastName:last,
+        gender:gen, 
+        classSelect:cls, 
+        position:pos, 
+        photoURL
       });
 
       alert("Saved!");
@@ -872,7 +1074,7 @@
   // Print
   printBtn.addEventListener("click", () => window.print());
 
-  // ========== PDF GENERATION ==========
+  // PDF Generation (kept same)
   async function fetchAsDataURL(url){
     const res = await fetch(url, { mode: "cors" });
     if(!res.ok) throw new Error("Image fetch failed");
@@ -1006,7 +1208,9 @@
 
   // Expose functions globally
   window.unlockForm = unlockForm;
-  window.editCandidate = editCandidate;
+  window.openEditModal = openEditModal;
+  window.closeEditModal = closeEditModal;
+  window.updateCandidate = updateCandidate;
   window.deleteCandidate = deleteCandidate;
   window.resetForm = resetForm;
   window.saveCandidate = saveCandidate;
