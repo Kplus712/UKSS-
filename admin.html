@@ -536,7 +536,7 @@
   .modal-content {
     background: white;
     width: 92%;
-    max-width: 1000px;
+    max-width: 1200px;
     max-height: 90vh;
     overflow-y: auto;
     border-radius: 30px;
@@ -690,6 +690,121 @@
     flex: 1;
   }
 
+  /* History List */
+  .history-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+  }
+
+  .history-item {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .history-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--primary);
+  }
+
+  .history-item h4 {
+    color: var(--primary);
+    margin-bottom: 8px;
+  }
+
+  .history-item .date {
+    font-size: 0.85rem;
+    color: var(--gray);
+    margin-bottom: 10px;
+  }
+
+  .history-stats {
+    display: flex;
+    gap: 10px;
+    font-size: 0.9rem;
+  }
+
+  .history-stats span {
+    background: var(--primary-soft);
+    padding: 4px 8px;
+    border-radius: 20px;
+  }
+
+  .history-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .view-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .unarchive-btn {
+    background: var(--accent);
+    color: var(--dark);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  /* Full Page History View */
+  .full-page-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: white;
+    z-index: 10000;
+    overflow-y: auto;
+    padding: 30px;
+  }
+
+  .full-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .full-page-header h2 {
+    color: var(--primary);
+    font-size: 2rem;
+  }
+
+  .full-page-close {
+    background: var(--danger);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .full-page-content {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
   /* Audit Cards */
   .audit-summary {
     display: grid;
@@ -728,6 +843,7 @@
     .filter-group { width: 100%; }
     .menu-list { grid-template-columns: 1fr; }
     .settings-panel { grid-template-columns: 1fr; }
+    .history-list { grid-template-columns: 1fr; }
   }
 
   /* Badges */
@@ -970,7 +1086,7 @@
       <canvas id="pieChart"></canvas>
     </div>
     <div class="chart-card">
-      <h3><i class="fas fa-chart-line"></i> Voting Timeline</h3>
+      <h3><i class="fas fa-chart-line"></i> Voting Trend</h3>
       <canvas id="lineChart"></canvas>
     </div>
   </div>
@@ -1050,16 +1166,21 @@
         <i class="fas fa-rotate-left"></i>
         <span>Restore Votes</span>
       </div>
-      <!-- NEW SETTINGS MENU ITEM -->
+      <!-- SETTINGS MENU ITEM -->
       <div class="menu-item" onclick="openSettingsModal()">
         <i class="fas fa-cog"></i>
         <span>Settings</span>
+      </div>
+      <!-- HISTORY MENU ITEM -->
+      <div class="menu-item" onclick="openHistoryModal()">
+        <i class="fas fa-history"></i>
+        <span>View History</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SETTINGS MODAL (NEW) -->
+<!-- SETTINGS MODAL -->
 <div id="settingsModal" class="modal">
   <div class="modal-content" style="max-width: 800px;">
     <button class="modal-close" onclick="closeSettingsModal()"><i class="fas fa-times"></i></button>
@@ -1109,8 +1230,8 @@
         <h3><i class="fas fa-archive"></i> Archive Management</h3>
         <p>Store current year's data and start fresh</p>
         <button class="settings-btn" onclick="archiveCurrentYear()"><i class="fas fa-save"></i> Archive to History</button>
-        <button class="settings-btn" onclick="clearCurrentData()" style="background: var(--danger);"><i class="fas fa-trash"></i> Clear Current Data</button>
-        <p style="margin-top: 10px; font-size: 0.8rem; color: var(--danger);">
+        <button class="settings-btn" onclick="openHistoryModal()" style="background: var(--accent);"><i class="fas fa-history"></i> View History</button>
+        <p style="margin-top: 10px; font-size: 0.8rem; color: var(--gray);">
           ⚠️ This will move all votes to history and reset current data
         </p>
       </div>
@@ -1126,6 +1247,40 @@
           <button class="settings-btn" onclick="executeVoterCommand()" style="margin-top:10px; width:100%;"><i class="fas fa-terminal"></i> Execute Command</button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL (Full Page) -->
+<div id="historyModal" class="full-page-modal">
+  <div class="full-page-header">
+    <h2><i class="fas fa-history" style="color: var(--primary);"></i> Election History Archive</h2>
+    <button class="full-page-close" onclick="closeHistoryModal()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="full-page-content">
+    <div class="settings-card" style="margin-bottom: 20px;">
+      <h3><i class="fas fa-database"></i> Archived Years</h3>
+      <p>Click on any archive to view details or unarchive to restore</p>
+    </div>
+    <div id="historyList" class="history-list">
+      <!-- History items will be loaded here -->
+      <div style="text-align: center; padding: 40px; color: var(--gray);">
+        <i class="fas fa-spinner fa-pulse fa-3x"></i>
+        <p>Loading history...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SINGLE HISTORY VIEW MODAL (Full Page) -->
+<div id="singleHistoryModal" class="full-page-modal">
+  <div class="full-page-header">
+    <h2 id="singleHistoryTitle"><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> Archive Details</h2>
+    <button class="full-page-close" onclick="closeSingleHistoryModal()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="full-page-content">
+    <div id="singleHistoryContent">
+      <!-- Single history details will be loaded here -->
     </div>
   </div>
 </div>
@@ -1205,7 +1360,7 @@
 <input id="restoreFile" type="file" accept=".json" style="display:none">
 
 <script type="module">
-/* Full admin page with improved design and SETTINGS MODAL */
+/* Full admin page with HISTORY MANAGEMENT */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import { getDatabase, ref, onValue, remove, set, get, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
 
@@ -1665,6 +1820,152 @@ window.promoteStudents = async () => {
   alert(`✅ Promotion complete!\n• Promoted: ${promoted} students\n• Graduated: ${graduated} students`);
 };
 
+// ================ HISTORY MANAGEMENT ================
+
+// Open history modal (full page)
+window.openHistoryModal = async () => {
+  document.getElementById("historyModal").style.display = "block";
+  await loadHistoryList();
+};
+
+window.closeHistoryModal = () => {
+  document.getElementById("historyModal").style.display = "none";
+};
+
+// Load list of all archives
+async function loadHistoryList() {
+  const historyList = document.getElementById("historyList");
+  historyList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--gray);"><i class="fas fa-spinner fa-pulse fa-3x"></i><p>Loading history...</p></div>';
+  
+  const historySnap = await get(historyRef);
+  if (!historySnap.exists()) {
+    historyList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--gray);"><i class="fas fa-folder-open fa-3x"></i><p>No archives found</p></div>';
+    return;
+  }
+  
+  const history = historySnap.val();
+  let html = '';
+  
+  // Sort by date (newest first)
+  const sorted = Object.entries(history).sort((a, b) => {
+    const dateA = new Date(a[1].archivedAt || 0);
+    const dateB = new Date(b[1].archivedAt || 0);
+    return dateB - dateA;
+  });
+  
+  for (const [key, data] of sorted) {
+    const votesCount = Object.keys(data.votes || {}).length;
+    const votersCount = Object.keys(data.voters || {}).length;
+    const candidatesCount = Object.keys(data.candidates || {}).length;
+    const date = data.archivedAt ? new Date(data.archivedAt).toLocaleString() : 'Unknown date';
+    
+    html += `
+      <div class="history-item">
+        <h4><i class="fas fa-archive"></i> ${key}</h4>
+        <div class="date">📅 ${date}</div>
+        <div class="history-stats">
+          <span><i class="fas fa-vote-yea"></i> ${votesCount} votes</span>
+          <span><i class="fas fa-users"></i> ${votersCount} voters</span>
+          <span><i class="fas fa-user-tie"></i> ${candidatesCount} candidates</span>
+        </div>
+        <div class="history-actions">
+          <button class="view-btn" onclick="viewSingleHistory('${key}')"><i class="fas fa-eye"></i> View</button>
+          <button class="unarchive-btn" onclick="unarchiveHistory('${key}')"><i class="fas fa-undo"></i> Unarchive</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  historyList.innerHTML = html;
+}
+
+// View single history (full page)
+window.viewSingleHistory = async (key) => {
+  document.getElementById("singleHistoryModal").style.display = "block";
+  document.getElementById("singleHistoryTitle").innerHTML = `<i class="fas fa-calendar-alt" style="color: var(--primary);"></i> Archive: ${key}`;
+  
+  const content = document.getElementById("singleHistoryContent");
+  content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-pulse fa-3x"></i></div>';
+  
+  const snap = await get(ref(db, `history/${key}`));
+  if (!snap.exists()) {
+    content.innerHTML = '<p style="color: var(--danger);">Archive not found</p>';
+    return;
+  }
+  
+  const data = snap.val();
+  const votes = Object.entries(data.votes || {}).length;
+  const voters = Object.entries(data.voters || {}).length;
+  const candidates = Object.entries(data.candidates || {}).length;
+  
+  let html = `
+    <div class="settings-card" style="margin-bottom: 20px;">
+      <h3>Archive Summary</h3>
+      <div class="audit-summary">
+        <div class="audit-card"><h4>Votes</h4><div class="value">${votes}</div></div>
+        <div class="audit-card"><h4>Voters</h4><div class="value">${voters}</div></div>
+        <div class="audit-card"><h4>Candidates</h4><div class="value">${candidates}</div></div>
+        <div class="audit-card"><h4>Archived</h4><div class="value">${new Date(data.archivedAt).toLocaleDateString()}</div></div>
+      </div>
+    </div>
+  `;
+  
+  // Show votes table if exists
+  if (votes > 0) {
+    html += `
+      <div class="settings-card">
+        <h3><i class="fas fa-vote-yea"></i> Votes</h3>
+        <table class="results-table">
+          <thead><tr><th>Voter ID</th><th>Votes</th></tr></thead>
+          <tbody>
+    `;
+    
+    Object.entries(data.votes || {}).slice(0, 10).forEach(([id, vote]) => {
+      const votesList = Object.entries(vote.votes || {}).map(([p, c]) => `${p}: ${c}`).join(", ");
+      html += `<tr><td>${id}</td><td>${votesList}</td></tr>`;
+    });
+    
+    if (votes > 10) {
+      html += `<tr><td colspan="2" style="text-align:center;">... and ${votes - 10} more</td></tr>`;
+    }
+    
+    html += `</tbody></table>`;
+    
+    // Add view all button
+    html += `<button class="settings-btn" style="margin-top:10px;" onclick="alert('Full export coming soon')"><i class="fas fa-download"></i> Export All</button>`;
+    html += `</div>`;
+  }
+  
+  content.innerHTML = html;
+};
+
+window.closeSingleHistoryModal = () => {
+  document.getElementById("singleHistoryModal").style.display = "none";
+};
+
+// Unarchive history (restore to current)
+window.unarchiveHistory = async (key) => {
+  if (!confirm(`Are you sure you want to unarchive "${key}"?\n\nThis will RESTORE all data from this archive to the current system.\nCurrent data will be OVERWRITTEN!`)) {
+    return;
+  }
+  
+  const snap = await get(ref(db, `history/${key}`));
+  if (!snap.exists()) {
+    alert("Archive not found");
+    return;
+  }
+  
+  const data = snap.val();
+  
+  // Restore data
+  if (data.votes) await set(votesRef, data.votes);
+  if (data.voters) await set(votersRef, data.voters);
+  if (data.candidates) await set(candidatesRef, data.candidates);
+  
+  alert(`✅ Successfully unarchived ${key}\n\nAll data has been restored to current system.`);
+  closeHistoryModal();
+};
+
 // Archive current year
 window.archiveCurrentYear = async () => {
   if (!confirm("This will archive ALL current votes to history and reset the system. Continue?")) {
@@ -1673,6 +1974,7 @@ window.archiveCurrentYear = async () => {
   
   const year = new Date().getFullYear();
   const timestamp = Date.now();
+  const archiveKey = `${year}_${timestamp}`;
   
   // Get current data
   const votesSnap = await get(votesRef);
@@ -1680,11 +1982,12 @@ window.archiveCurrentYear = async () => {
   const candidatesSnap = await get(candidatesRef);
   
   // Save to history
-  await set(ref(db, `history/${year}_${timestamp}`), {
+  await set(ref(db, `history/${archiveKey}`), {
     votes: votesSnap.val() || {},
     voters: votersSnap.val() || {},
     candidates: candidatesSnap.val() || {},
-    archivedAt: new Date().toISOString()
+    archivedAt: new Date().toISOString(),
+    year: year
   });
   
   // Clear current data
@@ -1692,7 +1995,8 @@ window.archiveCurrentYear = async () => {
   await remove(votersRef);
   await remove(candidatesRef);
   
-  alert(`✅ Data archived to history/${year}_${timestamp}\nSystem is now ready for new elections!`);
+  alert(`✅ Data archived to history/${archiveKey}\nSystem is now ready for new elections!`);
+  closeSettingsModal();
 };
 
 // Clear current data
