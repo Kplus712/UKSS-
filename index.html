@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,16 +16,6 @@
     .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     .modal-content h2 { color: forestgreen; }
     .status-badge { display:inline-block; padding:6px 10px; border-radius:20px; background:#ffeedd; color:#b55200; font-weight:700; margin-left:10px; font-size:13px; }
-    .election-closed-banner {
-      background: #c62828;
-      color: white;
-      padding: 15px;
-      border-radius: 40px;
-      margin: 20px auto;
-      max-width: 600px;
-      font-weight: bold;
-      display: none;
-    }
   </style>
 </head>
 <body>
@@ -35,11 +24,6 @@
     <h1>🗳️ UMOJA KING'ORI VOTING SYSTEM</h1>
     <p>Cast your vote wisely – Your choice matters! <span id="netStatus" class="status-badge" style="display:none;"></span></p>
   </header>
-
-  <!-- Election Closed Banner -->
-  <div id="electionClosedBanner" class="election-closed-banner">
-    <i class="fas fa-lock"></i> ELECTION IS CLOSED - Registration and Voting are disabled
-  </div>
 
   <!-- === Main Menu Buttons === -->
   <section id="mainMenu">
@@ -120,13 +104,13 @@
     </div>
   </div>
 
-  <!-- === Election Closed Popup === -->
+  <!-- === Election Closed Popup (No Banner) === -->
   <div id="electionClosedPopup" class="modal">
     <div class="modal-content">
       <h2 style="color: #c62828;">🔒 ELECTION CLOSED</h2>
       <p style="font-size: 18px; margin: 20px 0;">The election year is completed & closed.</p>
       <p style="color: #666;">Registration and voting are currently disabled.</p>
-      <button onclick="closeElectionPopup()" style="background: #c62828;">OK</button>
+      <button onclick="closeElectionPopup()" style="background: #c62828; color: white; border: none; padding: 10px 25px; border-radius: 40px; font-weight: bold;">OK</button>
     </div>
   </div>
 
@@ -157,13 +141,6 @@
     async function checkElectionStatus() {
       const snap = await db.ref("system/votingOpen").once("value");
       electionOpen = snap.val() !== false;
-      
-      const banner = document.getElementById("electionClosedBanner");
-      if (!electionOpen) {
-        banner.style.display = "block";
-      } else {
-        banner.style.display = "none";
-      }
     }
 
     // Check before opening registration
@@ -388,9 +365,8 @@
       else if (pass) alert("❌ Wrong password!");
     };
 
-    // Initial check
+    // Initial check (but no banner)
     checkElectionStatus();
-    setInterval(checkElectionStatus, 5000); // Check every 5 seconds
 
   </script>
 </body>
