@@ -8,6 +8,11 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
@@ -536,7 +541,7 @@
   .modal-content {
     background: white;
     width: 92%;
-    max-width: 1200px;
+    max-width: 1000px;
     max-height: 90vh;
     overflow-y: auto;
     border-radius: 30px;
@@ -608,231 +613,6 @@
     display: block;
   }
 
-  /* Settings Panel */
-  .settings-panel {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-  }
-
-  .settings-card {
-    background: var(--primary-soft);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 20px;
-  }
-
-  .settings-card h3 {
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .settings-card .status-badge {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 30px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 15px;
-  }
-
-  .status-open {
-    background: var(--primary-soft);
-    color: var(--primary);
-    border: 1px solid var(--primary);
-  }
-
-  .status-closed {
-    background: var(--danger-light);
-    color: var(--danger);
-    border: 1px solid var(--danger);
-  }
-
-  .settings-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 40px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    transition: all 0.3s;
-  }
-
-  .settings-btn.danger {
-    background: var(--danger);
-  }
-
-  .settings-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-  }
-
-  .year-selector {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin: 15px 0;
-    flex-wrap: wrap;
-  }
-
-  .year-selector select {
-    padding: 10px;
-    border-radius: 40px;
-    border: 2px solid var(--border);
-    flex: 1;
-  }
-
-  /* History List */
-  .history-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-    margin: 20px 0;
-  }
-
-  .history-item {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 15px;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-
-  .history-item:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow);
-    border-color: var(--primary);
-  }
-
-  .history-item h4 {
-    color: var(--primary);
-    margin-bottom: 8px;
-  }
-
-  .history-item .date {
-    font-size: 0.85rem;
-    color: var(--gray);
-    margin-bottom: 10px;
-  }
-
-  .history-stats {
-    display: flex;
-    gap: 10px;
-    font-size: 0.9rem;
-  }
-
-  .history-stats span {
-    background: var(--primary-soft);
-    padding: 4px 8px;
-    border-radius: 20px;
-  }
-
-  .history-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .view-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 30px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    flex: 1;
-  }
-
-  .unarchive-btn {
-    background: var(--accent);
-    color: var(--dark);
-    border: none;
-    padding: 8px 15px;
-    border-radius: 30px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    flex: 1;
-  }
-
-  /* Full Page History View */
-  .full-page-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: white;
-    z-index: 10000;
-    overflow-y: auto;
-    padding: 30px;
-  }
-
-  .full-page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid var(--border);
-  }
-
-  .full-page-header h2 {
-    color: var(--primary);
-    font-size: 2rem;
-  }
-
-  .full-page-close {
-    background: var(--danger);
-    color: white;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 24px;
-    cursor: pointer;
-  }
-
-  .full-page-content {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  /* Audit Cards */
-  .audit-summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 15px;
-    margin: 20px 0;
-  }
-
-  .audit-card {
-    background: var(--primary-soft);
-    padding: 20px;
-    border-radius: 20px;
-    text-align: center;
-    border: 1px solid var(--border);
-  }
-
-  .audit-card h4 {
-    color: var(--gray);
-    font-size: 0.9rem;
-    margin-bottom: 8px;
-  }
-
-  .audit-card .value {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--primary);
-  }
-
   /* Responsive */
   @media (max-width: 768px) {
     body { padding: 10px; }
@@ -842,8 +622,6 @@
     .filter-row { flex-direction: column; }
     .filter-group { width: 100%; }
     .menu-list { grid-template-columns: 1fr; }
-    .settings-panel { grid-template-columns: 1fr; }
-    .history-list { grid-template-columns: 1fr; }
   }
 
   /* Badges */
@@ -893,59 +671,6 @@
     border-radius: 10px;
     width: 0%;
     transition: width 0.5s;
-  }
-
-  /* Toggle Switch */
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-  }
-
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-  }
-
-  input:checked + .slider {
-    background-color: var(--primary);
-  }
-
-  input:checked + .slider:before {
-    transform: translateX(26px);
-  }
-
-  .toggle-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin: 15px 0;
   }
 </style>
 </head>
@@ -1166,121 +891,11 @@
         <i class="fas fa-rotate-left"></i>
         <span>Restore Votes</span>
       </div>
-      <!-- SETTINGS MENU ITEM -->
-      <div class="menu-item" onclick="openSettingsModal()">
+      <!-- SETTINGS LINK -->
+      <div class="menu-item" onclick="window.location.href='settings.html'">
         <i class="fas fa-cog"></i>
         <span>Settings</span>
       </div>
-      <!-- HISTORY MENU ITEM -->
-      <div class="menu-item" onclick="openHistoryModal()">
-        <i class="fas fa-history"></i>
-        <span>View History</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SETTINGS MODAL -->
-<div id="settingsModal" class="modal">
-  <div class="modal-content" style="max-width: 800px;">
-    <button class="modal-close" onclick="closeSettingsModal()"><i class="fas fa-times"></i></button>
-    <div class="modal-header">
-      <i class="fas fa-cog" style="font-size: 28px;"></i>
-      <h2>System Settings</h2>
-    </div>
-    
-    <div class="settings-panel">
-      <!-- Voting Control Card -->
-      <div class="settings-card">
-        <h3><i class="fas fa-power-off"></i> Voting Control</h3>
-        <div id="votingStatus" class="status-badge status-open">🟢 OPEN</div>
-        <div class="toggle-container">
-          <span>Close Registration & Voting:</span>
-          <label class="switch">
-            <input type="checkbox" id="votingToggle" onchange="toggleVotingStatus()">
-            <span class="slider"></span>
-          </label>
-        </div>
-        <button class="settings-btn" onclick="closeVoting()"><i class="fas fa-lock"></i> Close Voting Now</button>
-        <button class="settings-btn" onclick="openVoting()"><i class="fas fa-lock-open"></i> Open Voting Now</button>
-      </div>
-
-      <!-- Year Promotion Card -->
-      <div class="settings-card">
-        <h3><i class="fas fa-calendar-alt"></i> Year Promotion</h3>
-        <p>Promote all students to next class for <strong>2027</strong> elections</p>
-        <div class="year-selector">
-          <select id="promotionYear">
-            <option value="2027">2027</option>
-            <option value="2028">2028</option>
-            <option value="2029">2029</option>
-          </select>
-        </div>
-        <button class="settings-btn" onclick="promoteStudents()"><i class="fas fa-arrow-up"></i> Promote Students</button>
-        <div style="margin-top: 10px; font-size: 0.9rem; color: var(--gray);">
-          <p>• Form One → Form Two</p>
-          <p>• Form Two → Form Three</p>
-          <p>• Form Three → Form Four</p>
-          <p>• Form Four → Graduated (cannot vote)</p>
-        </div>
-      </div>
-
-      <!-- Archive Management Card -->
-      <div class="settings-card">
-        <h3><i class="fas fa-archive"></i> Archive Management</h3>
-        <p>Store current year's data and start fresh</p>
-        <button class="settings-btn" onclick="archiveCurrentYear()"><i class="fas fa-save"></i> Archive to History</button>
-        <button class="settings-btn" onclick="openHistoryModal()" style="background: var(--accent);"><i class="fas fa-history"></i> View History</button>
-        <p style="margin-top: 10px; font-size: 0.8rem; color: var(--gray);">
-          ⚠️ This will move all votes to history and reset current data
-        </p>
-      </div>
-
-      <!-- Voter ID Management Card -->
-      <div class="settings-card">
-        <h3><i class="fas fa-id-card"></i> Voter ID Management</h3>
-        <p>Generate voter cards for all candidates</p>
-        <button class="settings-btn" onclick="generateAllVoterCards()"><i class="fas fa-print"></i> Generate All Voter Cards</button>
-        <button class="settings-btn" onclick="generateCandidateCards()"><i class="fas fa-id-card"></i> Candidate Cards</button>
-        <div style="margin-top: 10px;">
-          <input type="text" id="customVoterCommand" placeholder="Enter custom command" style="width:100%; padding:10px; border-radius:40px; border:2px solid var(--border);">
-          <button class="settings-btn" onclick="executeVoterCommand()" style="margin-top:10px; width:100%;"><i class="fas fa-terminal"></i> Execute Command</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- HISTORY MODAL (Full Page) -->
-<div id="historyModal" class="full-page-modal">
-  <div class="full-page-header">
-    <h2><i class="fas fa-history" style="color: var(--primary);"></i> Election History Archive</h2>
-    <button class="full-page-close" onclick="closeHistoryModal()"><i class="fas fa-times"></i></button>
-  </div>
-  <div class="full-page-content">
-    <div class="settings-card" style="margin-bottom: 20px;">
-      <h3><i class="fas fa-database"></i> Archived Years</h3>
-      <p>Click on any archive to view details or unarchive to restore</p>
-    </div>
-    <div id="historyList" class="history-list">
-      <!-- History items will be loaded here -->
-      <div style="text-align: center; padding: 40px; color: var(--gray);">
-        <i class="fas fa-spinner fa-pulse fa-3x"></i>
-        <p>Loading history...</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SINGLE HISTORY VIEW MODAL (Full Page) -->
-<div id="singleHistoryModal" class="full-page-modal">
-  <div class="full-page-header">
-    <h2 id="singleHistoryTitle"><i class="fas fa-calendar-alt" style="color: var(--primary);"></i> Archive Details</h2>
-    <button class="full-page-close" onclick="closeSingleHistoryModal()"><i class="fas fa-times"></i></button>
-  </div>
-  <div class="full-page-content">
-    <div id="singleHistoryContent">
-      <!-- Single history details will be loaded here -->
     </div>
   </div>
 </div>
@@ -1359,95 +974,77 @@
 <!-- Restore file input -->
 <input id="restoreFile" type="file" accept=".json" style="display:none">
 
-<script type="module">
-/* Full admin page with HISTORY MANAGEMENT */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getDatabase, ref, onValue, remove, set, get, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
+<script>
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
   authDomain: "ukss-voting-system.firebaseapp.com",
   databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
   projectId: "ukss-voting-system",
-  storageBucket: "ukss-voting-system.firebasestorage.app",
+  storageBucket: "ukss-voting-system.appspot.com",
   messagingSenderId: "525528255065",
   appId: "1:525528255065:web:97c4e55d2984acc718bf48"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const votesRef = ref(db, "votes");
-const votersRef = ref(db, "voters");
-const candidatesRef = ref(db, "candidates");
-const systemRef = ref(db, "system");
-const historyRef = ref(db, "history");
-const TOTAL_STUDENTS = 308;
-
-let votesObj = {};
-let allVotes = [];
-let registeredObj = {};
-let registeredList = [];
-let candidatesList = [];
-let barChart, pieChart, lineChart;
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const storage = firebase.storage();
 
 // DOM Elements
 const loadingOverlay = document.getElementById("loadingOverlay");
-const statsGrid = document.getElementById("statsGrid");
-const chartsGrid = document.getElementById("chartsGrid");
-const winnerSummary = document.getElementById("winnerSummary");
-const resultsContainer = document.getElementById("resultsContainer");
-const timelineContainer = document.getElementById("timelineContainer");
-
-// Stats elements
 const totalVotersStat = document.getElementById("totalVotersStat");
 const votesCastStat = document.getElementById("votesCastStat");
 const remainingStat = document.getElementById("remainingStat");
 const genderRatioStat = document.getElementById("genderRatioStat");
 const turnoutStat = document.getElementById("turnoutStat");
 const voteProgressBar = document.getElementById("voteProgressBar");
+const liveTime = document.getElementById("liveTime");
+
+let allVotes = [];
+let registeredList = [];
+let charts = {};
 
 // Live time
-const liveTime = document.getElementById("liveTime");
 setInterval(() => {
   liveTime.textContent = new Date().toLocaleTimeString();
 }, 1000);
 
+// Load data
 let votesLoaded = false;
 let votersLoaded = false;
 
 function hideLoadingIfReady() {
   if (votesLoaded && votersLoaded) {
     loadingOverlay.style.display = "none";
-    statsGrid.style.opacity = "1";
-    chartsGrid.style.opacity = "1";
-    winnerSummary.style.opacity = "1";
-    resultsContainer.style.opacity = "1";
-    timelineContainer.style.opacity = "1";
+    document.getElementById("statsGrid").style.opacity = "1";
+    document.getElementById("chartsGrid").style.opacity = "1";
+    document.getElementById("winnerSummary").style.opacity = "1";
+    document.getElementById("resultsContainer").style.opacity = "1";
+    document.getElementById("timelineContainer").style.opacity = "1";
   }
 }
 
 // Load votes
-onValue(votesRef, (snap) => {
+db.ref("votes").on("value", (snap) => {
   votesLoaded = true;
-  votesObj = snap.val() || {};
-  allVotes = Object.entries(votesObj).map(([k, v]) => ({ _id: k, ...v }));
+  const data = snap.val() || {};
+  allVotes = Object.entries(data).map(([k, v]) => ({ _id: k, ...v }));
   allVotes.forEach(r => { if (!r.timestamp) r.timestamp = new Date().toISOString(); });
   applyFilters();
   hideLoadingIfReady();
 });
 
 // Load registered voters
-onValue(votersRef, (snap) => {
+db.ref("voters").on("value", (snap) => {
   votersLoaded = true;
-  registeredObj = snap.val() || {};
-  registeredList = Object.entries(registeredObj).map(([id, v]) => ({ id, ...v }));
+  const data = snap.val() || {};
+  registeredList = Object.entries(data).map(([id, v]) => ({ id, ...v }));
   hideLoadingIfReady();
   updateStats();
-});
-
-// Load candidates
-onValue(candidatesRef, (snap) => {
-  candidatesList = Object.entries(snap.val() || {}).map(([id, c]) => ({ id, ...c }));
 });
 
 function updateStats() {
@@ -1467,7 +1064,7 @@ function updateStats() {
   voteProgressBar.style.width = `${turnout}%`;
 }
 
-// Filters
+// Filter elements
 const searchName = document.getElementById("searchName");
 const filterClass = document.getElementById("filterClass");
 const filterGender = document.getElementById("filterGender");
@@ -1502,7 +1099,23 @@ function applyFilters() {
   updateStats();
 }
 
-// Winners display
+function cleanPositionName(pos) {
+  const map = {
+    headBoy: "Head Boy",
+    headGirl: "Head Girl",
+    generalSec: "General Secretary",
+    discipline: "Discipline Prefect",
+    sports: "Sports Prefect",
+    environmental: "Environmental Prefect",
+    food: "Food Prefect",
+    storekeeper: "Store Keeper",
+    health: "Health Prefect",
+    maintenance: "Maintenance Prefect",
+    academic: "Academic Prefect"
+  };
+  return map[pos] || pos.replace(/([A-Z])/g, " $1").trim();
+}
+
 function displayWinners(votes) {
   if (!votes || votes.length === 0) {
     document.getElementById("winnersContent").innerHTML = "<p>No votes yet.</p>";
@@ -1574,23 +1187,6 @@ function displayWinners(votes) {
   });
 }
 
-function cleanPositionName(pos) {
-  const map = {
-    headBoy: "Head Boy",
-    headGirl: "Head Girl",
-    generalSec: "General Secretary",
-    discipline: "Discipline Prefect",
-    sports: "Sports Prefect",
-    environmental: "Environmental Prefect",
-    food: "Food Prefect",
-    storekeeper: "Store Keeper",
-    health: "Health Prefect",
-    maintenance: "Maintenance Prefect",
-    academic: "Academic Prefect"
-  };
-  return map[pos] || pos.replace(/([A-Z])/g, " $1").trim();
-}
-
 function displayResults(votes) {
   if (!votes || votes.length === 0) {
     document.getElementById("resultsContent").innerHTML = "<p>No votes yet.</p>";
@@ -1606,7 +1202,6 @@ function displayResults(votes) {
     });
   });
 
-  // Position tabs
   const positions = Object.keys(totals);
   let tabsHtml = '';
   positions.forEach(pos => {
@@ -1614,7 +1209,6 @@ function displayResults(votes) {
   });
   document.getElementById("positionTabs").innerHTML = tabsHtml;
 
-  // Show first position by default
   if (positions.length > 0) showPosition(positions[0]);
 }
 
@@ -1671,21 +1265,21 @@ function drawCharts(votes) {
     });
   });
 
-  if (barChart) barChart.destroy();
-  if (pieChart) pieChart.destroy();
-  if (lineChart) lineChart.destroy();
+  if (charts.bar) charts.bar.destroy();
+  if (charts.pie) charts.pie.destroy();
+  if (charts.line) charts.line.destroy();
 
   const barCtx = document.getElementById("barChart").getContext("2d");
   const pieCtx = document.getElementById("pieChart").getContext("2d");
   const lineCtx = document.getElementById("lineChart").getContext("2d");
 
-  barChart = new Chart(barCtx, {
+  charts.bar = new Chart(barCtx, {
     type: "bar",
     data: { labels, datasets: [{ label: "Votes", data: counts, backgroundColor: "#2e7d32" }] },
     options: { responsive: true, plugins: { legend: { display: false } } }
   });
 
-  pieChart = new Chart(pieCtx, {
+  charts.pie = new Chart(pieCtx, {
     type: "pie",
     data: { labels, datasets: [{ data: counts, backgroundColor: ["#2e7d32", "#4caf50", "#81c784", "#a5d6a7", "#c8e6c9"] }] }
   });
@@ -1696,7 +1290,7 @@ function drawCharts(votes) {
   let acc = 0;
   sorted.forEach(s => { acc += 1; cum.push(acc); });
 
-  lineChart = new Chart(lineCtx, {
+  charts.line = new Chart(lineCtx, {
     type: "line",
     data: { labels: times, datasets: [{ label: "Cumulative Votes", data: cum, borderColor: "#2e7d32", tension: 0.25, fill: false }] },
     options: { responsive: true }
@@ -1733,316 +1327,6 @@ clearFiltersBtn.addEventListener("click", () => {
 // Modal functions
 window.openMenuPopup = () => document.getElementById("menuPopup").style.display = "flex";
 window.closeMenuPopup = () => document.getElementById("menuPopup").style.display = "none";
-
-// Settings Modal
-window.openSettingsModal = async () => {
-  document.getElementById("settingsModal").style.display = "flex";
-  
-  // Load current voting status
-  const systemSnap = await get(systemRef);
-  const isOpen = systemSnap.val()?.votingOpen ?? true;
-  document.getElementById("votingToggle").checked = isOpen;
-  updateVotingStatusBadge(isOpen);
-};
-
-window.closeSettingsModal = () => {
-  document.getElementById("settingsModal").style.display = "none";
-};
-
-function updateVotingStatusBadge(isOpen) {
-  const badge = document.getElementById("votingStatus");
-  if (isOpen) {
-    badge.className = "status-badge status-open";
-    badge.innerHTML = "🟢 VOTING OPEN";
-  } else {
-    badge.className = "status-badge status-closed";
-    badge.innerHTML = "🔴 VOTING CLOSED";
-  }
-}
-
-// Toggle voting status
-window.toggleVotingStatus = async () => {
-  const toggle = document.getElementById("votingToggle");
-  await set(ref(db, "system/votingOpen"), toggle.checked);
-  updateVotingStatusBadge(toggle.checked);
-  alert(`Voting is now ${toggle.checked ? 'OPEN' : 'CLOSED'}`);
-};
-
-window.closeVoting = async () => {
-  document.getElementById("votingToggle").checked = false;
-  await set(ref(db, "system/votingOpen"), false);
-  updateVotingStatusBadge(false);
-  alert("Voting is now CLOSED. No one can register or vote.");
-};
-
-window.openVoting = async () => {
-  document.getElementById("votingToggle").checked = true;
-  await set(ref(db, "system/votingOpen"), true);
-  updateVotingStatusBadge(true);
-  alert("Voting is now OPEN. Registration and voting enabled.");
-};
-
-// Promote students to next class
-window.promoteStudents = async () => {
-  if (!confirm("Are you sure you want to promote ALL students to the next class?\n\n• Form One → Form Two\n• Form Two → Form Three\n• Form Three → Form Four\n• Form Four → Graduated (removed)")) {
-    return;
-  }
-  
-  const year = document.getElementById("promotionYear").value;
-  
-  const votersSnap = await get(votersRef);
-  if (!votersSnap.exists()) return alert("No voters found");
-  
-  const voters = votersSnap.val();
-  let promoted = 0;
-  let graduated = 0;
-  
-  for (const [id, voter] of Object.entries(voters)) {
-    let newClass = voter.classSelect;
-    
-    if (voter.classSelect === "Form One") newClass = "Form Two";
-    else if (voter.classSelect === "Form Two") newClass = "Form Three";
-    else if (voter.classSelect === "Form Three") newClass = "Form Four";
-    else if (voter.classSelect === "Form Four") {
-      // Move to graduated (remove from voters)
-      await set(ref(db, `graduates/${id}`), { ...voter, graduatedYear: year });
-      await remove(ref(db, `voters/${id}`));
-      graduated++;
-      continue;
-    }
-    
-    if (newClass !== voter.classSelect) {
-      await update(ref(db, `voters/${id}`), { classSelect: newClass });
-      promoted++;
-    }
-  }
-  
-  alert(`✅ Promotion complete!\n• Promoted: ${promoted} students\n• Graduated: ${graduated} students`);
-};
-
-// ================ HISTORY MANAGEMENT ================
-
-// Open history modal (full page)
-window.openHistoryModal = async () => {
-  document.getElementById("historyModal").style.display = "block";
-  await loadHistoryList();
-};
-
-window.closeHistoryModal = () => {
-  document.getElementById("historyModal").style.display = "none";
-};
-
-// Load list of all archives
-async function loadHistoryList() {
-  const historyList = document.getElementById("historyList");
-  historyList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--gray);"><i class="fas fa-spinner fa-pulse fa-3x"></i><p>Loading history...</p></div>';
-  
-  const historySnap = await get(historyRef);
-  if (!historySnap.exists()) {
-    historyList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--gray);"><i class="fas fa-folder-open fa-3x"></i><p>No archives found</p></div>';
-    return;
-  }
-  
-  const history = historySnap.val();
-  let html = '';
-  
-  // Sort by date (newest first)
-  const sorted = Object.entries(history).sort((a, b) => {
-    const dateA = new Date(a[1].archivedAt || 0);
-    const dateB = new Date(b[1].archivedAt || 0);
-    return dateB - dateA;
-  });
-  
-  for (const [key, data] of sorted) {
-    const votesCount = Object.keys(data.votes || {}).length;
-    const votersCount = Object.keys(data.voters || {}).length;
-    const candidatesCount = Object.keys(data.candidates || {}).length;
-    const date = data.archivedAt ? new Date(data.archivedAt).toLocaleString() : 'Unknown date';
-    
-    html += `
-      <div class="history-item">
-        <h4><i class="fas fa-archive"></i> ${key}</h4>
-        <div class="date">📅 ${date}</div>
-        <div class="history-stats">
-          <span><i class="fas fa-vote-yea"></i> ${votesCount} votes</span>
-          <span><i class="fas fa-users"></i> ${votersCount} voters</span>
-          <span><i class="fas fa-user-tie"></i> ${candidatesCount} candidates</span>
-        </div>
-        <div class="history-actions">
-          <button class="view-btn" onclick="viewSingleHistory('${key}')"><i class="fas fa-eye"></i> View</button>
-          <button class="unarchive-btn" onclick="unarchiveHistory('${key}')"><i class="fas fa-undo"></i> Unarchive</button>
-        </div>
-      </div>
-    `;
-  }
-  
-  historyList.innerHTML = html;
-}
-
-// View single history (full page)
-window.viewSingleHistory = async (key) => {
-  document.getElementById("singleHistoryModal").style.display = "block";
-  document.getElementById("singleHistoryTitle").innerHTML = `<i class="fas fa-calendar-alt" style="color: var(--primary);"></i> Archive: ${key}`;
-  
-  const content = document.getElementById("singleHistoryContent");
-  content.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-pulse fa-3x"></i></div>';
-  
-  const snap = await get(ref(db, `history/${key}`));
-  if (!snap.exists()) {
-    content.innerHTML = '<p style="color: var(--danger);">Archive not found</p>';
-    return;
-  }
-  
-  const data = snap.val();
-  const votes = Object.entries(data.votes || {}).length;
-  const voters = Object.entries(data.voters || {}).length;
-  const candidates = Object.entries(data.candidates || {}).length;
-  
-  let html = `
-    <div class="settings-card" style="margin-bottom: 20px;">
-      <h3>Archive Summary</h3>
-      <div class="audit-summary">
-        <div class="audit-card"><h4>Votes</h4><div class="value">${votes}</div></div>
-        <div class="audit-card"><h4>Voters</h4><div class="value">${voters}</div></div>
-        <div class="audit-card"><h4>Candidates</h4><div class="value">${candidates}</div></div>
-        <div class="audit-card"><h4>Archived</h4><div class="value">${new Date(data.archivedAt).toLocaleDateString()}</div></div>
-      </div>
-    </div>
-  `;
-  
-  // Show votes table if exists
-  if (votes > 0) {
-    html += `
-      <div class="settings-card">
-        <h3><i class="fas fa-vote-yea"></i> Votes</h3>
-        <table class="results-table">
-          <thead><tr><th>Voter ID</th><th>Votes</th></tr></thead>
-          <tbody>
-    `;
-    
-    Object.entries(data.votes || {}).slice(0, 10).forEach(([id, vote]) => {
-      const votesList = Object.entries(vote.votes || {}).map(([p, c]) => `${p}: ${c}`).join(", ");
-      html += `<tr><td>${id}</td><td>${votesList}</td></tr>`;
-    });
-    
-    if (votes > 10) {
-      html += `<tr><td colspan="2" style="text-align:center;">... and ${votes - 10} more</td></tr>`;
-    }
-    
-    html += `</tbody></table>`;
-    
-    // Add view all button
-    html += `<button class="settings-btn" style="margin-top:10px;" onclick="alert('Full export coming soon')"><i class="fas fa-download"></i> Export All</button>`;
-    html += `</div>`;
-  }
-  
-  content.innerHTML = html;
-};
-
-window.closeSingleHistoryModal = () => {
-  document.getElementById("singleHistoryModal").style.display = "none";
-};
-
-// Unarchive history (restore to current)
-window.unarchiveHistory = async (key) => {
-  if (!confirm(`Are you sure you want to unarchive "${key}"?\n\nThis will RESTORE all data from this archive to the current system.\nCurrent data will be OVERWRITTEN!`)) {
-    return;
-  }
-  
-  const snap = await get(ref(db, `history/${key}`));
-  if (!snap.exists()) {
-    alert("Archive not found");
-    return;
-  }
-  
-  const data = snap.val();
-  
-  // Restore data
-  if (data.votes) await set(votesRef, data.votes);
-  if (data.voters) await set(votersRef, data.voters);
-  if (data.candidates) await set(candidatesRef, data.candidates);
-  
-  alert(`✅ Successfully unarchived ${key}\n\nAll data has been restored to current system.`);
-  closeHistoryModal();
-};
-
-// Archive current year
-window.archiveCurrentYear = async () => {
-  if (!confirm("This will archive ALL current votes to history and reset the system. Continue?")) {
-    return;
-  }
-  
-  const year = new Date().getFullYear();
-  const timestamp = Date.now();
-  const archiveKey = `${year}_${timestamp}`;
-  
-  // Get current data
-  const votesSnap = await get(votesRef);
-  const votersSnap = await get(votersRef);
-  const candidatesSnap = await get(candidatesRef);
-  
-  // Save to history
-  await set(ref(db, `history/${archiveKey}`), {
-    votes: votesSnap.val() || {},
-    voters: votersSnap.val() || {},
-    candidates: candidatesSnap.val() || {},
-    archivedAt: new Date().toISOString(),
-    year: year
-  });
-  
-  // Clear current data
-  await remove(votesRef);
-  await remove(votersRef);
-  await remove(candidatesRef);
-  
-  alert(`✅ Data archived to history/${archiveKey}\nSystem is now ready for new elections!`);
-  closeSettingsModal();
-};
-
-// Clear current data
-window.clearCurrentData = async () => {
-  if (!confirm("⚠️ DANGER: This will DELETE ALL CURRENT DATA permanently!\n\nMake sure you have backed up first.")) {
-    return;
-  }
-  
-  await remove(votesRef);
-  await remove(votersRef);
-  await remove(candidatesRef);
-  
-  alert("✅ All current data cleared. System is reset.");
-};
-
-// Generate voter cards
-window.generateAllVoterCards = () => {
-  alert("Generating voter cards for all registered voters... (PDF generation would go here)");
-  // PDF generation logic would be implemented here
-};
-
-window.generateCandidateCards = () => {
-  alert("Generating candidate cards... (PDF generation would go here)");
-};
-
-// Execute custom command
-window.executeVoterCommand = async () => {
-  const command = document.getElementById("customVoterCommand").value.trim();
-  if (!command) return alert("Enter a command");
-  
-  // Simple command parser - can be expanded
-  if (command === "reset_voting") {
-    await set(ref(db, "system/votingOpen"), true);
-    alert("Voting status reset to OPEN");
-  } else if (command === "reset_all") {
-    await remove(votesRef);
-    alert("All votes cleared");
-  } else if (command.startsWith("promote ")) {
-    const targetClass = command.replace("promote ", "");
-    alert(`Promoting all ${targetClass} students...`);
-  } else {
-    alert(`Unknown command: ${command}`);
-  }
-  
-  document.getElementById("customVoterCommand").value = "";
-};
 
 // Voters modal
 const votersModal = document.getElementById("votersModal");
@@ -2184,7 +1468,7 @@ function showConfirmDelete(candidateName) {
       for (const [pos, cand] of Object.entries(rec.votes || {})) {
         if (cand !== candidateName) newVotes[pos] = cand;
       }
-      await set(ref(db, "votes/" + rec._id), { ...rec, votes: newVotes });
+      await db.ref("votes/" + rec._id).set({ ...rec, votes: newVotes });
     }
     confirmModal.style.display = "none";
   };
@@ -2195,7 +1479,7 @@ window.confirmDeleteAll = () => {
   confirmText.textContent = "Delete ALL votes permanently?";
   confirmModal.style.display = "flex";
   confirmYes.onclick = async () => {
-    await remove(votesRef);
+    await db.ref("votes").remove();
     confirmModal.style.display = "none";
     closeMenuPopup();
   };
@@ -2233,7 +1517,7 @@ document.getElementById("restoreFile").addEventListener("change", async (e) => {
   const json = JSON.parse(text);
   for (const item of json) {
     const key = item._id || Date.now().toString();
-    await set(ref(db, "votes/" + key), item);
+    await db.ref("votes/" + key).set(item);
   }
   alert("Restore complete");
   closeMenuPopup();
@@ -2285,7 +1569,6 @@ document.querySelectorAll('.modal').forEach(modal => {
         votersModal: closeVotersModal,
         registeredModal: closeRegisteredModal,
         auditModal: closeAuditModal,
-        settingsModal: closeSettingsModal,
         confirmModal: closeConfirm
       };
       if (closeMap[modal.id]) closeMap[modal.id]();
