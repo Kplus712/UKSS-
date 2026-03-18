@@ -16,8 +16,16 @@
     .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
     .modal-content h2 { color: forestgreen; }
     .status-badge { display:inline-block; padding:6px 10px; border-radius:20px; background:#ffeedd; color:#b55200; font-weight:700; margin-left:10px; font-size:13px; }
-    .admin-icon { font-size: 48px; color: forestgreen; margin-bottom: 10px; }
-    .error-message { color: #c62828; font-size: 14px; margin-top: 5px; display: none; }
+    .election-closed-banner {
+      background: #c62828;
+      color: white;
+      padding: 15px;
+      border-radius: 40px;
+      margin: 20px auto;
+      max-width: 600px;
+      font-weight: bold;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -27,12 +35,17 @@
     <p>Cast your vote wisely – Your choice matters! <span id="netStatus" class="status-badge" style="display:none;"></span></p>
   </header>
 
+  <!-- Election Closed Banner -->
+  <div id="electionClosedBanner" class="election-closed-banner">
+    <i class="fas fa-lock"></i> ELECTION IS CLOSED - Registration and Voting are disabled
+  </div>
+
   <!-- === Main Menu Buttons === -->
   <section id="mainMenu">
-    <button onclick="openRegisterForm()">🧾 Register & Get Voter ID</button>
-    <button onclick="openVoterLogin()">🔑 Login with Voter ID</button>
+    <button onclick="checkElectionAndOpenRegister()">🧾 Register & Get Voter ID</button>
+    <button onclick="checkElectionAndOpenLogin()">🔑 Login with Voter ID</button>
     <button onclick="openRecovery()">🆔 Forgot Voter ID?</button>
-    <button onclick="openAdminLogin()">🔐 Admin Login</button>
+    <button onclick="adminLogin()">🔐 Admin Login</button>
   </section>
 
   <!-- === Registration Form === -->
@@ -93,18 +106,6 @@
     </div>
   </div>
 
-  <!-- === Admin Login Modal (NEW - Like Voter Login) === -->
-  <div id="adminLoginModal" class="modal">
-    <div class="modal-content">
-      <div class="admin-icon">🔐</div>
-      <h2>Admin Login</h2>
-      <input type="password" id="adminPasswordInput" placeholder="Enter Admin Password" style="-webkit-text-security: disc;">
-      <div id="adminError" class="error-message">❌ Incorrect password!</div>
-      <button onclick="submitAdminLogin()">Login</button>
-      <button onclick="closeAdminLogin()" style="background:gray;">Close</button>
-    </div>
-  </div>
-
   <!-- === Registration Success Popup === -->
   <div id="idPopup" class="modal">
     <div class="modal-content">
@@ -118,27 +119,75 @@
     </div>
   </div>
 
+  <!-- === Election Closed Popup === -->
+  <div id="electionClosedPopup" class="modal">
+    <div class="modal-content">
+      <h2 style="color: #c62828;">🔒 ELECTION CLOSED</h2>
+      <p style="font-size: 18px; margin: 20px 0;">The election year is completed & closed.</p>
+      <p style="color: #666;">Registration and voting are currently disabled.</p>
+      <button onclick="closeElectionPopup()" style="background: #c62828;">OK</button>
+    </div>
+  </div>
+
   <!-- Firebase SDK and localforage + offline queue -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
   <script src="offline-queue.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-    import { getDatabase, ref, get, set, child, update } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-database.js";
-
+  <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
       authDomain: "ukss-voting-system.firebaseapp.com",
       databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
       projectId: "ukss-voting-system",
-      storageBucket: "ukss-voting-system.firebasestorage.app",
+      storageBucket: "ukss-voting-system.appspot.com",
       messagingSenderId: "525528255065",
-      appId: "1:525528255065:web:97c4e55d2984acc718bf48",
-      measurementId: "G-14ZV9E3X7C"
+      appId: "1:525528255065:web:97c4e55d2984acc718bf48"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Check election status
+    let electionOpen = true;
+
+    async function checkElectionStatus() {
+      const snap = await db.ref("system/votingOpen").once("value");
+      electionOpen = snap.val() !== false;
+      
+      const banner = document.getElementById("electionClosedBanner");
+      if (!electionOpen) {
+        banner.style.display = "block";
+      } else {
+        banner.style.display = "none";
+      }
+    }
+
+    // Check before opening registration
+    window.checkElectionAndOpenRegister = async function() {
+      await checkElectionStatus();
+      if (!electionOpen) {
+        document.getElementById("electionClosedPopup").style.display = "flex";
+        return;
+      }
+      openRegisterForm();
+    };
+
+    // Check before opening login
+    window.checkElectionAndOpenLogin = async function() {
+      await checkElectionStatus();
+      if (!electionOpen) {
+        document.getElementById("electionClosedPopup").style.display = "flex";
+        return;
+      }
+      openVoterLogin();
+    };
+
+    window.closeElectionPopup = function() {
+      document.getElementById("electionClosedPopup").style.display = "none";
+    };
 
     // UI helpers
     window.openRegisterForm = () => { 
@@ -153,46 +202,19 @@
     
     window.openVoterLogin = () => document.getElementById("voterLogin").style.display="flex";
     window.closeLogin = () => document.getElementById("voterLogin").style.display="none";
-    
     window.openRecovery = () => document.getElementById("recoveryModal").style.display="flex";
     window.closeRecovery = () => document.getElementById("recoveryModal").style.display="none";
     
-    // ================ NEW: Admin Login Modal Functions ================
-    window.openAdminLogin = () => {
-      document.getElementById("adminLoginModal").style.display = "flex";
-      document.getElementById("adminPasswordInput").value = "";
-      document.getElementById("adminError").style.display = "none";
-    };
-    
-    window.closeAdminLogin = () => {
-      document.getElementById("adminLoginModal").style.display = "none";
-    };
-    
-    window.submitAdminLogin = () => {
-      const password = document.getElementById("adminPasswordInput").value;
-      if (password === "ukss2025") {
-        window.location.href = "admin.html";
-      } else {
-        document.getElementById("adminError").style.display = "block";
-        document.getElementById("adminPasswordInput").value = "";
-        document.getElementById("adminPasswordInput").focus();
-      }
-    };
-    
-    // ================ Close popup and reset form ================
     window.closePopupAndReset = function() {
       document.getElementById("idPopup").style.display = "none";
-      // Reset registration form fields
       document.getElementById("firstName").value = "";
       document.getElementById("middleName").value = "";
       document.getElementById("lastName").value = "";
       document.getElementById("classSelect").value = "";
       document.getElementById("gender").value = "";
-      // Show registration form again
       document.getElementById("registerForm").style.display = "block";
     };
 
-    // Keep old closePopup for backward compatibility
     window.closePopup = () => document.getElementById("idPopup").style.display="none";
 
     // Network status badge
@@ -210,20 +232,28 @@
         netBadge.textContent = "OFFLINE (queued tasks will sync)";
       }
     }
-    window.addEventListener("online", () => { updateNetworkBadge(); window.syncOfflineQueue && window.syncOfflineQueue(db); });
+    window.addEventListener("online", updateNetworkBadge);
     window.addEventListener("offline", updateNetworkBadge);
     updateNetworkBadge();
 
-    // Generate unique ID (keeps your original logic but uses db)
+    // Generate unique ID
     async function generateUniqueVoterID(firstName) {
       const randomNum = Math.floor(100 + Math.random() * 900);
       const baseID = firstName.toLowerCase() + randomNum;
-      const snapshot = await get(child(ref(db), `voters/${baseID}`));
+      const snapshot = await db.ref("voters/" + baseID).once("value");
       return snapshot.exists() ? generateUniqueVoterID(firstName) : baseID;
     }
 
-    // Register New Voter (tries online; on failure uses offline queue)
+    // Register New Voter
     window.registerVoter = async function() {
+      // Double-check election status
+      await checkElectionStatus();
+      if (!electionOpen) {
+        document.getElementById("electionClosedPopup").style.display = "flex";
+        closeRegisterForm();
+        return;
+      }
+
       const firstName = document.getElementById("firstName").value.trim();
       const middleName = document.getElementById("middleName").value.trim();
       const lastName = document.getElementById("lastName").value.trim();
@@ -232,16 +262,16 @@
 
       if (!firstName || !lastName || !classSelect || !gender) return alert("⚠️ Please fill all fields!");
 
-      // Quick duplicate check when online (best-effort). If offline we skip duplicate check.
+      // Quick duplicate check
       if (navigator.onLine) {
         try {
-          const votersSnap = await get(child(ref(db), `voters`));
+          const votersSnap = await db.ref("voters").once("value");
           if (votersSnap.exists()) {
             const voters = votersSnap.val();
             const exists = Object.values(voters).find(v =>
-              v.firstName.toLowerCase() === firstName.toLowerCase() &&
-              v.middleName.toLowerCase() === middleName.toLowerCase() &&
-              v.lastName.toLowerCase() === lastName.toLowerCase() &&
+              v.firstName?.toLowerCase() === firstName.toLowerCase() &&
+              v.middleName?.toLowerCase() === middleName.toLowerCase() &&
+              v.lastName?.toLowerCase() === lastName.toLowerCase() &&
               v.classSelect === classSelect
             );
             if (exists) {
@@ -251,25 +281,21 @@
             }
           }
         } catch(err){
-          // can't reach DB — proceed to queue
-          console.warn("Could not verify duplicates (will queue):", err);
+          console.warn("Could not verify duplicates:", err);
         }
       }
 
-      // Build payload
       const payload = {
         firstName, middleName, lastName, classSelect, gender,
         hasVoted: false,
         registeredAt: new Date().toISOString()
       };
 
-      // Attempt to write immediately if online
       if (navigator.onLine) {
         try {
           const voterID = await generateUniqueVoterID(firstName);
-          await set(ref(db, "voters/" + voterID), payload);
+          await db.ref("voters/" + voterID).set(payload);
 
-          // store locally & show popup
           localStorage.setItem("voterID", voterID);
           localStorage.setItem("firstName", firstName);
           localStorage.setItem("lastName", lastName);
@@ -281,16 +307,12 @@
           document.getElementById("registerForm").style.display = "none";
 
         } catch (err) {
-          console.error("Online save failed, queuing:", err);
-          // fall back to queue
-          await window.enqueueOfflineTask({ type: "register", payload, firstName });
-          alert("Registration queued — will be submitted automatically when connection returns.");
+          console.error("Online save failed:", err);
+          alert("Registration failed. Please try again.");
           closeRegisterForm();
         }
       } else {
-        // Offline: queue the registration
-        await window.enqueueOfflineTask({ type: "register", payload, firstName });
-        alert("You're offline — registration queued. It will be submitted automatically when connection returns.");
+        alert("You're offline. Please try again when online.");
         closeRegisterForm();
       }
     };
@@ -304,23 +326,23 @@
       if (!f || !l || !c) return alert("⚠️ Please fill all fields!");
 
       try {
-        const votersSnap = await get(child(ref(db), "voters"));
+        const votersSnap = await db.ref("voters").once("value");
         if (!votersSnap.exists()) return alert("❌ No registered voters yet.");
 
         const voters = votersSnap.val();
         const found = Object.entries(voters).find(([id, v]) =>
-          v.firstName.toLowerCase() === f && v.lastName.toLowerCase() === l && v.classSelect === c
+          v.firstName?.toLowerCase() === f && v.lastName?.toLowerCase() === l && v.classSelect === c
         );
 
         const result = document.getElementById("recoveryResult");
         if (found) result.innerHTML = `✅ Your Voter ID is: <b style="color:forestgreen">${found[0]}</b>`;
         else result.innerHTML = "❌ Sorry, no record found!";
       } catch(err){
-        alert("Lookup failed. Are you offline? Try again when online.");
+        alert("Lookup failed. Try again when online.");
       }
     };
 
-    // Login functions
+    // Login
     window.copyVoterID = () => { 
       navigator.clipboard.writeText(document.getElementById("generatedID").textContent); 
       alert("✅ Voter ID copied!"); 
@@ -329,41 +351,45 @@
     window.proceedToVote = () => window.location.href = "voting.html";
     
     window.loginWithVoterID = async function() {
+      // Check election status first
+      await checkElectionStatus();
+      if (!electionOpen) {
+        document.getElementById("electionClosedPopup").style.display = "flex";
+        closeLogin();
+        return;
+      }
+
       const id = document.getElementById("voterIDInput").value.trim().toLowerCase();
       if (!id) return alert("Enter your ID!");
+      
       try {
-        const snap = await get(child(ref(db), "voters/" + id));
+        const snap = await db.ref("voters/" + id).once("value");
         if (!snap.exists()) return alert("❌ Invalid ID!");
+        
         const data = snap.val();
         if (data.hasVoted) return alert("⚠️ You already voted!");
+        
         localStorage.setItem("voterID", id);
         localStorage.setItem("firstName", data.firstName);
         localStorage.setItem("classSelect", data.classSelect);
         localStorage.setItem("gender", data.gender);
+        
         alert(`✅ Welcome ${data.firstName}! Redirecting...`);
         window.location.href = "voting.html";
       } catch(err){
-        alert("Login failed (network?). If offline, please make sure you registered previously on this device.");
+        alert("Login failed. Please try again.");
       }
     };
 
-    // Old admin login function (replaced by popup)
-    // window.adminLogin = () => { ... } - Removed
+    window.adminLogin = () => {
+      const pass = prompt("Enter Admin Password:");
+      if (pass === "ukss2025") window.location.href = "admin.html";
+      else if (pass) alert("❌ Wrong password!");
+    };
 
-    // Attempt a sync on load (if online)
-    if (navigator.onLine){
-      setTimeout(()=> { if(window.syncOfflineQueue) window.syncOfflineQueue(db); }, 1200);
-    }
-
-    // Register service worker (optional)
-    if ('serviceWorker' in navigator) {
-      try {
-        navigator.serviceWorker.register('/service-worker.js');
-        console.log("Service worker registered");
-      } catch (err) {
-        console.warn("Service worker register failed:", err);
-      }
-    }
+    // Initial check
+    checkElectionStatus();
+    setInterval(checkElectionStatus, 5000); // Check every 5 seconds
 
   </script>
 </body>
