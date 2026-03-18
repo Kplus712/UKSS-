@@ -17,363 +17,141 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <style>
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
+  * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --primary: #1b5e20;
-    --primary-light: #2e7d32;
-    --primary-soft: #e8f5e9;
-    --danger: #c62828;
-    --danger-light: #ffcdd2;
-    --gray: #5b6b60;
-    --light-gray: #f0f4f0;
-    --white: #ffffff;
-    --border: #d0e0d0;
+    --primary: #1b5e20; --primary-light: #2e7d32; --primary-soft: #e8f5e9;
+    --danger: #c62828; --danger-light: #ffcdd2; --gray: #5b6b60;
+    --light-gray: #f0f4f0; --white: #ffffff; --border: #d0e0d0;
     --shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #f8faf8;
-    color: #1a2a1a;
-    padding: 30px 20px;
-    min-height: 100vh;
+    background: #f8faf8; color: #1a2a1a; padding: 30px 20px; min-height: 100vh;
   }
-
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
+  .container { max-width: 800px; margin: 0 auto; }
+  
   /* Header */
   .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 30px;
-    background: white;
-    padding: 15px 20px;
-    border-radius: 40px;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 30px; background: white; padding: 15px 20px;
+    border-radius: 40px; border: 1px solid var(--border); box-shadow: var(--shadow);
   }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
+  .header-left { display: flex; align-items: center; gap: 12px; }
   .icon-circle {
-    width: 45px;
-    height: 45px;
-    background: var(--primary-soft);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary);
-    font-size: 20px;
+    width: 45px; height: 45px; background: var(--primary-soft); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--primary); font-size: 20px;
   }
-
-  .header-left h1 {
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: var(--primary);
-  }
-
+  .header-left h1 { font-size: 1.4rem; font-weight: 600; color: var(--primary); }
   .back-link {
-    background: var(--light-gray);
-    color: var(--dark);
-    padding: 10px 18px;
-    border-radius: 40px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid var(--border);
-    transition: all 0.2s;
+    background: var(--light-gray); color: #333; padding: 10px 18px;
+    border-radius: 40px; text-decoration: none; font-size: 0.9rem;
+    display: flex; align-items: center; gap: 6px; border: 1px solid var(--border);
   }
-
-  .back-link:hover {
-    background: var(--primary-soft);
-  }
-
+  .back-link:hover { background: var(--primary-soft); }
+  
   /* Cards */
   .card {
-    background: white;
-    border-radius: 24px;
-    padding: 22px;
-    margin-bottom: 20px;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    background: white; border-radius: 24px; padding: 22px; margin-bottom: 20px;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
   }
-
   .card-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 1.1rem;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    font-weight: 600; color: var(--primary); font-size: 1.1rem;
   }
-
-  .card-title i {
-    color: var(--primary);
-    font-size: 1.2rem;
-  }
-
+  .card-title i { color: var(--primary); font-size: 1.2rem; }
+  
   /* Status Badge */
   .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 40px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 15px;
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px;
+    border-radius: 40px; font-weight: 600; font-size: 0.9rem; margin-bottom: 15px;
     border: 1px solid;
   }
-
-  .status-open {
-    background: var(--primary-soft);
-    color: var(--primary);
-    border-color: var(--primary);
-  }
-
-  .status-closed {
-    background: #ffebee;
-    color: var(--danger);
-    border-color: var(--danger);
-  }
-
+  .status-open { background: var(--primary-soft); color: var(--primary); border-color: var(--primary); }
+  .status-closed { background: #ffebee; color: var(--danger); border-color: var(--danger); }
+  
   /* Toggle Switch */
   .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
+    display: flex; align-items: center; justify-content: space-between; padding: 12px 0;
   }
-
   .switch {
-    position: relative;
-    display: inline-block;
-    width: 52px;
-    height: 26px;
+    position: relative; display: inline-block; width: 52px; height: 26px;
   }
-
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
+  .switch input { opacity: 0; width: 0; height: 0; }
   .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .3s;
-    border-radius: 34px;
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc; transition: .3s; border-radius: 34px;
   }
-
   .slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
+    position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+    background-color: white; transition: .3s; border-radius: 50%;
   }
-
-  input:checked + .slider {
-    background-color: var(--primary);
-  }
-
-  input:checked + .slider:before {
-    transform: translateX(26px);
-  }
-
+  input:checked + .slider { background-color: var(--primary); }
+  input:checked + .slider:before { transform: translateX(26px); }
+  
   /* Buttons */
   .btn {
-    background: white;
-    color: var(--primary);
-    border: 2px solid var(--primary);
-    padding: 12px 18px;
-    border-radius: 40px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s;
-    margin-right: 8px;
-    margin-bottom: 8px;
+    background: white; color: var(--primary); border: 2px solid var(--primary);
+    padding: 12px 18px; border-radius: 40px; font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s; margin-right: 8px; margin-bottom: 8px;
   }
-
-  .btn-primary {
-    background: var(--primary);
-    color: white;
-    border: 2px solid var(--primary);
-  }
-
-  .btn-primary:hover {
-    background: #0e4a13;
-  }
-
-  .btn-danger {
-    background: var(--danger);
-    color: white;
-    border: 2px solid var(--danger);
-  }
-
-  .btn-danger:hover {
-    background: #a51d1d;
-  }
-
+  .btn-primary { background: var(--primary); color: white; border: 2px solid var(--primary); }
+  .btn-primary:hover { background: #0e4a13; }
+  .btn-danger { background: var(--danger); color: white; border: 2px solid var(--danger); }
+  .btn-danger:hover { background: #a51d1d; }
+  
   /* Stats Grid */
   .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin: 15px 0;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0;
   }
-
   .stat-item {
-    background: var(--light-gray);
-    border-radius: 16px;
-    padding: 12px;
-    text-align: center;
+    background: var(--light-gray); border-radius: 16px; padding: 12px; text-align: center;
   }
-
-  .stat-item .number {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--primary);
-  }
-
-  .stat-item .label {
-    font-size: 0.75rem;
-    color: var(--gray);
-  }
-
+  .stat-item .number { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+  .stat-item .label { font-size: 0.75rem; color: var(--gray); }
+  
   /* History List */
   .history-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--light-gray);
-    border-radius: 16px;
-    padding: 12px 15px;
-    margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--light-gray); border-radius: 16px; padding: 12px 15px; margin-bottom: 8px;
   }
-
-  .history-info h4 {
-    font-size: 0.95rem;
-    color: var(--primary);
-    margin-bottom: 4px;
-  }
-
-  .history-info p {
-    font-size: 0.8rem;
-    color: var(--gray);
-  }
-
-  .history-actions {
-    display: flex;
-    gap: 6px;
-  }
-
+  .history-info h4 { font-size: 0.95rem; color: var(--primary); margin-bottom: 4px; }
+  .history-info p { font-size: 0.8rem; color: var(--gray); }
+  .history-actions { display: flex; gap: 6px; }
   .small-btn {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    padding: 6px 12px;
-    font-size: 0.8rem;
-    cursor: pointer;
+    background: white; border: 1px solid var(--border); border-radius: 30px;
+    padding: 6px 12px; font-size: 0.8rem; cursor: pointer;
   }
-
+  
   /* Voter Card Preview */
   .card-preview {
-    background: var(--light-gray);
-    border-radius: 16px;
-    padding: 15px;
-    margin: 15px 0;
-    border: 2px dashed var(--primary);
+    background: var(--light-gray); border-radius: 16px; padding: 15px;
+    margin: 15px 0; border: 2px dashed var(--primary);
   }
-
-  .card-preview h4 {
-    color: var(--primary);
-    margin-bottom: 10px;
-  }
-
-  .preview-details {
-    font-size: 0.9rem;
-    line-height: 1.8;
-  }
-
+  .card-preview h4 { color: var(--primary); margin-bottom: 10px; }
+  .preview-details { font-size: 0.9rem; line-height: 1.8; }
+  
   /* Success Message */
   .success-msg {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--primary);
-    color: white;
-    padding: 12px 20px;
-    border-radius: 40px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    display: none;
-    align-items: center;
-    gap: 8px;
-    z-index: 1000;
+    position: fixed; top: 20px; right: 20px; background: var(--primary);
+    color: white; padding: 12px 20px; border-radius: 40px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: none;
+    align-items: center; gap: 8px; z-index: 1000;
   }
-
+  
   /* Inputs */
   input, select {
-    width: 100%;
-    padding: 12px 15px;
-    border-radius: 40px;
-    border: 1px solid var(--border);
-    font-size: 0.9rem;
-    margin: 8px 0;
+    width: 100%; padding: 12px 15px; border-radius: 40px;
+    border: 1px solid var(--border); font-size: 0.9rem; margin: 8px 0;
   }
-
-  select {
-    background: white;
-  }
-
-  hr {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 20px 0;
-  }
-
+  select { background: white; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  
   @media (max-width: 600px) {
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
-    .history-item {
-      flex-direction: column;
-      gap: 10px;
-      align-items: flex-start;
-    }
+    .stats-grid { grid-template-columns: 1fr; }
+    .history-item { flex-direction: column; gap: 10px; align-items: flex-start; }
   }
 </style>
 </head>
@@ -389,22 +167,15 @@
   <!-- Header -->
   <div class="header">
     <div class="header-left">
-      <div class="icon-circle">
-        <i class="fas fa-sliders-h"></i>
-      </div>
+      <div class="icon-circle"><i class="fas fa-sliders-h"></i></div>
       <h1>System Settings</h1>
     </div>
-    <a href="admin.html" class="back-link">
-      <i class="fas fa-arrow-left"></i> Back
-    </a>
+    <a href="admin.html" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
   </div>
 
   <!-- VOTING CONTROL CARD -->
   <div class="card">
-    <div class="card-title">
-      <i class="fas fa-power-off"></i>
-      <span>Voting Control</span>
-    </div>
+    <div class="card-title"><i class="fas fa-power-off"></i><span>Voting Control</span></div>
 
     <div id="votingStatus" class="status-badge status-open">🟢 Election in Progress</div>
 
@@ -417,7 +188,7 @@
     </div>
 
     <p style="font-size:0.85rem; color:var(--gray); margin-top:8px;">
-      When closed, voters will see "Election Year is Completed & Closed" on login page.
+      When closed, voters will see "Election is Closed" on registration and login.
     </p>
 
     <div style="display: flex; gap:8px; margin-top:15px;">
@@ -428,50 +199,34 @@
 
   <!-- SYSTEM STATS CARD -->
   <div class="card">
-    <div class="card-title">
-      <i class="fas fa-chart-pie"></i>
-      <span>System Statistics</span>
-    </div>
-
+    <div class="card-title"><i class="fas fa-chart-pie"></i><span>System Statistics</span></div>
     <div class="stats-grid" id="statsGrid">
-      <div class="stat-item">
-        <div class="number" id="votesCount">0</div>
-        <div class="label">Votes Cast</div>
-      </div>
-      <div class="stat-item">
-        <div class="number" id="votersCount">0</div>
-        <div class="label">Voters</div>
-      </div>
-      <div class="stat-item">
-        <div class="number" id="candidatesCount">0</div>
-        <div class="label">Candidates</div>
-      </div>
+      <div class="stat-item"><div class="number" id="votesCount">0</div><div class="label">Votes Cast</div></div>
+      <div class="stat-item"><div class="number" id="votersCount">0</div><div class="label">Voters</div></div>
+      <div class="stat-item"><div class="number" id="candidatesCount">0</div><div class="label">Candidates</div></div>
     </div>
   </div>
 
   <!-- VOTER ID CARD GENERATOR -->
   <div class="card">
-    <div class="card-title">
-      <i class="fas fa-id-card"></i>
-      <span>Voter ID Card Generator</span>
-    </div>
+    <div class="card-title"><i class="fas fa-id-card"></i><span>Voter ID Card Generator</span></div>
 
     <div class="card-preview" id="voterCardPreview">
       <h4><i class="fas fa-id-card"></i> Preview</h4>
       <div class="preview-details" id="previewDetails">
-        <p><strong>Name:</strong> <span id="previewName">John Doe</span></p>
-        <p><strong>Class:</strong> <span id="previewClass">Form Four</span></p>
-        <p><strong>Gender:</strong> <span id="previewGender">Male</span></p>
-        <p><strong>Voter ID:</strong> <span id="previewID">VOTER123456</span></p>
+        <p><strong>Name:</strong> <span id="previewName">Select a voter</span></p>
+        <p><strong>Class:</strong> <span id="previewClass">-</span></p>
+        <p><strong>Gender:</strong> <span id="previewGender">-</span></p>
+        <p><strong>Voter ID:</strong> <span id="previewID">-</span></p>
         <p><strong>Election:</strong> UKSS 2026</p>
       </div>
     </div>
 
-    <select id="voterSelect" style="margin-bottom:10px;">
+    <select id="voterSelect">
       <option value="">-- Select Voter --</option>
     </select>
 
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
       <button class="btn btn-primary" onclick="generateSingleCard()"><i class="fas fa-id-card"></i> Generate Card</button>
       <button class="btn" onclick="downloadCardPDF()"><i class="fas fa-download"></i> Download PDF</button>
       <button class="btn" onclick="generateAllCards()"><i class="fas fa-print"></i> All Voters</button>
@@ -480,45 +235,27 @@
 
   <!-- YEAR PROMOTION CARD -->
   <div class="card">
-    <div class="card-title">
-      <i class="fas fa-calendar-alt"></i>
-      <span>Year Promotion</span>
-    </div>
-
+    <div class="card-title"><i class="fas fa-calendar-alt"></i><span>Year Promotion</span></div>
     <p>Promote students for next year's election (2027)</p>
-
-    <select id="promotionYear">
-      <option value="2027">2027</option>
-      <option value="2028">2028</option>
-    </select>
-
+    <select id="promotionYear"><option value="2027">2027</option><option value="2028">2028</option></select>
     <button class="btn btn-primary" onclick="promoteStudents()" style="margin-top:10px;">
       <i class="fas fa-arrow-up"></i> Promote All Students
     </button>
-
     <div style="background:var(--light-gray); border-radius:16px; padding:12px; margin-top:15px; font-size:0.85rem;">
-      <p>✓ Form One → Form Two</p>
-      <p>✓ Form Two → Form Three</p>
-      <p>✓ Form Three → Form Four</p>
-      <p>✓ Form Four → Graduated</p>
+      <p>✓ Form One → Form Two</p><p>✓ Form Two → Form Three</p>
+      <p>✓ Form Three → Form Four</p><p>✓ Form Four → Graduated</p>
     </div>
   </div>
 
   <!-- ARCHIVE MANAGEMENT CARD -->
   <div class="card">
-    <div class="card-title">
-      <i class="fas fa-archive"></i>
-      <span>Archive Management</span>
-    </div>
-
+    <div class="card-title"><i class="fas fa-archive"></i><span>Archive Management</span></div>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
       <button class="btn btn-primary" onclick="archiveCurrent()"><i class="fas fa-save"></i> Archive Current</button>
       <button class="btn btn-danger" onclick="clearAll()"><i class="fas fa-trash"></i> Clear All</button>
     </div>
-
     <h4 style="margin-bottom:10px;">Recent Archives</h4>
     <div id="historyList"></div>
-
     <button class="btn" onclick="viewAllArchives()" style="width:100%; margin-top:10px;">
       <i class="fas fa-history"></i> View All Archives
     </button>
@@ -526,15 +263,9 @@
 
   <!-- CUSTOM COMMAND CARD -->
   <div class="card">
-    <div class="card-title">
-      <i class="fas fa-terminal"></i>
-      <span>Custom Command</span>
-    </div>
-
+    <div class="card-title"><i class="fas fa-terminal"></i><span>Custom Command</span></div>
     <input type="text" id="customCmd" placeholder="Enter command (e.g., reset_voting)">
-    <button class="btn btn-primary" onclick="executeCustom()" style="width:100%;">
-      <i class="fas fa-play"></i> Execute
-    </button>
+    <button class="btn btn-primary" onclick="executeCustom()" style="width:100%;"><i class="fas fa-play"></i> Execute</button>
   </div>
 
 </div>
@@ -551,7 +282,29 @@
 </div>
 
 <script>
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyAIabK86PrfHfzNVciI2K7aRjb8VoWyA7A",
+  authDomain: "ukss-voting-system.firebaseapp.com",
+  databaseURL: "https://ukss-voting-system-default-rtdb.firebaseio.com",
+  projectId: "ukss-voting-system",
+  storageBucket: "ukss-voting-system.appspot.com",
+  messagingSenderId: "525528255065",
+  appId: "1:525528255065:web:97c4e55d2984acc718bf48"
+};
+firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+// Initialize system node if not exists
+db.ref("system").once("value", snap => {
+  if (!snap.exists()) {
+    db.ref("system").set({
+      votingOpen: true,
+      electionClosed: false,
+      electionYear: 2026
+    });
+  }
+});
 
 // Show success message
 function showSuccess(msg) {
@@ -560,7 +313,7 @@ function showSuccess(msg) {
   setTimeout(() => document.getElementById("successMsg").style.display = "none", 3000);
 }
 
-// ================ VOTING CONTROL ================
+// ================ VOTING CONTROL (FIXED) ================
 async function loadVotingStatus() {
   const snap = await db.ref("system/votingOpen").once("value");
   const isOpen = snap.val() !== false;
@@ -575,7 +328,7 @@ async function loadVotingStatus() {
     badge.innerHTML = '<i class="fas fa-circle"></i> Election in Progress';
   } else {
     badge.className = "status-badge status-closed";
-    badge.innerHTML = '<i class="fas fa-circle"></i> Election Year is Completed & Closed';
+    badge.innerHTML = '<i class="fas fa-circle"></i> Election is Closed';
   }
 }
 
@@ -614,7 +367,7 @@ async function loadStats() {
   document.getElementById("candidatesCount").textContent = Object.keys(candidatesSnap.val() || {}).length;
 }
 
-// ================ VOTER ID CARDS ================
+// ================ VOTER ID CARDS (FIXED - Shows Voters) ================
 let votersList = [];
 
 async function loadVoters() {
@@ -625,35 +378,42 @@ async function loadVoters() {
   select.innerHTML = '<option value="">-- Select Voter --</option>';
   
   votersList.forEach(v => {
-    const name = `${v.firstName || ''} ${v.lastName || ''}`.trim();
-    select.innerHTML += `<option value="${v.id}">${name} (${v.classSelect})</option>`;
+    const name = `${v.firstName || ''} ${v.middleName || ''} ${v.lastName || ''}`.trim();
+    select.innerHTML += `<option value="${v.id}">${name} (${v.classSelect || 'N/A'})</option>`;
+  });
+  
+  // Update preview when selection changes
+  select.addEventListener("change", function() {
+    const id = this.value;
+    const voter = votersList.find(v => v.id === id);
+    if (voter) {
+      const fullName = `${voter.firstName || ''} ${voter.middleName || ''} ${voter.lastName || ''}`.trim();
+      document.getElementById("previewName").textContent = fullName || 'N/A';
+      document.getElementById("previewClass").textContent = voter.classSelect || 'N/A';
+      document.getElementById("previewGender").textContent = voter.gender || 'N/A';
+      document.getElementById("previewID").textContent = voter.id || 'N/A';
+    } else {
+      document.getElementById("previewName").textContent = 'Select a voter';
+      document.getElementById("previewClass").textContent = '-';
+      document.getElementById("previewGender").textContent = '-';
+      document.getElementById("previewID").textContent = '-';
+    }
   });
 }
 
-document.getElementById("voterSelect").addEventListener("change", function() {
-  const id = this.value;
-  const voter = votersList.find(v => v.id === id);
-  if (voter) {
-    document.getElementById("previewName").textContent = `${voter.firstName || ''} ${voter.lastName || ''}`.trim();
-    document.getElementById("previewClass").textContent = voter.classSelect || 'N/A';
-    document.getElementById("previewGender").textContent = voter.gender || 'N/A';
-    document.getElementById("previewID").textContent = voter.id || 'N/A';
-  }
-});
-
 window.generateSingleCard = function() {
   const id = document.getElementById("voterSelect").value;
-  if (!id) return alert("Select a voter");
+  if (!id) return alert("Please select a voter first");
   
   const voter = votersList.find(v => v.id === id);
   if (!voter) return;
   
-  showSuccess("Card generated - Ready to download");
+  showSuccess("Card ready - Click Download PDF");
 };
 
 window.downloadCardPDF = function() {
   const id = document.getElementById("voterSelect").value;
-  if (!id) return alert("Select a voter");
+  if (!id) return alert("Please select a voter first");
   
   const voter = votersList.find(v => v.id === id);
   if (!voter) return;
@@ -674,8 +434,10 @@ window.downloadCardPDF = function() {
   doc.setFont("helvetica", "bold");
   doc.text("UKSS VOTER CARD", 42.5, 12, { align: "center" });
   
+  const fullName = `${voter.firstName || ''} ${voter.middleName || ''} ${voter.lastName || ''}`.trim();
+  
   doc.setFontSize(10);
-  doc.text(`Name: ${voter.firstName || ''} ${voter.lastName || ''}`, 10, 25);
+  doc.text(`Name: ${fullName}`, 10, 25);
   doc.text(`Class: ${voter.classSelect || 'N/A'}`, 10, 33);
   doc.text(`Gender: ${voter.gender || 'N/A'}`, 10, 41);
   
@@ -686,7 +448,7 @@ window.downloadCardPDF = function() {
 };
 
 window.generateAllCards = function() {
-  alert("Generating PDF for all voters... (Would create multiple pages)");
+  alert("This would generate a PDF with all voter cards");
   // You can implement multi-page PDF here
 };
 
