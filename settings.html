@@ -12,6 +12,7 @@
 
 <!-- jsPDF for cards -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -101,6 +102,8 @@
   .btn-primary:hover { background: #0e4a13; }
   .btn-danger { background: var(--danger); color: white; border: 2px solid var(--danger); }
   .btn-danger:hover { background: #a51d1d; }
+  .btn-warning { background: #ffb74d; color: #333; border: 2px solid #ffb74d; }
+  .btn-warning:hover { background: #ffa726; }
   
   /* Stats Grid */
   .stats-grid {
@@ -133,6 +136,40 @@
   .card-preview h4 { color: var(--primary); margin-bottom: 10px; }
   .preview-details { font-size: 0.9rem; line-height: 1.8; }
   
+  /* Class Selector */
+  .class-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+  }
+  .class-option {
+    background: var(--light-gray);
+    border: 2px solid var(--border);
+    border-radius: 40px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .class-option:hover {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+  }
+  .class-option.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .class-option.selected .count {
+    color: rgba(255,255,255,0.9);
+  }
+  .class-option .count {
+    font-size: 0.8rem;
+    color: var(--gray);
+    margin-top: 4px;
+  }
+  
   /* Success Message */
   .success-msg {
     position: fixed; top: 20px; right: 20px; background: var(--primary);
@@ -152,6 +189,7 @@
   @media (max-width: 600px) {
     .stats-grid { grid-template-columns: 1fr; }
     .history-item { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .class-selector { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -207,7 +245,7 @@
     </div>
   </div>
 
-  <!-- VOTER ID CARD GENERATOR -->
+  <!-- VOTER ID CARD GENERATOR (UPDATED WITH CLASS SELECTION) -->
   <div class="card">
     <div class="card-title"><i class="fas fa-id-card"></i><span>Voter ID Card Generator</span></div>
 
@@ -222,28 +260,56 @@
       </div>
     </div>
 
+    <h4 style="margin:15px 0 10px;">Select Class for Bulk Cards:</h4>
+    <div class="class-selector" id="classSelector">
+      <div class="class-option" data-class="Form One" onclick="selectClass('Form One')">
+        Form One <span class="count" id="countFormOne">0</span>
+      </div>
+      <div class="class-option" data-class="Form Two" onclick="selectClass('Form Two')">
+        Form Two <span class="count" id="countFormTwo">0</span>
+      </div>
+      <div class="class-option" data-class="Form Three" onclick="selectClass('Form Three')">
+        Form Three <span class="count" id="countFormThree">0</span>
+      </div>
+      <div class="class-option" data-class="Form Four" onclick="selectClass('Form Four')">
+        Form Four <span class="count" id="countFormFour">0</span>
+      </div>
+    </div>
+
     <select id="voterSelect">
-      <option value="">-- Select Voter --</option>
+      <option value="">-- Select Individual Voter --</option>
     </select>
 
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:15px;">
       <button class="btn btn-primary" onclick="generateSingleCard()"><i class="fas fa-id-card"></i> Generate Card</button>
       <button class="btn" onclick="downloadCardPDF()"><i class="fas fa-download"></i> Download PDF</button>
-      <button class="btn" onclick="generateAllCards()"><i class="fas fa-print"></i> All Voters</button>
+      <button class="btn btn-warning" onclick="generateClassCards()" id="generateClassBtn"><i class="fas fa-print"></i> Generate Class Cards</button>
     </div>
+    <p style="font-size:0.8rem; color:var(--gray); margin-top:8px;" id="selectedClassHint">Click a class above to generate cards for all students in that class</p>
   </div>
 
-  <!-- YEAR PROMOTION CARD -->
+  <!-- YEAR PROMOTION CARD (UPDATED WITH UNDO) -->
   <div class="card">
     <div class="card-title"><i class="fas fa-calendar-alt"></i><span>Year Promotion</span></div>
-    <p>Promote students for next year's election (2027)</p>
+    <p>Promote students for next year's election (2027) or undo promotion</p>
     <select id="promotionYear"><option value="2027">2027</option><option value="2028">2028</option></select>
-    <button class="btn btn-primary" onclick="promoteStudents()" style="margin-top:10px;">
-      <i class="fas fa-arrow-up"></i> Promote All Students
-    </button>
-    <div style="background:var(--light-gray); border-radius:16px; padding:12px; margin-top:15px; font-size:0.85rem;">
-      <p>✓ Form One → Form Two</p><p>✓ Form Two → Form Three</p>
-      <p>✓ Form Three → Form Four</p><p>✓ Form Four → Graduated</p>
+    
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:15px;">
+      <button class="btn btn-primary" onclick="promoteStudents()">
+        <i class="fas fa-arrow-up"></i> Promote All Students
+      </button>
+      <button class="btn btn-warning" onclick="undoPromotion()">
+        <i class="fas fa-undo"></i> Undo Promotion
+      </button>
+    </div>
+
+    <div style="background:var(--light-gray); border-radius:16px; padding:12px; margin-top:15px;">
+      <p><strong>Promotion Rules:</strong></p>
+      <p>✓ Form One → Form Two</p>
+      <p>✓ Form Two → Form Three</p>
+      <p>✓ Form Three → Form Four</p>
+      <p>✓ Form Four → Graduated (moved to graduates node)</p>
+      <p id="graduatesCount" style="margin-top:8px; color:var(--primary);">Graduates: 0</p>
     </div>
   </div>
 
@@ -313,7 +379,7 @@ function showSuccess(msg) {
   setTimeout(() => document.getElementById("successMsg").style.display = "none", 3000);
 }
 
-// ================ VOTING CONTROL (FIXED) ================
+// ================ VOTING CONTROL ================
 async function loadVotingStatus() {
   const snap = await db.ref("system/votingOpen").once("value");
   const isOpen = snap.val() !== false;
@@ -361,21 +427,36 @@ async function loadStats() {
   const votesSnap = await db.ref("votes").once("value");
   const votersSnap = await db.ref("voters").once("value");
   const candidatesSnap = await db.ref("candidates").once("value");
+  const graduatesSnap = await db.ref("graduates").once("value");
   
   document.getElementById("votesCount").textContent = Object.keys(votesSnap.val() || {}).length;
   document.getElementById("votersCount").textContent = Object.keys(votersSnap.val() || {}).length;
   document.getElementById("candidatesCount").textContent = Object.keys(candidatesSnap.val() || {}).length;
+  document.getElementById("graduatesCount").textContent = `Graduates: ${Object.keys(graduatesSnap.val() || {}).length}`;
 }
 
-// ================ VOTER ID CARDS (FIXED - Shows Voters) ================
+// ================ VOTER ID CARDS WITH CLASS SELECTION ================
 let votersList = [];
+let selectedClass = null;
 
 async function loadVoters() {
   const snap = await db.ref("voters").once("value");
   votersList = Object.entries(snap.val() || {}).map(([id, v]) => ({ id, ...v }));
   
+  // Update class counts
+  const counts = { "Form One": 0, "Form Two": 0, "Form Three": 0, "Form Four": 0 };
+  votersList.forEach(v => {
+    if (counts.hasOwnProperty(v.classSelect)) counts[v.classSelect]++;
+  });
+  
+  document.getElementById("countFormOne").textContent = counts["Form One"];
+  document.getElementById("countFormTwo").textContent = counts["Form Two"];
+  document.getElementById("countFormThree").textContent = counts["Form Three"];
+  document.getElementById("countFormFour").textContent = counts["Form Four"];
+  
+  // Update select dropdown
   const select = document.getElementById("voterSelect");
-  select.innerHTML = '<option value="">-- Select Voter --</option>';
+  select.innerHTML = '<option value="">-- Select Individual Voter --</option>';
   
   votersList.forEach(v => {
     const name = `${v.firstName || ''} ${v.middleName || ''} ${v.lastName || ''}`.trim();
@@ -400,6 +481,21 @@ async function loadVoters() {
     }
   });
 }
+
+window.selectClass = function(className) {
+  // Remove selected class from all options
+  document.querySelectorAll('.class-option').forEach(opt => {
+    opt.classList.remove('selected');
+  });
+  
+  // Add selected class to clicked option
+  const selectedElement = document.querySelector(`[data-class="${className}"]`);
+  if (selectedElement) {
+    selectedElement.classList.add('selected');
+    selectedClass = className;
+    document.getElementById("selectedClassHint").innerHTML = `Selected: <strong>${className}</strong> - Click "Generate Class Cards" to create PDF`;
+  }
+};
 
 window.generateSingleCard = function() {
   const id = document.getElementById("voterSelect").value;
@@ -447,30 +543,88 @@ window.downloadCardPDF = function() {
   doc.save(`UKSS_Voter_${voter.id}.pdf`);
 };
 
-window.generateAllCards = function() {
-  alert("This would generate a PDF with all voter cards");
-  // You can implement multi-page PDF here
+window.generateClassCards = function() {
+  if (!selectedClass) {
+    return alert("Please select a class first by clicking on one of the class boxes above");
+  }
+  
+  const classVoters = votersList.filter(v => v.classSelect === selectedClass);
+  
+  if (classVoters.length === 0) {
+    return alert(`No voters found in ${selectedClass}`);
+  }
+  
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+  
+  let yPos = 20;
+  const cardsPerPage = 8; // 2 columns x 4 rows
+  
+  classVoters.forEach((voter, index) => {
+    if (index > 0 && index % cardsPerPage === 0) {
+      doc.addPage();
+      yPos = 20;
+    }
+    
+    const col = (index % cardsPerPage) % 2;
+    const row = Math.floor((index % cardsPerPage) / 2);
+    
+    const xPos = 15 + (col * 95);
+    const yCard = yPos + (row * 60);
+    
+    // Card background
+    doc.setFillColor(27, 94, 32);
+    doc.roundedRect(xPos, yCard, 85, 54, 3, 3, 'F');
+    
+    // Card content
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("UKSS VOTER CARD", xPos + 42.5, yCard + 10, { align: "center" });
+    
+    const fullName = `${voter.firstName || ''} ${voter.middleName || ''} ${voter.lastName || ''}`.trim();
+    
+    doc.setFontSize(8);
+    doc.text(`Name: ${fullName}`, xPos + 5, yCard + 22);
+    doc.text(`Class: ${voter.classSelect || 'N/A'}`, xPos + 5, yCard + 30);
+    doc.text(`Gender: ${voter.gender || 'N/A'}`, xPos + 5, yCard + 38);
+    doc.text(`ID: ${voter.id || ''}`, xPos + 5, yCard + 46);
+  });
+  
+  doc.save(`UKSS_Voter_Cards_${selectedClass.replace(' ', '_')}.pdf`);
+  showSuccess(`Generated ${classVoters.length} cards for ${selectedClass}`);
 };
 
-// ================ YEAR PROMOTION ================
+// ================ YEAR PROMOTION WITH UNDO ================
+let previousClasses = {};
+
 window.promoteStudents = async function() {
-  if (!confirm("Promote ALL students to next class?")) return;
+  if (!confirm("Promote ALL students to next class?\n\nForm One → Form Two\nForm Two → Form Three\nForm Three → Form Four\nForm Four → Graduated")) return;
   
   const year = document.getElementById("promotionYear").value;
   const votersSnap = await db.ref("voters").once("value");
   const voters = votersSnap.val() || {};
   
+  // Store previous classes for undo
+  previousClasses = {};
   let promoted = 0;
   let graduated = 0;
   
   for (const [id, voter] of Object.entries(voters)) {
+    // Store original class for undo
+    previousClasses[id] = voter.classSelect;
+    
     let newClass = voter.classSelect;
     
     if (voter.classSelect === "Form One") newClass = "Form Two";
     else if (voter.classSelect === "Form Two") newClass = "Form Three";
     else if (voter.classSelect === "Form Three") newClass = "Form Four";
     else if (voter.classSelect === "Form Four") {
-      await db.ref(`graduates/${id}`).set({ ...voter, year });
+      await db.ref(`graduates/${id}`).set({ ...voter, year, originalClass: voter.classSelect });
       await db.ref(`voters/${id}`).remove();
       graduated++;
       continue;
@@ -482,7 +636,53 @@ window.promoteStudents = async function() {
     }
   }
   
+  // Save promotion record for undo
+  await db.ref("system/lastPromotion").set({
+    timestamp: Date.now(),
+    year: year,
+    previousClasses: previousClasses,
+    promotedCount: promoted,
+    graduatedCount: graduated
+  });
+  
   showSuccess(`Promoted: ${promoted}, Graduated: ${graduated}`);
+  loadStats();
+  loadVoters();
+};
+
+window.undoPromotion = async function() {
+  const lastPromotionSnap = await db.ref("system/lastPromotion").once("value");
+  const lastPromotion = lastPromotionSnap.val();
+  
+  if (!lastPromotion) {
+    return alert("No promotion record found to undo");
+  }
+  
+  if (!confirm(`Undo last promotion from ${new Date(lastPromotion.timestamp).toLocaleString()}?`)) return;
+  
+  // Restore graduates first
+  const graduatesSnap = await db.ref("graduates").once("value");
+  const graduates = graduatesSnap.val() || {};
+  
+  for (const [id, grad] of Object.entries(graduates)) {
+    if (grad.originalClass) {
+      await db.ref(`voters/${id}`).set({
+        ...grad,
+        classSelect: grad.originalClass
+      });
+      await db.ref(`graduates/${id}`).remove();
+    }
+  }
+  
+  // Restore promoted students
+  for (const [id, originalClass] of Object.entries(lastPromotion.previousClasses || {})) {
+    await db.ref(`voters/${id}`).update({ classSelect: originalClass });
+  }
+  
+  // Clear promotion record
+  await db.ref("system/lastPromotion").remove();
+  
+  showSuccess("Promotion undone - Students returned to original classes");
   loadStats();
   loadVoters();
 };
@@ -523,17 +723,20 @@ window.archiveCurrent = async function() {
   const votes = await db.ref("votes").once("value");
   const voters = await db.ref("voters").once("value");
   const candidates = await db.ref("candidates").once("value");
+  const graduates = await db.ref("graduates").once("value");
   
   await db.ref(`history/${key}`).set({
     votes: votes.val() || {},
     voters: voters.val() || {},
     candidates: candidates.val() || {},
+    graduates: graduates.val() || {},
     archivedAt: new Date().toISOString()
   });
   
   await db.ref("votes").remove();
   await db.ref("voters").remove();
   await db.ref("candidates").remove();
+  await db.ref("graduates").remove();
   
   showSuccess("Data archived");
   loadStats();
@@ -547,6 +750,7 @@ window.clearAll = async function() {
   await db.ref("votes").remove();
   await db.ref("voters").remove();
   await db.ref("candidates").remove();
+  await db.ref("graduates").remove();
   
   showSuccess("All data cleared");
   loadStats();
@@ -557,7 +761,7 @@ window.clearAll = async function() {
 window.viewArchive = async function(key) {
   const snap = await db.ref(`history/${key}`).once("value");
   const data = snap.val();
-  alert(`Archive ${key}\nVotes: ${Object.keys(data.votes || {}).length}\nVoters: ${Object.keys(data.voters || {}).length}\nCandidates: ${Object.keys(data.candidates || {}).length}`);
+  alert(`Archive ${key}\nVotes: ${Object.keys(data.votes || {}).length}\nVoters: ${Object.keys(data.voters || {}).length}\nCandidates: ${Object.keys(data.candidates || {}).length}\nGraduates: ${Object.keys(data.graduates || {}).length}`);
 };
 
 window.unarchive = async function(key) {
@@ -569,6 +773,7 @@ window.unarchive = async function(key) {
   await db.ref("votes").set(data.votes || {});
   await db.ref("voters").set(data.voters || {});
   await db.ref("candidates").set(data.candidates || {});
+  await db.ref("graduates").set(data.graduates || {});
   
   showSuccess(`Restored ${key}`);
   loadStats();
@@ -591,6 +796,7 @@ window.viewAllArchives = async function() {
         <p>Votes: ${Object.keys(data.votes || {}).length}</p>
         <p>Voters: ${Object.keys(data.voters || {}).length}</p>
         <p>Candidates: ${Object.keys(data.candidates || {}).length}</p>
+        <p>Graduates: ${Object.keys(data.graduates || {}).length}</p>
         <div style="display:flex; gap:8px; margin-top:10px;">
           <button class="small-btn" onclick="unarchive('${key}')">Unarchive</button>
         </div>
